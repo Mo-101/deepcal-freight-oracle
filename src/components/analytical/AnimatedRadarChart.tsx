@@ -106,7 +106,7 @@ export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
             })}
 
             {/* Metric labels */}
-            {metrics.map((metric, i) => {
+            {metrics.map((metricLabel, i) => {
               const angle = (i * 2 * Math.PI) / metrics.length - Math.PI / 2;
               const labelX = center + Math.cos(angle) * (radius + 20);
               const labelY = center + Math.sin(angle) * (radius + 20);
@@ -123,7 +123,7 @@ export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
                   className="fade-in"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
-                  {metric}
+                  {metricLabel}
                 </text>
               );
             })}
@@ -162,7 +162,7 @@ export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
                       }}
                     >
                       {showDetails && revealLevel !== 'novice' && (
-                        <title>{`${metric}: ${(score * 100).toFixed(1)}%`}</title>
+                        <title>{`${metrics[j]}: ${(score * 100).toFixed(1)}%`}</title>
                       )}
                     </circle>
                   );
