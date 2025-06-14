@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
+import PowerAnalyticalEngine from '@/components/PowerAnalyticalEngine';
 import { csvDataEngine } from '@/services/csvDataEngine';
 
 interface CalculatorInputs {
@@ -33,6 +35,7 @@ const SymbolicCalculator = () => {
 
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<any>(null);
+  const [isAwakening, setIsAwakening] = useState(false);
 
   const forwarderOptions = [
     'Kuehne Nagel',
@@ -56,19 +59,25 @@ const SymbolicCalculator = () => {
       await csvDataEngine.autoLoadEmbeddedData();
     }
 
-    const calculationResult = csvDataEngine.calculateFreightOptions(
-      inputs.origin,
-      inputs.destination,
-      inputs.weight,
-      inputs.volume
-    );
+    setIsAwakening(true);
 
-    setResults(calculationResult);
-    setShowResults(true);
-    
+    // Dramatic pause for the awakening
     setTimeout(() => {
-      document.getElementById('outputPanel')?.scrollIntoView({ behavior: 'smooth' });
-    }, 300);
+      const calculationResult = csvDataEngine.calculateFreightOptions(
+        inputs.origin,
+        inputs.destination,
+        inputs.weight,
+        inputs.volume
+      );
+
+      setResults(calculationResult);
+      setShowResults(true);
+      setIsAwakening(false);
+      
+      setTimeout(() => {
+        document.getElementById('outputPanel')?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    }, 1000);
   };
 
   useEffect(() => {
@@ -263,53 +272,24 @@ const SymbolicCalculator = () => {
                   <div>
                     <button 
                       onClick={awakenOracle}
-                      className="w-full mt-2 bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center"
+                      disabled={isAwakening}
+                      className="w-full mt-2 bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <i className="fas fa-bolt mr-2"></i>
-                      Awaken the Oracle
+                      {isAwakening ? 'Awakening the Oracle...' : 'Awaken the Oracle'}
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             
-            {/* Output Panel */}
-            {showResults && (
-              <div className="lg:col-span-2 scroll-animation" id="outputPanel">
-                
-                <div className="oracle-card p-6">
-                  <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple p-5 rounded-t-xl symbolic-border">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                      <div className="flex items-center mb-4 md:mb-0">
-                        <i className="fas fa-scroll text-2xl text-white mr-3"></i>
-                        <div>
-                          <h2 className="text-xl font-semibold text-white">🕊️ SYMBOLIC LOGISTICS TRANSMISSION</h2>
-                          <p className="text-sm text-purple-100">DeepCAL++ vΩ LIVING ORACLE REPORT</p>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2 bg-black/20 rounded-full text-sm flex items-center border border-purple-400/30">
-                        <i className="fas fa-bolt text-yellow-400 mr-2"></i>
-                        <span>ACTIVE TRANSMISSION • VERDICT PENDING</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {results && (
-                    <div className="p-5">
-                      <div className="text-center">
-                        <h3 className="text-2xl font-bold text-green-400 mb-2">🏆 {results.bestForwarder}</h3>
-                        <p className="text-lg">{results.recommendation}</p>
-                        <div className="mt-4 text-sm">
-                          <span>Route Score: {results.routeScore}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mt-6 text-center text-sm text-slate-400">
-                  DeepCAL++ vΩ • Symbolic Logistical Intelligence Engine • First Transmission: 2025-06-14
-                </div>
+            {/* Output Panel - Power Analytical Engine */}
+            {showResults && results && (
+              <div className="lg:col-span-2" id="outputPanel">
+                <PowerAnalyticalEngine 
+                  result={results}
+                  inputs={inputs}
+                />
               </div>
             )}
           </div>
@@ -322,11 +302,11 @@ const SymbolicCalculator = () => {
           <div className="flex flex-col md:flex-row justify-center items-center space-y-3 md:space-y-0 md:space-x-8">
             <div>
               <i className="fas fa-brain text-deepcal-light mr-2"></i>
-              PHASE I – Simulated Symbolic Engine
+              PHASE I – Power Analytical Engine (ACTIVE)
             </div>
             <div>
               <i className="fas fa-chart-network text-deepcal-light mr-2"></i>
-              PHASE II – Visual Dashboard (In Development)
+              PHASE II – Neural Visualization (Q2 2025)
             </div>
             <div>
               <i className="fas fa-wave-square text-deepcal-light mr-2"></i>
@@ -334,7 +314,7 @@ const SymbolicCalculator = () => {
             </div>
             <div>
               <i className="fas fa-bolt text-deepcal-light mr-2"></i>
-              PHASE IV – Live Shipment Integration (Q4 2025)
+              PHASE IV – Live Integration (Q4 2025)
             </div>
           </div>
           <div className="mt-6 text-xs text-slate-500">
