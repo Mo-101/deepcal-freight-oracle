@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -99,19 +100,19 @@ export function DeepCALEngineAnalytics() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-space">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-cyan-400 flex items-center gap-2">
+          <h2 className="text-3xl font-bold text-gradient-blue flex items-center gap-2">
             <Brain className="h-8 w-8" />
             DeepCAL Engine Analytics
           </h2>
-          <p className="text-gray-400 mt-2">Real-time AI engine performance and training metrics</p>
+          <p className="text-muted-foreground mt-2 font-inter">Real-time AI engine performance and training metrics</p>
         </div>
         <Button
           onClick={startTraining}
           disabled={isTraining}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          className="glass-button font-medium"
         >
           {isTraining ? "Training..." : "Start Training"}
         </Button>
@@ -119,63 +120,63 @@ export function DeepCALEngineAnalytics() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card hover-lift">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 font-inter">
               <Target className="h-4 w-4" />
               Model Accuracy
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-400">{metrics.accuracy.toFixed(1)}%</div>
-            <Progress value={metrics.accuracy} className="mt-2" />
+            <div className="data-value text-green-400">{metrics.accuracy.toFixed(1)}%</div>
+            <Progress value={metrics.accuracy} className="mt-2 animate-progress" />
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card hover-lift">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 font-inter">
               <Database className="h-4 w-4" />
               Data Processed
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-400">{metrics.dataProcessed.toLocaleString()}</div>
-            <p className="text-xs text-gray-500 mt-1">Records analyzed</p>
+            <div className="data-value text-blue-400">{metrics.dataProcessed.toLocaleString()}</div>
+            <p className="data-label mt-1">Records analyzed</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card hover-lift">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 font-inter">
               <Zap className="h-4 w-4" />
               Predictions Made
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-400">{metrics.predictionsGenerated.toLocaleString()}</div>
-            <p className="text-xs text-gray-500 mt-1">Total predictions</p>
+            <div className="data-value text-yellow-400">{metrics.predictionsGenerated.toLocaleString()}</div>
+            <p className="data-label mt-1">Total predictions</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card hover-lift">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400 flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2 font-inter">
               <Activity className="h-4 w-4" />
               Confidence Score
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-400">{metrics.confidenceScore.toFixed(1)}%</div>
-            <Progress value={metrics.confidenceScore} className="mt-2" />
+            <div className="data-value text-purple-400">{metrics.confidenceScore.toFixed(1)}%</div>
+            <Progress value={metrics.confidenceScore} className="mt-2 animate-progress" />
           </CardContent>
         </Card>
       </div>
 
       {/* Training Progress */}
-      <Card className="bg-gray-800/50 border-gray-700">
+      <Card className="glass-card">
         <CardHeader>
-          <CardTitle className="text-cyan-400 flex items-center gap-2">
+          <CardTitle className="text-gradient-blue flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
             Training Progress
           </CardTitle>
@@ -183,11 +184,13 @@ export function DeepCALEngineAnalytics() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-300">Current Training Session</span>
-              <Badge variant={isTraining ? "default" : "secondary"}>{isTraining ? "Active" : "Idle"}</Badge>
+              <span className="text-foreground font-inter">Current Training Session</span>
+              <Badge variant={isTraining ? "default" : "secondary"} className="font-inter">
+                {isTraining ? "Active" : "Idle"}
+              </Badge>
             </div>
-            <Progress value={metrics.trainingProgress} className="h-2" />
-            <div className="flex justify-between text-sm text-gray-400">
+            <Progress value={metrics.trainingProgress} className="h-2 animate-progress" />
+            <div className="flex justify-between text-sm text-muted-foreground font-inter">
               <span>Progress: {metrics.trainingProgress.toFixed(1)}%</span>
               <span>Model Version: {metrics.modelVersion}</span>
             </div>
@@ -197,16 +200,16 @@ export function DeepCALEngineAnalytics() {
 
       {/* Training Logs */}
       {trainingLogs.length > 0 && (
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-cyan-400">Training Logs</CardTitle>
+            <CardTitle className="text-gradient-blue">Training Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-black/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+            <div className="bg-black/50 rounded-lg p-4 max-h-64 overflow-y-auto cyber-border">
               <div className="font-mono text-sm space-y-1">
                 {trainingLogs.map((log, index) => (
                   <div key={index} className="text-green-400">
-                    <span className="text-gray-500">[{new Date().toLocaleTimeString()}]</span> {log}
+                    <span className="text-muted-foreground">[{new Date().toLocaleTimeString()}]</span> {log}
                   </div>
                 ))}
               </div>
@@ -217,44 +220,44 @@ export function DeepCALEngineAnalytics() {
 
       {/* Engine Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-cyan-400">Engine Status</CardTitle>
+            <CardTitle className="text-gradient-blue">Engine Status</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-300">Learning Rate:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">Learning Rate:</span>
                 <span className="text-blue-400">{metrics.learningRate}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Last Training:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">Last Training:</span>
                 <span className="text-green-400">{new Date(metrics.lastTrainingSession).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Status:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">Status:</span>
                 <Badge className="bg-green-900 text-green-300">Operational</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800/50 border-gray-700">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-cyan-400">Performance Metrics</CardTitle>
+            <CardTitle className="text-gradient-blue">Performance Metrics</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-300">Avg Response Time:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">Avg Response Time:</span>
                 <span className="text-blue-400">127ms</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Memory Usage:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">Memory Usage:</span>
                 <span className="text-yellow-400">2.3GB / 8GB</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">CPU Usage:</span>
+              <div className="flex justify-between font-inter">
+                <span className="text-foreground">CPU Usage:</span>
                 <span className="text-purple-400">34%</span>
               </div>
             </div>
