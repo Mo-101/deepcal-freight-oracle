@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,47 +38,40 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* DeepCAL++ Custom Variables */
+    --bg-primary: #0e0f1c;
+    --bg-secondary: #181b2e;
+    --accent-color: #39ff14;
+    --border-glow: rgba(57, 255, 20, 0.6);
+    --text-primary: #f0f0f0;
+    --text-secondary: #a9adc1;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
@@ -98,6 +92,132 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    font-family: 'Orbitron', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
   }
+}
+
+/* DeepCAL++ Custom Styles */
+.symbolic-border {
+  border: 1px solid rgba(126, 34, 206, 0.3);
+  box-shadow: 0 0 15px rgba(126, 34, 206, 0.2), inset 0 0 10px rgba(126, 34, 206, 0.1);
+}
+
+.glowing-border {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+}
+
+.oracle-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glow);
+  border-radius: 8px;
+  box-shadow: 0 0 12px var(--accent-color);
+}
+
+.glow-text {
+  color: var(--accent-color);
+  text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+}
+
+.analytical-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.scroll-animation {
+  animation: scrollAppear 1.2s ease-out forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out forwards;
+}
+
+.map-container {
+  height: 100%;
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 0.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-grid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(126, 34, 206, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 34, 206, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.route-line {
+  position: absolute;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #a855f7, transparent);
+  transform-origin: left;
+  border-radius: 50%;
+}
+
+.shipment-node {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #a855f7;
+  box-shadow: 0 0 15px 5px rgba(168, 85, 247, 0.5);
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+.radar-chart {
+  position: relative;
+  width: 100%;
+  height: 250px;
+}
+
+.radar-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.forwarder-path {
+  fill: rgba(168, 85, 247, 0.2);
+  stroke: #a855f7;
+  stroke-width: 2;
+}
+
+.decision-seal {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #581c87 0%, #7e22ce 70%, #a855f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes scrollAppear {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }

@@ -10,6 +10,7 @@ import Ranking from "./pages/Ranking";
 import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import FreightCalculatorPage from "./pages/FreightCalculator";
+import SymbolicCalculator from "./pages/SymbolicCalculator";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<SymbolicCalculator />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/calculator" element={<FreightCalculatorPage />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/analytics" element={<Analytics />} />
