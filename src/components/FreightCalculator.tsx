@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin } from 'lucide-react';
+import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin, Database } from 'lucide-react';
 import { csvDataEngine, type FreightCalculatorResult } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 
@@ -39,7 +38,7 @@ const FreightCalculator = () => {
       }
 
       setCalculating(true);
-      humorToast("🧮 DeepCAL Engine Running", "Crunching numbers with AHP-TOPSIS methodology...", 2000);
+      humorToast("🧮 DeepCAL Engine Running", "Crunching real data with AHP-TOPSIS methodology...", 2000);
 
       // Simulate processing time for dramatic effect
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -72,6 +71,8 @@ const FreightCalculator = () => {
     setResult(null);
   };
 
+  const lineageMeta = csvDataEngine.getLineageMeta();
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="text-center mb-6">
@@ -82,6 +83,12 @@ const FreightCalculator = () => {
         <p className="text-muted-foreground">
           Multi-criteria freight forwarder analysis powered by real shipment data
         </p>
+        {lineageMeta && (
+          <div className="mt-2 text-xs text-blue-600 flex items-center justify-center gap-2">
+            <Database className="w-4 h-4" />
+            {lineageMeta.records} real records • {lineageMeta.source} • Hash: {lineageMeta.sha256.substring(0, 8)}
+          </div>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -200,6 +207,18 @@ const FreightCalculator = () => {
                   <p className="text-blue-900">{result.recommendation}</p>
                 </div>
 
+                {/* Data Lineage Badge */}
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
+                    <Database className="w-4 h-4" />
+                    Data Lineage
+                  </h4>
+                  <div className="text-sm text-purple-700">
+                    <div>Source: {result.lineageMeta.source} • Records: {result.lineageMeta.records}</div>
+                    <div>Hash: {result.lineageMeta.sha256.substring(0, 16)}... • {new Date(result.lineageMeta.timestamp).toLocaleString()}</div>
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="font-semibold mb-2">📊 Forwarder Comparison</h4>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -247,6 +266,7 @@ const FreightCalculator = () => {
               <div className="text-center py-8 text-muted-foreground">
                 <Calculator className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Enter shipment details and click Calculate to see recommendations</p>
+                <p className="text-xs mt-2">All calculations use real data - no mock values!</p>
               </div>
             )}
           </CardContent>

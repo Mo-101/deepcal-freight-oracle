@@ -6,10 +6,14 @@ import { Upload, Database, CheckCircle, AlertCircle, FileText } from 'lucide-rea
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 
-const CSVDataLoader = () => {
+interface CSVDataLoaderProps {
+  onDataLoaded?: () => void;
+}
+
+const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(csvDataEngine.isDataLoaded());
-  const [dataStats, setDataStats] = useState<{ records: number; hash: string } | null>(null);
+  const [dataStats, setDataStats] = useState<{ records: number; hash: string; source: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,14 +30,18 @@ const CSVDataLoader = () => {
 
     try {
       const text = await file.text();
-      await csvDataEngine.loadCSVData(text);
+      await csvDataEngine.loadCSVData(text, 'uploaded');
       
       const shipments = csvDataEngine.getShipments();
+      const lineageMeta = csvDataEngine.getLineageMeta();
+      
       setDataStats({
         records: shipments.length,
-        hash: csvDataEngine.getDataHash().substring(0, 8)
+        hash: lineageMeta?.sha256.substring(0, 8) || 'unknown',
+        source: lineageMeta?.source || 'uploaded'
       });
       setDataLoaded(true);
+      onDataLoaded?.();
       
       humorToast("✅ Data Engine Online", `Successfully loaded ${shipments.length} shipment records!`, 3000);
     } catch (error) {
@@ -46,31 +54,27 @@ const CSVDataLoader = () => {
     }
   };
 
-  const loadSampleData = async () => {
+  const loadEmbeddedData = async () => {
     setIsLoading(true);
-    humorToast("🔄 Loading Sample Data", "Initializing with DeepCAL sample dataset...", 2000);
+    humorToast("🔄 Loading Embedded Data", "Initializing with DeepCAL embedded dataset...", 2000);
 
     try {
-      // Sample CSV data based on your format
-      const sampleCSV = `date_of_greenlight_to_pickup	date_of_collection	request_reference	cargo_description	item_category	origin_country	origin_latitude	origin_longitude	destination_country	destination_latitude	destination_longitude	carrier	freight_carrier+cost	kuehne_nagel	scan_global_logistics	dhl_express	dhl_global	bwosi	agl	siginon	frieght_in_time	weight_kg	volume_cbm	initial_quote_awarded	final_quote_awarded_freight_forwader_Carrier	comments	date_of_arrival_destination	delivery_status	mode_of_shipment
-	11-Jan-24	SR_24-001_NBO hub_Zimbabwe	Cholera kits and Tents	Emergency Health Kits	Kenya	36.990054	1.2404475	Zimbabwe	31.08848075	-17.80269125	Kenya Airways	18681	18681	0	0	0	0	0	0	0	7352.98	24.68	Kuehne Nagel	Kenya Airways	Kenya Airways via Kuehne Nagel	17-Jan-24	Delivered	Air
-	11-Jan-24	SR_24-002_NBO hub_Zambia_(SR_23-144)	Cholera kitsORSBody bagsMasks and Glucometers	Emergency Health Kits	Kenya	36.990054	1.2404475	Zambia	28.3174378	15.4136414	Kenya Airways	35000	59500	0	0	0	0	0	0	29972	14397.00	50.88	Kuehne Nagel	Kenya Airways	Kenya Airways via Kuehne Nagel	01-Dec-24	Delivered	Air
-	02-Feb-24	SR_24-004_NBO hub_Zambia	Tents GlovesPPEs and Drugs 	Field Support Material	Kenya	36.990054	1.2404475	Zambia	28.3174378	15.4136414	Kenya Airways	56800	0	0	0	0	0	0	0	0	10168.00	59.02	KQ:Direct charter	KQ:Direct charter	KQ:Direct charter	02-Jun-24	Delivered	Air
-	08-Feb-24	SR_24-008_NBO hub_Madagascar	Laboratory Items	Lab & Diagnostics	Kenya	36.990054	1.2404475	Madagascar	47.50866443	-14.71204234	Kenya Airways	466	466	1029	0	0	0	0	0	574	179.33	2.71	Kuehne Nagel	Kenya Airways	Kenya Airways via Kuehne Nagel	02-Sept-24	Delivered	Air
-	15-Feb-24	 SR_24-011_NBO hub_Comoros	Laboratory itemsKit Cholera and Sprayers	Lab & Diagnostics	Kenya	36.990054	1.2404475	Comoros	43.2413774	11.7209701	Kenya Airways	3480.00	679	781	0	0	0	0	0	521	1289.00	5.93	 Freight in Time	Kenya Airways	Kenya Airways via Freight in Time	16-Feb-24	Delivered	Air`;
-
-      await csvDataEngine.loadCSVData(sampleCSV);
+      await csvDataEngine.autoLoadEmbeddedData();
       
       const shipments = csvDataEngine.getShipments();
+      const lineageMeta = csvDataEngine.getLineageMeta();
+      
       setDataStats({
         records: shipments.length,
-        hash: csvDataEngine.getDataHash().substring(0, 8)
+        hash: lineageMeta?.sha256.substring(0, 8) || 'unknown',
+        source: lineageMeta?.source || 'embedded'
       });
       setDataLoaded(true);
+      onDataLoaded?.();
       
-      humorToast("✅ Sample Data Loaded", `DeepCAL is now operational with ${shipments.length} sample records!`, 3000);
+      humorToast("✅ Embedded Data Loaded", `DeepCAL is now operational with ${shipments.length} real shipment records!`, 3000);
     } catch (error) {
-      humorToast("❌ Sample Load Failed", (error as Error).message, 4000);
+      humorToast("❌ Embedded Load Failed", (error as Error).message, 4000);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +88,7 @@ const CSVDataLoader = () => {
           DeepCAL Data Engine
         </CardTitle>
         <p className="text-muted-foreground">
-          "Nothing Moves Without the Core" - Load your shipment data to unlock all features
+          "Nothing Moves Without the Core" - Real data powers all features
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -102,7 +106,7 @@ const CSVDataLoader = () => {
             </div>
             {dataStats && (
               <div className="text-sm text-muted-foreground">
-                {dataStats.records} records loaded • Hash: {dataStats.hash}
+                {dataStats.records} records loaded • Source: {dataStats.source} • Hash: {dataStats.hash}
               </div>
             )}
           </div>
@@ -142,19 +146,19 @@ const CSVDataLoader = () => {
           </div>
 
           <Button
-            onClick={loadSampleData}
+            onClick={loadEmbeddedData}
             disabled={isLoading}
             variant="outline"
             className="w-full"
           >
             <FileText className="w-4 h-4 mr-2" />
-            Load Sample Data
+            Load Embedded Dataset
           </Button>
         </div>
 
         {/* Data Requirements */}
         <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-semibold mb-2">Required Data Fields:</h4>
+          <h4 className="font-semibold mb-2">Real Data Fields (No Mock Data):</h4>
           <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
             <div>• request_reference</div>
             <div>• origin_country</div>
@@ -164,6 +168,9 @@ const CSVDataLoader = () => {
             <div>• freight_carrier_cost</div>
             <div>• date_of_collection</div>
             <div>• delivery_status</div>
+          </div>
+          <div className="mt-2 text-xs text-blue-600">
+            ✨ All calculations use real shipment data - no mock values anywhere!
           </div>
         </div>
       </CardContent>
