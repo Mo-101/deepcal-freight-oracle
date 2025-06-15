@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
@@ -8,15 +9,15 @@ import { mapShipmentToInputs, generateForwarderComparison } from '@/utils/shipme
 
 export const useSymbolicCalculator = () => {
   const [inputs, setInputs] = useState<CalculatorInputs>({
-    origin: 'Kenya',
-    destination: 'Zambia',
-    weight: 7850,
-    volume: 24.5,
+    origin: '',
+    destination: '',
+    weight: 0,
+    volume: 0,
     cargoType: 'Emergency Health Kits',
     priorities: {
-      time: 68,
-      cost: 45,
-      risk: 22
+      time: 33,
+      cost: 33,
+      risk: 34
     },
     selectedForwarders: [] // Start with no forwarders selected
   });
@@ -105,10 +106,19 @@ export const useSymbolicCalculator = () => {
       setShowOutput(false);
       setOutputAnimation(false);
       setForwarderRFQ({});
-      setInputs(prev => ({
-        ...prev,
+      setInputs({
+        origin: '',
+        destination: '',
+        weight: 0,
+        volume: 0,
+        cargoType: 'Emergency Health Kits',
+        priorities: {
+          time: 33,
+          cost: 33,
+          risk: 34
+        },
         selectedForwarders: []
-      }));
+      });
     } catch (error) {
       console.error('Failed to refresh data:', error);
       humorToast("❌ Refresh Failed", "Could not reload fresh data from CSV", 3000);
@@ -144,6 +154,20 @@ export const useSymbolicCalculator = () => {
       setShowOutput(false);
       setOutputAnimation(false);
       setForwarderRFQ({});
+      // Reset to empty form
+      setInputs({
+        origin: '',
+        destination: '',
+        weight: 0,
+        volume: 0,
+        cargoType: 'Emergency Health Kits',
+        priorities: {
+          time: 33,
+          cost: 33,
+          risk: 34
+        },
+        selectedForwarders: []
+      });
       return;
     }
     
