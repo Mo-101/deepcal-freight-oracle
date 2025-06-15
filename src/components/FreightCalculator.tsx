@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin, Database } from 'lucide-react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
+import { fire } from "@/moscripts/engine";
 
 interface CalculatorInputs {
   origin: string;
@@ -38,6 +39,14 @@ const FreightCalculator = () => {
   }, []);
 
   const handleCalculate = async () => {
+    // Call MoScripts for validation before proceeding
+    fire("onBeforeSaveShipment", {
+      shipment: {
+        ...inputs,
+        // Add other fields as needed for rules
+      },
+    });
+
     humorToast("❌ Calculation Engine Disabled", "Calculation methods have been decoupled from loader; scoring coming via @deepcal/core-mcdm.", 3000);
   };
 
