@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,48 +19,21 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				background: '#181824',
+				surface: '#23233a',
+				border: '#2b2842',
+				glass: 'rgba(255,255,255,0.07)',
+				glassBorder: 'rgba(170,170,255,0.21)',
+				cardShadow: 'rgba(110,0,240,0.10)',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
-				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
-				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#9557FF',
+					dark: '#441466',
+					foreground: '#f9f9fc'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
-				},
-				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
-				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					DEFAULT: '#3290f0',
+					soft: '#78aaff',
+					subtle: '#e6efff'
 				},
 				deepcal: {
 					purple: '#7e22ce',
@@ -72,7 +44,9 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: '1.2rem',
+				glass: '16px'
 			},
 			keyframes: {
 				'accordion-down': {
@@ -108,6 +82,15 @@ export default {
 			},
 			fontFamily: {
 				'orbitron': ['Orbitron', 'sans-serif'],
+				'elegant': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+			},
+			boxShadow: {
+				glass: '0 8px 32px 0 rgba(48,68,187,0.22), 0 1.5px 7px 0 rgba(99,80,255,0.12)'
+			},
+			backgroundImage: {
+				'glass-blur': 'linear-gradient(120deg, rgba(54, 54, 93, 0.92) 80%, rgba(69, 36, 106, 0.2))',
+				'soft-gradient': 'linear-gradient(97deg, #23233a 0%, #441466 100%)',
+				'card-gradient': 'linear-gradient(120deg, rgba(110,0,240,0.08), rgba(255,255,255,0.00))'
 			}
 		}
 	},

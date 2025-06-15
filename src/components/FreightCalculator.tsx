@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,17 +74,17 @@ const FreightCalculator = () => {
   const lineageMeta = csvDataEngine.getLineageMeta();
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 page-transition">
+    <div className="max-w-6xl mx-auto space-y-8 page-transition font-elegant">
       <div className="text-center mb-3">
         <h1 className="section-title flex items-center justify-center gap-3 mb-2">
-          <Calculator className="w-8 h-8 text-deepcal-400" />
+          <Calculator className="w-8 h-8 text-primary" />
           DeepCAL™ Advanced Freight Calculator
         </h1>
         <p className="subtle-text">
           Neutrosophic AHP-TOPSIS Decision Framework for multi-carrier optimization powered by real data.
         </p>
         {lineageMeta && (
-          <div className="mt-2 text-xs text-deepcal-400 flex items-center justify-center gap-2">
+          <div className="mt-2 text-xs text-accent flex items-center justify-center gap-2">
             <Database className="w-4 h-4" />
             {lineageMeta.records} real records • {lineageMeta.source} • Hash: {lineageMeta.sha256.substring(0, 8)}
           </div>
@@ -93,9 +92,9 @@ const FreightCalculator = () => {
       </div>
 
       {/* INPUT GRID */}
-      <Card className="glass-card shadow-cosmic">
+      <Card className="glass-card shadow-glass">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gradient-blue">
+          <CardTitle className="flex items-center gap-2 text-primary">
             <MapPin className="w-5 h-5" />
             Shipment Details
           </CardTitle>
@@ -107,12 +106,12 @@ const FreightCalculator = () => {
               handleCalculate();
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <div>
-                <Label htmlFor="origin" className="text-gradient">Origin Country</Label>
+                <Label htmlFor="origin" className="input-label">Origin Country</Label>
                 <Input
                   id="origin"
-                  className="input-field mt-1"
+                  className="elegant-input mt-1"
                   placeholder="e.g., Kenya"
                   value={inputs.origin}
                   onChange={(e) => setInputs({...inputs, origin: e.target.value})}
@@ -120,10 +119,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="destination" className="text-gradient">Destination Country</Label>
+                <Label htmlFor="destination" className="input-label">Destination Country</Label>
                 <Input
                   id="destination"
-                  className="input-field mt-1"
+                  className="elegant-input mt-1"
                   placeholder="e.g., Burundi"
                   value={inputs.destination}
                   onChange={(e) => setInputs({...inputs, destination: e.target.value})}
@@ -131,10 +130,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="cargoType" className="text-gradient">Item Category</Label>
+                <Label htmlFor="cargoType" className="input-label">Item Category</Label>
                 <Input
                   id="cargoType"
-                  className="input-field mt-1"
+                  className="elegant-input mt-1"
                   placeholder="e.g., Emergency Health Kits"
                   value={inputs.cargoType}
                   onChange={(e) => setInputs({...inputs, cargoType: e.target.value})}
@@ -142,10 +141,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="weight" className="text-gradient">Weight (kg)</Label>
+                <Label htmlFor="weight" className="input-label">Weight (kg)</Label>
                 <Input
                   id="weight"
-                  className="input-field mt-1"
+                  className="elegant-input mt-1"
                   type="number"
                   min="0"
                   step="any"
@@ -156,10 +155,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="volume" className="text-gradient">Volume (cbm)</Label>
+                <Label htmlFor="volume" className="input-label">Volume (cbm)</Label>
                 <Input
                   id="volume"
-                  className="input-field mt-1"
+                  className="elegant-input mt-1"
                   type="number"
                   min="0"
                   step="0.01"
@@ -170,9 +169,9 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="urgency" className="text-gradient">Priority Level</Label>
+                <Label htmlFor="urgency" className="input-label">Priority Level</Label>
                 <Select value={inputs.urgency} onValueChange={(value: 'low' | 'medium' | 'high') => setInputs({...inputs, urgency: value})}>
-                  <SelectTrigger className="input-field mt-1">
+                  <SelectTrigger className="elegant-input mt-1">
                     <SelectValue placeholder="Choose priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -193,7 +192,7 @@ const FreightCalculator = () => {
               >
                 {calculating ? "Calculating..." : "Calculate Best Route"}
               </Button>
-              <Button type="button" variant="outline" onClick={clearForm} className="border-deepcal-400/50">
+              <Button type="button" variant="outline" onClick={clearForm} className="border-primary/60">
                 Clear
               </Button>
             </div>
