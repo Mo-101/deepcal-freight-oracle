@@ -1,105 +1,35 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* DeepCAL++ Custom Variables */
-    --bg-primary: #0e0f1c;
-    --bg-secondary: #181b2e;
-    --accent-color: #39ff14;
-    --border-glow: rgba(57, 255, 20, 0.6);
-    --text-primary: #f0f0f0;
-    --text-secondary: #a9adc1;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+    --background: #0f172a;
+    --foreground: #e2e8f0;
+    --surface: #1e293b;
+    --primary: #a855f7;
+    --primary-foreground: #f8fafc;
+    --accent: #3b82f6;
+    --muted: #94a3b8;
+    --input: #334155;
+    --border: #475569;
+    --glass: rgba(255,255,255,0.07);
+    --glass-border: rgba(126,34,206,0.3);
+    --font-elegant: 'Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif';
   }
 
   body {
-    font-family: 'Orbitron', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    font-family: var(--font-elegant);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: var(--foreground);
+    font-weight: 400;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
     min-height: 100vh;
   }
 }
 
-/* DeepCAL++ Custom Styles */
+/* Symbolic Design Classes */
 .symbolic-border {
   border: 1px solid rgba(126, 34, 206, 0.3);
   box-shadow: 0 0 15px rgba(126, 34, 206, 0.2), inset 0 0 10px rgba(126, 34, 206, 0.1);
@@ -110,15 +40,10 @@
 }
 
 .oracle-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-glow);
-  border-radius: 8px;
-  box-shadow: 0 0 12px var(--accent-color);
-}
-
-.glow-text {
-  color: var(--accent-color);
-  text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid rgba(126, 34, 206, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  border-radius: 1rem;
 }
 
 .analytical-grid {
@@ -220,4 +145,41 @@
 @keyframes scrollAppear {
   0% { transform: translateY(20px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes magical-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(40px) rotateX(20deg);
+    filter: blur(12px);
+    box-shadow: 0 0 150px 30px rgba(126, 34, 206, 0.07);
+  }
+  70% {
+    opacity: 1;
+    filter: blur(4px);
+    box-shadow: 0 0 50px 15px rgba(126, 34, 206, 0.24);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0deg);
+    filter: blur(0);
+    box-shadow: 0 0 0px 0px rgba(126, 34, 206, 0.0);
+  }
+}
+.animate-magical-appear {
+  animation: magical-appear 1.2s cubic-bezier(.43,1.23,.36,1);
+}
+.magical-sparkle-overlay {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: repeating-radial-gradient(circle at 60% 45%, rgba(168,85,247,0.04), transparent 30px), repeating-radial-gradient(circle at 80% 60%, rgba(251,191,36,0.09), transparent 40px);
+  animation: sparkle-shimmer 2.2s infinite linear alternate;
+  border-radius: 1rem;
+  mix-blend-mode: plus-lighter;
+}
+@keyframes sparkle-shimmer {
+  0% { opacity: 0.14; }
+  50% { opacity: 0.34; }
+  100% { opacity: 0.10; }
 }

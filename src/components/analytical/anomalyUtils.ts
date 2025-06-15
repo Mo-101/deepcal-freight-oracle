@@ -1,26 +1,29 @@
 
 /**
  * Utilities for detecting anomalies in forwarder KPIs.
- * A value is flagged as anomalous if it is more than 1.5 standard deviations from the mean.
+ * Here, a value is flagged as anomalous if it is more than 1.5 standard deviations from the mean for its set.
  */
+
 import type { ForwarderKPI } from '@/services/csvDataEngine';
 
-export type AnomalyField = 'costPerKg' | 'avgTransitDays' | 'onTimeRate';
+type AnomalyField = 'costPerKg' | 'avgTransitDays' | 'onTimeRate';
 
 export interface ForwarderAnomalies {
   [forwarderName: string]: {
     anomalyFields: AnomalyField[];
-    reasons: string[];
+    reasons: string[]; // e.g. ["High cost", "Long delivery"]
   };
 }
 
 export function detectForwarderAnomalies(forwarderKPIs: ForwarderKPI[]): ForwarderAnomalies {
+  // Compute mean and std for each metric
   const metrics: AnomalyField[] = ['costPerKg', 'avgTransitDays', 'onTimeRate'];
   const stats: Record<AnomalyField, {mean: number, std: number}> = {
     costPerKg: {mean: 0, std: 0},
     avgTransitDays: {mean: 0, std: 0},
     onTimeRate: {mean: 0, std: 0},
   };
+
   metrics.forEach(metric => {
     const arr = forwarderKPIs.map(fwd => fwd[metric]);
     const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -28,15 +31,19 @@ export function detectForwarderAnomalies(forwarderKPIs: ForwarderKPI[]): Forward
     stats[metric] = {mean, std};
   });
 
+  // Define as an anomaly any value >1.5 std away from mean (high or low depending on metric)
   const anomalies: ForwarderAnomalies = {};
+
   forwarderKPIs.forEach(fwd => {
     const anomalyFields: AnomalyField[] = [];
     const reasons: string[] = [];
+
     // High cost
     if (fwd.costPerKg > stats.costPerKg.mean + 1.5 * stats.costPerKg.std) {
       anomalyFields.push('costPerKg');
       reasons.push('Unusually high cost per kg');
     }
+    // Very low cost (optional: flag as suspicious)
     if (fwd.costPerKg < stats.costPerKg.mean - 1.5 * stats.costPerKg.std) {
       anomalyFields.push('costPerKg');
       reasons.push('Suspiciously low cost per kg');
@@ -55,9 +62,11 @@ export function detectForwarderAnomalies(forwarderKPIs: ForwarderKPI[]): Forward
       anomalyFields.push('onTimeRate');
       reasons.push('Delivery risk detected (low on-time rate)');
     }
+
     if (anomalyFields.length > 0) {
       anomalies[fwd.name] = { anomalyFields, reasons };
     }
   });
+
   return anomalies;
 }

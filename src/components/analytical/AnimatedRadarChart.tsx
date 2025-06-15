@@ -141,7 +141,6 @@ export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
                   strokeWidth="2"
                   className="transition-all duration-1000 ease-out"
                 />
-                
                 {/* Data points with anomaly highlight */}
                 {forwarder.scores.map((score, j) => {
                   const angle = (j * 2 * Math.PI) / forwarder.scores.length - Math.PI / 2;
