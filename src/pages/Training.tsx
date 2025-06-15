@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import Papa from 'papaparse';
-import { validateShipment } from '@deepcal/validation';
-import { tnnToSentence } from '@deepcal/validation/tnn';
 
 export interface WeightVector {
   cost: number;
@@ -22,6 +19,22 @@ const DEFAULT_WEIGHTS: WeightVector = {
   reliability: 0.2,
   risk: 0.1,
 };
+
+/**
+ * TEMPORARY placeholder - replace with your real shipment validator.
+ * Should return an array of objects with .level property.
+ */
+function validateShipment(row: any) {
+  // This stub simply marks all rows as "valid".
+  return [{ level: "ok" }];
+}
+
+/**
+ * TEMPORARY placeholder - replace with your real tnnToSentence function.
+ */
+function tnnToSentence(a: string, b: string, weights: number[]) {
+  return `AHP Pairwise explanation for ${a} vs ${b} with weights [${weights.join(", ")}].`;
+}
 
 export default function TrainingPage() {
   const { toast } = useToast();
