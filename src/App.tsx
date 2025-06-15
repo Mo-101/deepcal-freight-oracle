@@ -12,6 +12,8 @@ import DeepTalk from "./pages/DeepTalk";
 import FreightCalculatorPage from "./pages/FreightCalculator";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
 
+// Removed imports that do not exist in ./pages
+
 const queryClient = new QueryClient();
 
 const App = () => (
