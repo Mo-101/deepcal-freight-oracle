@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useCallback } from "react"
@@ -35,7 +34,7 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"
 
 // Helper to get top carrier for destination based on shipment count
 function getTopCarrierForDestination(data: ShipmentData[], destination: string) {
-  const carriers = {}
+  const carriers: Record<string, number> = {}
   data
     .filter((s) => s.destination_country === destination)
     .forEach((s) => {
@@ -43,13 +42,13 @@ function getTopCarrierForDestination(data: ShipmentData[], destination: string) 
       if (!carrier) return
       carriers[carrier] = (carriers[carrier] || 0) + 1
     })
-  return Object.entries(carriers).sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown"
+  return Object.entries(carriers).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] || "Unknown"
 }
 
 // Helper to get most cost-effective carrier for current data
 function getMostCostEffectiveCarrier(data: ShipmentData[]) {
-  const carrierCosts = {}
-  const carrierShipments = {}
+  const carrierCosts: Record<string, number> = {}
+  const carrierShipments: Record<string, number> = {}
   data.forEach((s) => {
     const carrier = s.final_quote_awarded_freight_forwader_Carrier
     if (!carrier) return
@@ -63,12 +62,12 @@ function getMostCostEffectiveCarrier(data: ShipmentData[]) {
     carrierCosts[carrier] += cost
     carrierShipments[carrier] += weight
   })
-  const costPerKg = {}
+  const costPerKg: Record<string, number> = {}
   Object.keys(carrierCosts).forEach((carrier) => {
     costPerKg[carrier] =
       carrierShipments[carrier] > 0 ? carrierCosts[carrier] / carrierShipments[carrier] : Number.POSITIVE_INFINITY
   })
-  return Object.entries(costPerKg).sort((a, b) => a[1] - b[1])[0]?.[0] || "Unknown"
+  return Object.entries(costPerKg).sort(([,a], [,b]) => (a as number) - (b as number))[0]?.[0] || "Unknown"
 }
 
 interface ForwarderAnalyticsDashboardProps {
