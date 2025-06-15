@@ -391,7 +391,7 @@ const SymbolicCalculator = () => {
                                   {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
                                   {/* Anomaly flag */}
                                   {hasAnomaly && (
-                                    <AlertTriangle className="ml-1 text-yellow-400" size={15} title="Anomaly detected" />
+                                    <AlertTriangle className="ml-1 text-yellow-400" size={15} />
                                   )}
                                 </td>
                                 <td className="px-4 py-3 font-medium">{forwarder.name}</td>
@@ -399,13 +399,13 @@ const SymbolicCalculator = () => {
                                   {forwarder.avgTransitDays?.toFixed(1) || '5.2'}
                                   {/* highlight if time is anomaly */}
                                   {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
-                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} title="Anomalous Delivery Time"/>
+                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
                                   ${forwarder.costPerKg.toFixed(2)}
                                   {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
-                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} title="Anomalous Cost"/>
+                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
@@ -416,7 +416,7 @@ const SymbolicCalculator = () => {
                                   }`}>
                                     {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
                                     {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
-                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={11} title="Delivery risk anomaly" />
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={11} />
                                     )}
                                   </span>
                                 </td>
