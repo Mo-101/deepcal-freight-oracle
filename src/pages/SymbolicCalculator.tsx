@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
-import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
+import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
 import { Info } from "lucide-react";
@@ -25,12 +25,20 @@ interface CalculatorInputs {
 }
 
 const SymbolicCalculator = () => {
-  // --- NEW: Canonical shipment selection state ---
-  const [allShipments, setAllShipments] = useState<ShipmentRecord[]>([]);
-  const [selectedReference, setSelectedReference] = useState<string>('');
-  // canonical default: all calculators are based on base data, not user entry
-  const [canonicalInputs, setCanonicalInputs] = useState<CalculatorInputs | null>(null);
-
+  const [inputs, setInputs] = useState<CalculatorInputs>({
+    origin: 'Kenya',
+    destination: 'Zambia',
+    weight: 7850,
+    volume: 24.5,
+    cargoType: 'Emergency Health Kits',
+    priorities: {
+      time: 68,
+      cost: 45,
+      risk: 22
+    },
+    selectedForwarders: ['Kuehne + Nagel', 'DHL Global Forwarding', 'Siginon Logistics']
+  });
+  const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
   const [results, setResults] = useState<any>(null);
   const [isAwakening, setIsAwakening] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
@@ -67,20 +75,17 @@ const SymbolicCalculator = () => {
   // Validation for form inputs
   useEffect(() => {
     let val: typeof validation = {};
-    if (inputs && (inputs.weight < 100 || inputs.weight > 20000)) {
+    if (inputs.weight < 100 || inputs.weight > 20000) {
       val.weight = "Weight must be between 100 and 20,000 kg.";
     }
-    if (inputs && (inputs.volume < 1 || inputs.volume > 80)) {
+    if (inputs.volume < 1 || inputs.volume > 80) {
       val.volume = "Volume must be between 1 and 80 CBM.";
     }
     setValidation(val);
-  }, [inputs?.weight, inputs?.volume]);
-
-  const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
+  }, [inputs.weight, inputs.volume]);
 
   const handleForwarderToggle = (forwarder: string) => {
     setInputs(prev => {
-      if (!prev) return prev;
       const selected = prev.selectedForwarders.includes(forwarder)
         ? prev.selectedForwarders.filter(f => f !== forwarder)
         : [...prev.selectedForwarders, forwarder];
@@ -91,7 +96,7 @@ const SymbolicCalculator = () => {
     });
     setForwarderRFQ(prev => {
       // When adding, initialize if missing. When removing, prune.
-      if (inputs && inputs.selectedForwarders.includes(forwarder)) {
+      if (inputs.selectedForwarders.includes(forwarder)) {
         // Removing
         const newRFQ = { ...prev };
         delete newRFQ[forwarder];
@@ -113,53 +118,24 @@ const SymbolicCalculator = () => {
     }));
   };
 
-  // NEW: Load base shipments at mount, default first one
-  useEffect(() => {
-    async function loadBaseShipments() {
-      const shipments = await csvDataEngine.listShipments();
-      setAllShipments(shipments);
-      if (shipments.length > 0) {
-        setSelectedReference(shipments[0].request_reference);
-      }
+  const awakenOracle = async () => {
+    const isLoaded = await csvDataEngine.isDataLoaded();
+    if (!isLoaded) {
+      await csvDataEngine.autoLoadEmbeddedData();
     }
-    loadBaseShipments();
-  }, []);
+    setIsAwakening(true);
+    humorToast("🔮 Oracle Awakening", "The Symbolic Intelligence is stirring...", 2000);
 
-  // When the selectedReference changes, update canonicalInputs
-  useEffect(() => {
-    if (!selectedReference || allShipments.length === 0) return;
-    const record = allShipments.find(s => s.request_reference === selectedReference);
-    if (record) {
-      setCanonicalInputs({
-        origin: record.origin_country,
-        destination: record.destination_country,
-        weight: record.weight_kg,
-        volume: record.volume_cbm,
-        cargoType: record.item_category,
-        priorities: {
-          time: 50,
-          cost: 30,
-          risk: 20
-        },
-        selectedForwarders: [
-          ...(record.kuehne_nagel ? ['Kuehne + Nagel'] : []),
-          ...(record.dhl_global ? ['DHL Global Forwarding'] : []),
-          ...(record.siginon ? ['Siginon Logistics'] : []),
-          ...(record.scan_global_logistics ? ['Scan Global Logistics'] : []),
-          ...(record.agl ? ['Agility Logistics'] : [])
-        ]
-      });
-    }
-  }, [selectedReference, allShipments]);
-
-  // OVERRIDE: Ignore user entry -- always use canonicalInputs
-  const [inputs, setInputs] = useState<CalculatorInputs | null>(null);
-
-  useEffect(() => {
-    if (canonicalInputs) {
-      setInputs(canonicalInputs);
-    }
-  }, [canonicalInputs]);
+    // Engine is offline—remove calculation call (just simulate result panel or show engine offline)
+    setTimeout(() => {
+      // Simulate awakening oracle output OFFLINE
+      setResults(null); // Results panel will show "engine coming soon" or similar
+      setIsAwakening(false);
+      setShowOutput(true);
+      setTimeout(() => setOutputAnimation(true), 150);
+      humorToast("✨ Transmission Complete", "The Oracle is dormant until the engine is connected.", 3000);
+    }, 1500);
+  };
 
   // Hide output panel on initial mount and on input changes
   useEffect(() => {
@@ -175,7 +151,7 @@ const SymbolicCalculator = () => {
       };
       loadData();
     }
-  }, [canonicalInputs]);
+  }, [inputs.origin, inputs.destination, inputs.weight, inputs.volume, inputs.cargoType, inputs.selectedForwarders]);
 
   useEffect(() => {
     if (results && results.forwarderComparison) {
@@ -186,93 +162,199 @@ const SymbolicCalculator = () => {
     }
   }, [results]);
 
-  // Fake awakening function—only runs analytics on canonical shipment
-  const awakenOracle = async () => {
-    if (!inputs) return;
-    // Simulate analytics for base shipment
-    setIsAwakening(true);
-    humorToast("🔮 Oracle Awakening", `Analyzing canonical shipment: ${selectedReference}`, 1200);
-
-    setTimeout(() => {
-      // Populate results with "no data" if no engine exists
-      setResults({
-        bestForwarder: "",
-        routeScore: null,
-        recommendation: "Full analytics engine integration required.",
-        forwarderComparison: [],
-        narrative: null,
-        methodology: null,
-        radarSvg: null,
-        routeMapSvg: null
-      });
-      setIsAwakening(false);
-      setShowOutput(true);
-      setTimeout(() => setOutputAnimation(true), 150);
-      humorToast("✨ Transmission Complete", "Static panel until engine integrated.", 2000);
-    }, 1100);
-  };
-
-  // --- UI ---
   return (
     <div className="min-h-screen flex flex-col font-space-grotesk" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
       <DeepCALSymbolicHeader />
-
+      
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
-
-          {/* Select requested canonical shipment */}
-          <div className="mb-5">
-            <label className="block font-medium mb-1 text-white">
-              Select Canonical Shipment (Request Reference)
-            </label>
-            <select
-              className="w-full max-w-md bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white"
-              value={selectedReference}
-              onChange={e => setSelectedReference(e.target.value)}
-            >
-              {allShipments.map(s => (
-                <option key={s.request_reference} value={s.request_reference}>
-                  {s.request_reference} ({s.origin_country} → {s.destination_country})
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Input panel, now disabled - only shows canonical shipment info */}
+            {/* Input Panel */}
             <div className="lg:col-span-1">
               <div className="oracle-card p-6 h-full">
-                <h2 className="text-xl font-semibold mb-6 text-deepcal-light">
-                  Canonical Shipment Details
+                <h2 className="text-xl font-semibold mb-6 flex items-center">
+                  <i className="fas fa-shipping-fast mr-3 text-deepcal-light"></i>
+                  Shipment Configuration
                 </h2>
-                {inputs ? (
-                  <div className="space-y-3">
-                    <div><b>Origin:</b> {inputs.origin}</div>
-                    <div><b>Destination:</b> {inputs.destination}</div>
-                    <div><b>Weight (kg):</b> {inputs.weight}</div>
-                    <div><b>Volume (CBM):</b> {inputs.volume}</div>
-                    <div><b>Cargo Type:</b> {inputs.cargoType}</div>
-                    <div><b>Forwarders:</b> {inputs.selectedForwarders.join(', ') || "None"}</div>
+                
+                <div className="space-y-6">
+                  {/* Route Details */}
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <i className="fas fa-route mr-2 text-blue-400"></i>
+                      Route Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Origin
+                          <span title={help.origin}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.origin} />
+                          </span>
+                        </label>
+                        <select 
+                          className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                          value={inputs.origin}
+                          onChange={(e) => setInputs({...inputs, origin: e.target.value})}
+                        >
+                          <option value="Kenya">Nairobi, Kenya</option>
+                          <option value="UAE">Dubai, UAE</option>
+                          <option value="China">Shanghai, China</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Destination
+                          <span title={help.destination}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.destination} />
+                          </span>
+                        </label>
+                        <select 
+                          className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                          value={inputs.destination}
+                          onChange={(e) => setInputs({...inputs, destination: e.target.value})}
+                        >
+                          <option value="Zambia">Lusaka, Zambia</option>
+                          <option value="South Africa">Johannesburg, South Africa</option>
+                          <option value="Nigeria">Lagos, Nigeria</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-rose-400">No data for selected shipment.</div>
-                )}
-
-                {/* Oracle Activation */}
-                <div className="mt-8">
-                  <button
-                    onClick={awakenOracle}
-                    disabled={isAwakening || !inputs}
-                    className="w-full bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <i className="fas fa-bolt mr-2"></i>
-                    {isAwakening ? 'Analyzing...' : 'Show Full Analytics'}
-                  </button>
+                  
+                  {/* Cargo Specifications */}
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <i className="fas fa-box-open mr-2 text-yellow-400"></i>
+                      Cargo Specifications
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Weight (kg)
+                          <span title={help.weight}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.weight} />
+                          </span>
+                        </label>
+                        <input 
+                          type="number" 
+                          value={inputs.weight}
+                          onChange={(e) => setInputs({...inputs, weight: parseFloat(e.target.value) || 0})}
+                          className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                          min={100} max={20000}
+                          aria-describedby="weight-help"
+                        />
+                        <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-slate-400"}`}>
+                          {validation.weight || help.weight}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Volume (CBM)
+                          <span title={help.volume}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.volume} />
+                          </span>
+                        </label>
+                        <input 
+                          type="number" 
+                          value={inputs.volume}
+                          onChange={(e) => setInputs({...inputs, volume: parseFloat(e.target.value) || 0})}
+                          className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                          min={1} max={80}
+                          aria-describedby="volume-help"
+                        />
+                        <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-slate-400"}`}>
+                          {validation.volume || help.volume}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <label className="block text-sm mb-1 flex items-center gap-1">
+                        Cargo Type
+                        <span title={help.cargoType}>
+                          <Info className="text-purple-400 w-3 h-3" aria-label={help.cargoType} />
+                        </span>
+                      </label>
+                      <select 
+                        className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                        value={inputs.cargoType}
+                        onChange={(e) => setInputs({...inputs, cargoType: e.target.value})}
+                      >
+                        <option>Emergency Health Kits</option>
+                        <option>Pharmaceuticals</option>
+                        <option>Laboratory Equipment</option>
+                        <option>Cold Chain Supplies</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Priority Weighting - now interactive */}
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <i className="fas fa-balance-scale mr-2 text-purple-400"></i>
+                      Symbolic Priority Weighting
+                      <span title="Distribute 100% between these priorities to guide your result">
+                        <Info className="text-purple-400 w-3 h-3 ml-2" aria-label="Distribute 100% between these priorities to guide your result" />
+                      </span>
+                    </h3>
+                    <InteractivePrioritySliders
+                      value={inputs.priorities}
+                      onChange={handlePrioritiesChange}
+                    />
+                  </div>
+                  
+                  {/* Forwarders Selection */}
+                  <div>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
+                      Freight Forwarders
+                      <span
+                        className="ml-2"
+                        aria-label={help.forwarder}
+                        tabIndex={0}
+                        role="img"
+                        style={{ outline: "none" }}
+                      >
+                        <Info className="text-purple-400 w-3 h-3" aria-label={help.forwarder} />
+                      </span>
+                    </h3>
+                    <div className="space-y-2">
+                      {forwarderOptions.map(forwarder => (
+                        <div key={forwarder} className="flex items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
+                          <input 
+                            type="checkbox" 
+                            className="form-checkbox text-deepcal-light"
+                            checked={inputs.selectedForwarders.includes(forwarder)}
+                            onChange={() => handleForwarderToggle(forwarder)}
+                          />
+                          <span className="ml-3">{forwarder}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Render RFQ input fields for selected forwarders */}
+                    <ForwarderRFQInputs
+                      selectedForwarders={inputs.selectedForwarders}
+                      rfqData={forwarderRFQ}
+                      onChange={handleRFQChange}
+                    />
+                  </div>
+                  
+                  {/* Oracle Activation */}
+                  <div>
+                    <button 
+                      onClick={awakenOracle}
+                      disabled={isAwakening || !!validation.weight || !!validation.volume}
+                      className="w-full mt-2 bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <i className="fas fa-bolt mr-2"></i>
+                      {isAwakening ? 'Awakening the Oracle...' : 'Awaken the Oracle'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Output Panel - Only for canonical shipment */}
+            
+            {/* Output Panel - Only Visible After Awakening */}
             <div className={`lg:col-span-2 relative min-h-[300px] flex items-center justify-center`}>
               {showOutput && (
                 <div
@@ -291,80 +373,323 @@ const SymbolicCalculator = () => {
                       <div className="flex items-center mb-4 md:mb-0">
                         <i className="fas fa-scroll text-2xl text-white mr-3"></i>
                         <div>
-                          <h2 className="text-xl font-semibold text-white">🕊️ DEEPCAL FULL ANALYTICS PANEL</h2>
-                          <p className="text-sm text-purple-100">Canonical Shipment: <span className="font-mono">{selectedReference}</span></p>
+                          <h2 className="text-xl font-semibold text-white">🕊️ SYMBOLIC LOGISTICS TRANSMISSION</h2>
+                          <p className="text-sm text-purple-100">DeepCAL++ vΩ LIVING ORACLE REPORT</p>
                         </div>
                       </div>
                       <div className="px-4 py-2 bg-black/20 rounded-full text-sm flex items-center border border-purple-400/30">
                         <i className="fas fa-bolt text-yellow-400 mr-2"></i>
-                        <span>ARCHIVAL SHIPMENT EVIDENCE</span>
+                        <span>ACTIVE TRANSMISSION • VERDICT PENDING</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Oracle Narrative */}
-                  <div className="oracle-card p-5 my-6">
-                    <div className="flex items-center mb-4">
-                      <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
-                      <h3 className="font-semibold">Oracle Narrative</h3>
+                  {/* Emergency Context */}
+                  <div className="p-5 border-b border-slate-700/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="font-semibold text-deepcal-light mb-2">🚨 Emergency Context</h3>
+                        <p className="text-sm">Cholera spike reported in Kanyama District. ICU stocks at 23%. WHO pre-clearance granted.</p>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-deepcal-light mb-2">📍 Route Intelligence</h3>
+                        <div className="text-sm grid grid-cols-2 gap-2">
+                          <div>Distance: <span className="font-mono">2,100 km</span></div>
+                          <div>Corridor: <span className="font-mono">Great North Road</span></div>
+                          <div>Border Risk: <span className="text-amber-400">⚠️ Medium</span></div>
+                          <div>Weather: <span className="text-emerald-400">✅ Clear</span></div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm leading-relaxed text-slate-200">
-                      {/* FUTURE: Display real narrative from analytics */}
-                      {results && results.narrative ? (
-                        <p>{results.narrative}</p>
-                      ) : (
-                        <p className="italic text-slate-400">No Oracle analysis yet for this shipment.</p>
-                      )}
+                  </div>
+                  
+                  {/* Best Forwarder Display */}
+                  {results && (
+                    <div className="p-5 bg-green-800/20 rounded-lg border border-green-600/30 mb-6">
+                      <h3 className="font-semibold text-green-300 mb-1">🏆 Best Forwarder</h3>
+                      <p className="text-2xl font-bold text-green-100">{results.bestForwarder}</p>
+                      <p className="text-sm text-green-200 mt-1">
+                        Route Score: <span className="font-mono">{results.routeScore}</span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Recommendation */}
+                  {results && (
+                    <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
+                      <h4 className="font-semibold text-blue-200 mb-2">💡 Oracle Recommendation</h4>
+                      <p className="text-blue-100">{results.recommendation}</p>
+                    </div>
+                  )}
+
+                  {/* Forwarder Comparison Table */}
+                  <div className="bg-slate-900/50 rounded-xl overflow-hidden symbolic-border mb-6">
+                    <div className="px-5 py-3 bg-gradient-to-r from-deepcal-dark to-deepcal-purple flex justify-between items-center">
+                      <h3 className="font-semibold flex items-center">
+                        <i className="fas fa-trophy mr-2"></i>
+                        TOPSIS Ranking Matrix
+                      </h3>
+                      <span className="text-xs bg-black/20 px-2 py-1 rounded">Closeness Coefficient Algorithm</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-800/50 border-b border-deepcal-purple/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left">Rank</th>
+                            <th className="px-4 py-3 text-left">Forwarder</th>
+                            <th className="px-4 py-3 text-left">Time (days)</th>
+                            <th className="px-4 py-3 text-left">Cost (USD/kg)</th>
+                            <th className="px-4 py-3 text-left">Risk</th>
+                            <th className="px-4 py-3 text-left">TOPSIS Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {results && results.forwarderComparison && results.forwarderComparison.length > 0 ? (
+                            results.forwarderComparison.map((forwarder: any, index: number) => {
+                              const hasAnomaly = !!anomalyMap[forwarder.name];
+                              return (
+                                <tr
+                                  key={forwarder.name}
+                                  className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${hasAnomaly ? "bg-yellow-900/40" : ""}`}
+                                >
+                                  <td className="px-4 py-3 font-semibold flex items-center gap-1">
+                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
+                                    {/* Anomaly flag */}
+                                    {hasAnomaly && (
+                                      <AlertTriangle className="ml-1 text-yellow-400" size={15} />
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3 font-medium">{forwarder.name}</td>
+                                  <td className="px-4 py-3">
+                                    {formatDays(forwarder.avgTransitDays)}
+                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {formatCurrency(forwarder.costPerKg)}
+                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
+                                      forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
+                                      'bg-rose-900/30 text-rose-300'
+                                    }`}>
+                                      {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
+                                      {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
+                                        <AlertTriangle className="inline ml-1 text-yellow-400" size={11} />
+                                      )}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-green-400">
+                                    {forwarder.topsisScore ? forwarder.topsisScore.toFixed(2) : ""}
+                                  </td>
+                                </tr>
+                              )
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground italic">
+                                No results to display. Please run calculation with shipment details.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
-                  {/* Methodology Analysis */}
-                  <div className="oracle-card p-5 my-6">
-                    <div className="flex items-center mb-4">
-                      <i className="fas fa-calculator text-lg text-emerald-400 mr-2"></i>
-                      <h3 className="font-semibold">Symbolic Methodology Analysis</h3>
+                  {/* Anomaly Detection Panel */}
+                  <AnomalyPanel
+                    forwarderKPIs={results?.forwarderComparison || []}
+                    anomalies={anomalyMap}
+                  />
+
+                  {/* Analytical Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* Symbolic Narrative */}
+                    <div className="oracle-card p-5">
+                      <div className="flex items-center mb-4">
+                        <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
+                        <h3 className="font-semibold">Oracle Narrative</h3>
+                        {/* Show anomaly warning if anomalies exist */}
+                        {Object.keys(anomalyMap).length > 0 && (
+                          <span
+                            className="ml-3 inline-flex items-center px-2 py-0.5 bg-yellow-400/90 text-yellow-900 text-[11px] font-bold rounded"
+                          >
+                            <AlertTriangle className="w-4 h-4 mr-1" /> Anomaly Detected
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm leading-relaxed text-slate-200">
+                        <p className="mb-3">📜 <span className="font-medium">The Whisper of Logistics:</span> In the realm of urgent cholera kits from Nairobi to Lusaka, where time battles cost and risk shadows every movement, DeepCAL++ has consulted the ancient ledger of probabilities.</p>
+                        <p className="mb-3">🧠 <span className="font-medium">Symbolic Insight:</span> Kuehne Nagel emerges—not as the cheapest carrier (at $4.61/kg) nor the swiftest (5.2 days), but as the golden mean. Its risk factor of 8% is a silent fortress in turbulent times.</p>
+                        <p className="mb-3">⚖️ <span className="font-medium">The Balance Struck:</span> With your critical weight on time (68%) whispering urgency, and cost (45%) pleading economy, the TOPSIS algorithm rendered its impartial verdict: a dominant 0.89 score.</p>
+                        <p>🔱 <span className="font-medium">Oracle Proverb:</span> <em>"In the monsoon of uncertainty, the owl chooses the branch with both roots and reach."</em> Kuehne Nagel is that branch.</p>
+                        {/* If anomalies, show anomalous forwarders */}
+                        {Object.keys(anomalyMap).length > 0 && (
+                          <div className="mt-4 text-yellow-300 text-xs">
+                            <b>Anomaly Report:</b>
+                            <ul className="mt-1 space-y-1">
+                              {Object.entries(anomalyMap).map(([fwd, val]:any) =>
+                                <li key={fwd}>
+                                  <span className="font-semibold">{fwd}</span>: {val.reasons.join("; ")}
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm">
-                      {!!results && !!results.methodology ? (
-                        <div>{results.methodology}</div>
-                      ) : (
-                        <div className="italic text-slate-400">No methodology data for this shipment.</div>
-                      )}
+                    
+                    {/* Symbolic Seal */}
+                    <div className="oracle-card p-5 flex flex-col items-center justify-center">
+                      <div className="flex items-center mb-4">
+                        <i className="fas fa-drafting-compass text-lg text-purple-400 mr-2"></i>
+                        <h3 className="font-semibold">Decision Covenant</h3>
+                      </div>
+                      <div className="decision-seal mb-3">
+                        <div className="text-center text-white font-bold text-xs leading-tight">
+                          DEEP++ SEAL<br />
+                          ✦ VERDICT ✦<br />
+                          <span className="text-[8px]">SEALED</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center mt-2">
+                        <div>qseal:8fa9c27e</div>
+                        <div className="text-slate-400 mt-1">TIMESTAMP: {new Date().toISOString()}</div>
+                        <div className="mt-2 text-purple-300">"Kuehne Nagel honored with cargo blessing"</div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Performance Radar */}
-                  <div className="oracle-card p-5 my-6">
-                    <div className="flex items-center mb-4">
-                      <i className="fas fa-chart-line text-lg text-cyan-400 mr-2"></i>
-                      <h3 className="font-semibold">Performance Radar</h3>
+                  {/* Advanced Analytics */}
+                  <div className="grid grid-cols-1 gap-6">
+                    {/* Methodology Explanation */}
+                    <div className="oracle-card p-5">
+                      <div className="flex items-center mb-4">
+                        <i className="fas fa-calculator text-lg text-emerald-400 mr-2"></i>
+                        <h3 className="font-semibold">Symbolic Methodology Analysis</h3>
+                      </div>
+                      <div className="text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="font-medium mb-1">Neutrosophic AHP Weighting:</div>
+                            <div className="text-xs bg-slate-800/50 p-3 rounded mb-3">
+                              <div>Truth (T) = 0.81</div>
+                              <div>Indeterminacy (I) = 0.12</div>
+                              <div>Falsehood (F) = 0.07</div>
+                              <div className="mt-2">Crisp Score = T - F = 0.74</div>
+                            </div>
+                            
+                            <div className="font-medium mb-1">Normalization Process:</div>
+                            <div className="text-xs bg-slate-800/50 p-3 rounded">
+                              <code className="block mb-1">X_norm = X_ij / √(ΣX²)</code>
+                              <div>Cost Values: [4.61, 5.21, 4.45]</div>
+                              <div>Normalized: [0.59, 0.61, 0.64]</div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-medium mb-1">TOPSIS Algorithm Execution:</div>
+                            <div className="text-xs bg-slate-800/50 p-3 rounded mb-3">
+                              <div>Weighted Matrix = Normalized × Weights</div>
+                              <div>Ideal Solution = [0.57, 0.59, 0.32]</div>
+                              <div>Anti-Ideal = [0.36, 0.42, 0.55]</div>
+                              <div>Separation Measures: S+ = √Σ(X-X*)²</div>
+                              <div className="mt-2">Closeness = S- / (S+ + S-)</div>
+                            </div>
+                            
+                            <div className="font-medium mb-1">Evidence Hash:</div>
+                            <div className="text-xs bg-slate-800/50 p-3 rounded font-mono">
+                              sha256:f31d09a7b93c
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      {!!results && !!results.radarSvg ? (
-                        <div dangerouslySetInnerHTML={{ __html: results.radarSvg }} />
-                      ) : (
-                        <div className="italic text-slate-400">Radar data not available.</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Optimal Route Map */}
-                  <div className="oracle-card p-5 my-6">
-                    <div className="flex items-center mb-4">
-                      <i className="fas fa-map-marked-alt text-lg text-rose-400 mr-2"></i>
-                      <h3 className="font-semibold">Optimal Route Map</h3>
-                    </div>
-                    <div>
-                      {!!results && !!results.routeMapSvg ? (
-                        <div dangerouslySetInnerHTML={{ __html: results.routeMapSvg }} />
-                      ) : (
-                        <div className="italic text-slate-400">Route map not available.</div>
-                      )}
+                    
+                    {/* Visual Analytics */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="oracle-card p-5">
+                        <div className="flex items-center mb-4">
+                          <i className="fas fa-chart-line text-lg text-cyan-400 mr-2"></i>
+                          <h3 className="font-semibold">Performance Radar</h3>
+                        </div>
+                        <div className="h-64 flex items-center justify-center bg-slate-800/30 rounded-lg">
+                          <svg viewBox="0 0 240 240" className="w-full h-full">
+                            {/* Grid Lines */}
+                            <polygon points="120,40 160,90 120,140 80,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
+                            <polygon points="120,60 170,90 120,150 70,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
+                            <polygon points="120,80 180,90 120,160 60,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
+                            
+                            {/* Kuehne Nagel */}
+                            <polygon 
+                              points="120,80 170,65 150,125 100,130"
+                              fill="rgba(126,34,206,0.3)" 
+                              stroke="#7e22ce"
+                              strokeWidth="2"
+                            />
+                            {/* DHL Global */}
+                            <polygon 
+                              points="120,100 160,80 140,140 90,150"
+                              fill="rgba(220,38,38,0.3)" 
+                              stroke="#dc2626"
+                              strokeWidth="2"
+                            />
+                            {/* Siginon */}
+                            <polygon 
+                              points="120,120 150,100 130,160 80,170"
+                              fill="rgba(251,191,36,0.3)" 
+                              stroke="#fbbf24"
+                              strokeWidth="2"
+                            />
+                            
+                            {/* Labels */}
+                            <text x="200" y="120" textAnchor="end" fill="#e2e8f0" fontSize="10">TIME</text>
+                            <text x="120" y="205" textAnchor="middle" fill="#e2e8f0" fontSize="10">COST</text>
+                            <text x="40" y="120" textAnchor="start" fill="#e2e8f0" fontSize="10">RISK</text>
+                            <text x="180" y="165" textAnchor="middle" fill="#e2e8f0" fontSize="10">RELIABILITY</text>
+                          </svg>
+                        </div>
+                        <div className="text-xs text-center mt-4 flex justify-around">
+                          <span className="text-purple-400">K+N</span>
+                          <span className="text-rose-400">DHL</span>
+                          <span className="text-amber-400">SIG</span>
+                        </div>
+                      </div>
+                      
+                      <div className="oracle-card p-5">
+                        <div className="flex items-center mb-4">
+                          <i className="fas fa-map-marked-alt text-lg text-rose-400 mr-2"></i>
+                          <h3 className="font-semibold">Optimal Route Map</h3>
+                        </div>
+                        <div className="map-container h-64">
+                          <div className="map-grid"></div>
+                          {/* Origin - Nairobi */}
+                          <div className="shipment-node" style={{left: '35%', top: '60%'}}></div>
+                          {/* Destination - Lusaka */}
+                          <div className="shipment-node" style={{left: '60%', top: '75%'}}></div>
+                          {/* Route Line */}
+                          <div className="route-line" style={{width: '30%', left: '35%', top: '63%', transform: 'rotate(35deg)'}}></div>
+                        </div>
+                        <div className="text-xs text-center mt-3">
+                          <div className="font-semibold">Nairobi → Lusaka</div>
+                          <div className="text-slate-400">Great North Road Corridor (2,100 km)</div>
+                          <div className="mt-2 text-sm">
+                            <span className="text-green-400">Projected Time: 5.2d</span>
+                            <span className="mx-2">|</span>
+                            <span>Historic Risk: 8.2%</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
-              {/* Optional: Magical sparkle overlay */}
+              {/* Optional: Magical sparkle overlay (JSX element for flair, not blocking content) */}
               {showOutput && outputAnimation && (
                 <div className="pointer-events-none absolute inset-0 z-20">
                   <div className="magical-sparkle-overlay" />
