@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useCallback } from "react"
@@ -6,26 +5,30 @@ import { Card, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+// Icons from lucide-react (use only for icons like Info, TrendingUp, etc.)
+import { Info, TrendingUp, Package, MapPin, Truck, Plane, Ship } from "lucide-react"
+// Recharts:
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Cell,
-  Info,
-  TrendingUp,
-  Package,
-  MapPin,
-  Truck,
-  Plane,
-  Ship
-} from "lucide-react"
-import type { ShipmentData } from "@/lib/types"
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, Sector,
+} from "recharts"
+
+// Minimal ShipmentData type for analytics use (replace with your central type if available)
+type ShipmentData = {
+  request_reference: string;
+  date_of_collection: string;
+  date_of_arrival_destination?: string;
+  cargo_description: string;
+  item_category: string;
+  origin_country: string;
+  destination_country: string;
+  weight_kg: string;
+  volume_cbm: string;
+  final_quote_awarded_freight_forwader_Carrier: string;
+  "carrier+cost": string;
+  delivery_status?: string;
+  mode_of_shipment?: string;
+};
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d", "#ffc658", "#8dd1e1"]
 
