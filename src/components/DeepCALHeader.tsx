@@ -12,7 +12,6 @@ const navLinks = [
 
 const logoJoke = [
   "DeepCAL:",
-  <span key="slogan" className="text-primary font-semibold">,
 ];
 
 const DeepCALHeader: React.FC = () => {
