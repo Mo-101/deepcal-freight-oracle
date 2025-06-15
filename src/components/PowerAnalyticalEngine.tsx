@@ -186,7 +186,7 @@ export const PowerAnalyticalEngine: React.FC<PowerAnalyticalEngineProps> = ({ re
 
         <TabsContent value="mathematics" className="space-y-6">
           <TOPSISMatrix 
-            forwarders={result.forwarderComparison.slice(0, 3)}
+            forwarderKPIs={result.forwarderComparison.slice(0, 3)}
             priorities={inputs.priorities}
             revealLevel={revealLevel}
           />
