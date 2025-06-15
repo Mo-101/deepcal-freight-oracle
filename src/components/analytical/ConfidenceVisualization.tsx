@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -224,4 +223,15 @@ export const ConfidenceVisualization: React.FC<ConfidenceVisualizationProps> = (
       </CardContent>
     </Card>
   );
+};
+
+type FreightCalculatorResult = {
+  lineageMeta: {
+    records: number,
+    sha256: string,
+    timestamp: string,
+    source: string
+  };
+  forwarderComparison: any[];
+  rulesFired: string[];
 };

@@ -1,4 +1,3 @@
-
 // CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
 import { humorToast } from "@/components/HumorToast";
 import { set, get, del } from "idb-keyval";
@@ -155,6 +154,4 @@ class CSVDataLoader {
   }
 }
 
-export { ShipmentRecord, LineageMeta };
 export const csvDataEngine = new CSVDataLoader();
-

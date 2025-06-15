@@ -1,8 +1,13 @@
-
 import React, { useRef, useState } from "react";
 import { Mic, Send } from "lucide-react";
 
-const welcomeMessages = [
+type OracleMessage = {
+  from: "bot" | "user";
+  type: string;
+  text: JSX.Element;
+};
+
+const welcomeMessages: OracleMessage[] = [
   {
     from: "bot",
     type: "welcome",
@@ -24,7 +29,7 @@ const quickPrompts = [
 ];
 
 export default function OracleChat() {
-  const [messages, setMessages] = useState(welcomeMessages);
+  const [messages, setMessages] = useState<OracleMessage[]>(welcomeMessages);
   const [input, setInput] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -38,9 +43,9 @@ export default function OracleChat() {
     if (!input.trim()) return;
     setMessages((msgs) => [
       ...msgs,
-      { from: "user", text: input.trim() },
+      { from: "user", type: "user", text: <span>{input.trim()}</span> },
       // Bot response stub for now
-      { from: "bot", text: "Oracle engine dey on holiday! 😅 (This is a demo response.)" },
+      { from: "bot", type: "demo", text: <span>Oracle engine dey on holiday! 😅 (This is a demo response.)</span> },
     ]);
     setInput("");
     setTimeout(() => {
