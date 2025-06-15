@@ -3,8 +3,10 @@ import EmergencyContextCard from './EmergencyContextCard';
 import RouteIntelligenceCard from './RouteIntelligenceCard';
 import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
 import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Plane, Cloud, Clock } from "lucide-react";
 import { formatCurrency, formatDays } from "@/lib/formatUtils";
+import { useFlightData } from '@/hooks/useFlightData';
+import { Badge } from '@/components/ui/badge';
 
 interface OracleResultsPanelProps {
   showOutput: boolean;
@@ -12,6 +14,7 @@ interface OracleResultsPanelProps {
   results: any;
   selectedShipment: any;
   anomalyMap: any;
+  inputs: any;
 }
 
 const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
@@ -19,8 +22,60 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
   outputAnimation,
   results,
   selectedShipment,
-  anomalyMap
+  anomalyMap,
+  inputs
 }) => {
+  // Get flight data for air shipments
+  const { flightData, weatherData, isLoading: flightLoading } = useFlightData(
+    inputs.origin, 
+    inputs.destination, 
+    inputs.modeOfShipment
+  );
+
+  // Generate historical date context for shipment
+  const getShipmentTimeContext = (shipment: any) => {
+    if (!shipment) return null;
+    
+    const collectionDate = shipment.date_of_collection || shipment.shipment_date;
+    if (!collectionDate) return null;
+    
+    // Parse the date (handles formats like "03-Feb-24")
+    const shipmentDate = new Date(collectionDate);
+    if (isNaN(shipmentDate.getTime())) return null;
+    
+    return {
+      date: shipmentDate,
+      formattedDate: shipmentDate.toLocaleDateString(),
+      isHistorical: shipmentDate < new Date()
+    };
+  };
+
+  // Generate flight intelligence narrative
+  const generateFlightIntelligence = () => {
+    if (inputs.modeOfShipment !== 'Air' || !inputs.origin || !inputs.destination) {
+      return null;
+    }
+
+    const timeContext = getShipmentTimeContext(selectedShipment);
+    
+    let narrative = "";
+    if (timeContext?.isHistorical) {
+      narrative = `Historical air route analysis for ${inputs.origin} → ${inputs.destination} on ${timeContext.formattedDate}. `;
+    } else {
+      narrative = `Current air route analysis for ${inputs.origin} → ${inputs.destination}. `;
+    }
+
+    if (weatherData && !flightLoading) {
+      narrative += `Weather conditions: ${weatherData.conditions}, ${weatherData.temperature}°C, wind ${weatherData.windSpeed} km/h. `;
+    }
+
+    if (flightData.length > 0) {
+      narrative += `${flightData.length} flight option(s) identified. Primary route via ${flightData[0].flightId}. `;
+    }
+
+    return narrative;
+  };
+
   // Generate dynamic context based on selected shipment
   const generateEmergencyContext = (shipment: any) => {
     if (!shipment) {
@@ -129,6 +184,7 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
 
   const emergencyContext = generateEmergencyContext(selectedShipment);
   const routeIntelligence = generateRouteIntelligence(selectedShipment);
+  const flightIntelligence = generateFlightIntelligence();
 
   if (!showOutput) return null;
 
@@ -159,6 +215,59 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Flight Intelligence Integration - Only show for Air shipments */}
+      {inputs.modeOfShipment === 'Air' && inputs.origin && inputs.destination && (
+        <div className="p-5 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
+          <h3 className="font-semibold text-blue-200 mb-3 flex items-center gap-2">
+            <Plane className="w-5 h-5" />
+            Flight Intelligence Integration
+            <Badge variant="outline" className="ml-2 border-blue-400/50 text-blue-400">
+              {getShipmentTimeContext(selectedShipment)?.isHistorical ? 'Historical' : 'Real-time'}
+            </Badge>
+          </h3>
+          
+          {flightLoading ? (
+            <div className="text-center py-2">
+              <div className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-xs text-blue-300">Analyzing flight corridor...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Weather Integration */}
+              {weatherData && (
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Cloud className="w-4 h-4 text-blue-400" />
+                    Conditions ({inputs.origin})
+                  </h4>
+                  <div className="text-xs space-y-1">
+                    <div>{weatherData.temperature}°C, {weatherData.conditions}</div>
+                    <div>Visibility: {weatherData.visibility}</div>
+                    <div>Wind: {weatherData.windSpeed} km/h @ {weatherData.windDirection}°</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Flight Routing */}
+              {flightData.length > 0 && (
+                <div className="bg-slate-800/50 rounded-lg p-3">
+                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    Route Analysis
+                  </h4>
+                  <div className="text-xs space-y-1">
+                    <div>Primary: {flightData[0].flightId}</div>
+                    <div>Status: {flightData[0].status}</div>
+                    <div>ETD: {new Date(flightData[0].departure.scheduled).toLocaleTimeString()}</div>
+                    <div>ETA: {new Date(flightData[0].arrival.scheduled).toLocaleTimeString()}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Dynamic Emergency & Route Context */}
       <div className="p-5 border-b border-slate-700/50">
@@ -274,7 +383,7 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
 
       {/* Analytical Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Symbolic Narrative -- show nothing if no results */}
+        {/* Symbolic Narrative with Flight Intelligence */}
         <div className="oracle-card p-5">
           <div className="flex items-center mb-4">
             <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
@@ -289,7 +398,15 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
           </div>
           <div className="text-sm leading-relaxed text-slate-200">
             {results && results.oracleNarrative ? (
-              <>{results.oracleNarrative}</>
+              <>
+                {results.oracleNarrative}
+                {flightIntelligence && (
+                  <div className="mt-3 p-3 bg-blue-900/30 rounded border border-blue-700/30">
+                    <strong className="text-blue-200">Flight Intelligence: </strong>
+                    <span className="text-blue-100">{flightIntelligence}</span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-slate-500 italic">No data yet.</div>
             )}
