@@ -8,6 +8,7 @@ import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQI
 import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
 import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
 import { AlertTriangle } from "lucide-react";
+import { formatCurrency, formatWeight, formatVolume, formatDays } from "@/lib/formatUtils";
 
 interface CalculatorInputs {
   origin: string;
@@ -411,7 +412,9 @@ const SymbolicCalculator = () => {
                     <div className="p-5 bg-green-800/20 rounded-lg border border-green-600/30 mb-6">
                       <h3 className="font-semibold text-green-300 mb-1">🏆 Best Forwarder</h3>
                       <p className="text-2xl font-bold text-green-100">{results.bestForwarder}</p>
-                      <p className="text-sm text-green-200 mt-1">Route Score: {results.routeScore}</p>
+                      <p className="text-sm text-green-200 mt-1">
+                        Route Score: <span className="font-mono">{results.routeScore}</span>
+                      </p>
                     </div>
                   )}
 
@@ -445,77 +448,58 @@ const SymbolicCalculator = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {results && results.forwarderComparison.slice(0, 3).map((forwarder: any, index: number) => {
-                            const hasAnomaly = !!anomalyMap[forwarder.name];
-                            return (
-                              <tr
-                                key={forwarder.name}
-                                className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${hasAnomaly ? "bg-yellow-900/40" : ""}`}
-                              >
-                                <td className="px-4 py-3 font-semibold flex items-center gap-1">
-                                  {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
-                                  {/* Anomaly flag */}
-                                  {hasAnomaly && (
-                                    <AlertTriangle className="ml-1 text-yellow-400" size={15} />
-                                  )}
-                                </td>
-                                <td className="px-4 py-3 font-medium">{forwarder.name}</td>
-                                <td className="px-4 py-3">
-                                  {forwarder.avgTransitDays?.toFixed(1) || '5.2'}
-                                  {/* highlight if time is anomaly */}
-                                  {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
-                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
-                                  )}
-                                </td>
-                                <td className="px-4 py-3">
-                                  ${forwarder.costPerKg.toFixed(2)}
-                                  {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
-                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
-                                  )}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span className={`px-2 py-1 rounded text-xs ${
-                                    forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
-                                    forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
-                                    'bg-rose-900/30 text-rose-300'
-                                  }`}>
-                                    {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
-                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
-                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={11} />
+                          {results && results.forwarderComparison && results.forwarderComparison.length > 0 ? (
+                            results.forwarderComparison.map((forwarder: any, index: number) => {
+                              const hasAnomaly = !!anomalyMap[forwarder.name];
+                              return (
+                                <tr
+                                  key={forwarder.name}
+                                  className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${hasAnomaly ? "bg-yellow-900/40" : ""}`}
+                                >
+                                  <td className="px-4 py-3 font-semibold flex items-center gap-1">
+                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
+                                    {/* Anomaly flag */}
+                                    {hasAnomaly && (
+                                      <AlertTriangle className="ml-1 text-yellow-400" size={15} />
                                     )}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 font-bold text-green-400">0.{89 - index * 10}</td>
-                              </tr>
-                            )
-                          })}
-                          {!results && (
-                            <>
-                              <tr className="border-b border-slate-700/50 hover:bg-slate-800/30">
-                                <td className="px-4 py-3 font-semibold text-deepcal-light">🥇 1</td>
-                                <td className="px-4 py-3 font-medium">Kuehne + Nagel</td>
-                                <td className="px-4 py-3">5.2</td>
-                                <td className="px-4 py-3">$4.61</td>
-                                <td className="px-4 py-3"><span className="px-2 py-1 bg-emerald-900/30 text-emerald-300 rounded text-xs">92%</span></td>
-                                <td className="px-4 py-3 font-bold text-green-400">0.89</td>
-                              </tr>
-                              <tr className="border-b border-slate-700/50 hover:bg-slate-800/30">
-                                <td className="px-4 py-3 font-semibold text-amber-400">🥈 2</td>
-                                <td className="px-4 py-3 font-medium">DHL Global Forwarding</td>
-                                <td className="px-4 py-3">6.0</td>
-                                <td className="px-4 py-3">$5.21</td>
-                                <td className="px-4 py-3"><span className="px-2 py-1 bg-amber-900/30 text-amber-300 rounded text-xs">85%</span></td>
-                                <td className="px-4 py-3 font-bold text-amber-400">0.71</td>
-                              </tr>
-                              <tr className="hover:bg-slate-800/30">
-                                <td className="px-4 py-3 font-semibold text-rose-400">🥉 3</td>
-                                <td className="px-4 py-3 font-medium">Siginon Logistics</td>
-                                <td className="px-4 py-3">6.5</td>
-                                <td className="px-4 py-3">$4.45</td>
-                                <td className="px-4 py-3"><span className="px-2 py-1 bg-rose-900/30 text-rose-300 rounded text-xs">78%</span></td>
-                                <td className="px-4 py-3 font-bold text-rose-400">0.60</td>
-                              </tr>
-                            </>
+                                  </td>
+                                  <td className="px-4 py-3 font-medium">{forwarder.name}</td>
+                                  <td className="px-4 py-3">
+                                    {formatDays(forwarder.avgTransitDays)}
+                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    {formatCurrency(forwarder.costPerKg)}
+                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
+                                    )}
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
+                                      forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
+                                      'bg-rose-900/30 text-rose-300'
+                                    }`}>
+                                      {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
+                                      {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
+                                        <AlertTriangle className="inline ml-1 text-yellow-400" size={11} />
+                                      )}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-green-400">
+                                    {forwarder.topsisScore ? forwarder.topsisScore.toFixed(2) : ""}
+                                  </td>
+                                </tr>
+                              )
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground italic">
+                                No results to display. Please run calculation with shipment details.
+                              </td>
+                            </tr>
                           )}
                         </tbody>
                       </table>
