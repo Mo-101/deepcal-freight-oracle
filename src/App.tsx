@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import FreightCalculatorPage from "./pages/FreightCalculator";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
+import Training from "./pages/Training";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/deeptalk" element={<DeepTalk />} />
+          <Route path="/training" element={<Training />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

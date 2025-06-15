@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BrainCog, Calculator } from "lucide-react";
@@ -10,6 +9,7 @@ const navLinks = [
   { label: "Ranking", to: "/ranking" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
+  { label: "Training", to: "/training" }, // Newly added link
 ];
 
 const logoJoke = [
