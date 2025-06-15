@@ -1,4 +1,3 @@
-
 // CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
 import { humorToast } from "@/components/HumorToast";
 import { set, get, del } from "idb-keyval";
@@ -44,6 +43,19 @@ export interface LineageMeta {
 
 // IndexedDB key for base shipments
 const SHIPMENT_BASE_KEY = "shipments_base_v1";
+
+export interface FreightCalculatorResult {
+  lineageMeta: LineageMeta;
+  forwarderComparison: Array<{
+    name: string;
+    cost: number;
+    transitTime: number;
+    score: number;
+  }>;
+  rulesFired: string[];
+  recommendedCarrier: string;
+  confidenceScore: number;
+}
 
 class CSVDataLoader {
   private lineageMeta: LineageMeta | null = null;
