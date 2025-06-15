@@ -82,11 +82,14 @@ const SymbolicCalculator = () => {
     setShowOutput(false);
     setOutputAnimation(false);
     if (!csvDataEngine.isDataLoaded()) {
-      try {
-        await csvDataEngine.autoLoadEmbeddedData();
-      } catch (error) {
-        console.error('Auto-load failed:', error);
-      }
+      const loadData = async () => {
+        try {
+          await csvDataEngine.autoLoadEmbeddedData();
+        } catch (error) {
+          console.error('Auto-load failed:', error);
+        }
+      };
+      loadData();
     }
   }, [inputs.origin, inputs.destination, inputs.weight, inputs.volume, inputs.cargoType, inputs.selectedForwarders]);
 
