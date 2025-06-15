@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Brain, TrendingUp, Database, Zap, Activity, Target } from "lucide-react"
+import { Brain, TrendingUp, Database, Zap, Activity, Target, OctagonAlert } from "lucide-react"
 
 interface EngineMetrics {
   trainingProgress: number
@@ -17,6 +17,27 @@ interface EngineMetrics {
   modelVersion: string
   lastTrainingSession: string
   confidenceScore: number
+}
+
+interface PriceAnomaly {
+  price: number
+  index: number
+  deviation: number
+}
+
+function detectAnomalies(prices: number[]): PriceAnomaly[] {
+  // Simple z-score anomaly detection (price beyond 2 stddev from mean)
+  if (prices.length === 0) return []
+  const mean = prices.reduce((s, p) => s + p, 0) / prices.length
+  const variance = prices.reduce((s, p) => s + Math.pow(p - mean, 2), 0) / prices.length
+  const stddev = Math.sqrt(variance)
+  return prices
+    .map((p, i) => ({
+      price: p,
+      index: i,
+      deviation: ((p - mean) / (stddev || 1))
+    }))
+    .filter(anomaly => Math.abs(anomaly.deviation) > 2)
 }
 
 export function DeepCALEngineAnalytics() {
@@ -33,8 +54,12 @@ export function DeepCALEngineAnalytics() {
   const [isTraining, setIsTraining] = useState(false)
   const [trainingLogs, setTrainingLogs] = useState<string[]>([])
 
+  // ----- New: sample price series and anomalies -----
+  const [priceSeries, setPriceSeries] = useState<number[]>([])
+  const [priceAnomalies, setPriceAnomalies] = useState<PriceAnomaly[]>([])
+
   useEffect(() => {
-    // Initialize with some baseline metrics
+    // Initialize metrics
     setMetrics({
       trainingProgress: 75,
       accuracy: 87.3,
@@ -45,6 +70,16 @@ export function DeepCALEngineAnalytics() {
       lastTrainingSession: new Date().toISOString(),
       confidenceScore: 92.1,
     })
+
+    // ----- New: generate synthetic price series -----
+    // Normal prices, but inject 2 outliers
+    const syntheticPrices = [
+      210, 212, 214, 215, 216, 208, 220, 218, 213, 500, // big anomaly
+      219, 215, 211, 245, 218, 212, 214, 700, // another anomaly
+      218, 213
+    ]
+    setPriceSeries(syntheticPrices)
+    setPriceAnomalies(detectAnomalies(syntheticPrices))
 
     // Simulate real-time updates
     const interval = setInterval(() => {
@@ -173,6 +208,38 @@ export function DeepCALEngineAnalytics() {
         </Card>
       </div>
 
+      {/* ----- New: Price Anomaly Detection Card ----- */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-gradient-blue">
+            <OctagonAlert className="h-5 w-5 text-red-500" />
+            Price Anomaly Detection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {priceAnomalies.length === 0 ? (
+            <div className="text-green-700 flex items-center gap-2">
+              <span>No price anomalies detected in recent data</span>
+            </div>
+          ) : (
+            <div>
+              <div className="text-red-600 flex items-center gap-2 mb-2">
+                <OctagonAlert className="h-6 w-6" />
+                {priceAnomalies.length} anomaly{priceAnomalies.length > 1 ? "ies" : "y"} detected!
+              </div>
+              <ul className="text-sm space-y-1">
+                {priceAnomalies.map(a => (
+                  <li key={a.index} className="flex items-center gap-2">
+                    <OctagonAlert className="h-4 w-4 text-red-500" />
+                    Data #{a.index + 1}: ${a.price.toFixed(2)} ({a.deviation.toFixed(2)}σ)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Training Progress */}
       <Card className="glass-card">
         <CardHeader>
@@ -267,3 +334,4 @@ export function DeepCALEngineAnalytics() {
     </div>
   )
 }
+
