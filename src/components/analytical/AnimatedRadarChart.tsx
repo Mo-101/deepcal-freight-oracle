@@ -1,19 +1,22 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { ForwarderKPI } from '@/services/csvDataEngine';
+import { AlertTriangle } from "lucide-react";
+import type { ForwarderAnomalies } from "./anomalyUtils";
 
 interface AnimatedRadarChartProps {
   forwarders: ForwarderKPI[];
   revealLevel: 'novice' | 'expert' | 'phd';
   detailed?: boolean;
+  anomalies?: ForwarderAnomalies;
 }
 
-export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({ 
-  forwarders, 
-  revealLevel, 
-  detailed = false 
+export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
+  forwarders,
+  revealLevel,
+  detailed = false,
+  anomalies = {},
 }) => {
   const [animationProgress, setAnimationProgress] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
@@ -138,33 +141,41 @@ export const AnimatedRadarChart: React.FC<AnimatedRadarChartProps> = ({
                   strokeWidth="2"
                   className="transition-all duration-1000 ease-out"
                 />
-                
-                {/* Data points */}
+                {/* Data points with anomaly highlight */}
                 {forwarder.scores.map((score, j) => {
                   const angle = (j * 2 * Math.PI) / forwarder.scores.length - Math.PI / 2;
                   const adjustedScore = score * (animationProgress / 100);
                   const pointX = center + Math.cos(angle) * radius * adjustedScore;
                   const pointY = center + Math.sin(angle) * radius * adjustedScore;
-                  
+
+                  // For anomaly fields, pop an icon
+                  let anomalyIcon = null;
+                  let isAnomaly = false;
+                  if (anomalies && anomalies[forwarder.name]) {
+                    const metricField = ['avgTransitDays', 'costPerKg', 'onTimeRate', 'totalShipments'][j];
+                    if (anomalies[forwarder.name].anomalyFields.includes(metricField as any)) {
+                      anomalyIcon = <AlertTriangle className="w-3 h-3 absolute" style={{ left: pointX, top: pointY }} color="#fde047" />;
+                      isAnomaly = true;
+                    }
+                  }
                   return (
-                    <circle
-                      key={j}
-                      cx={pointX}
-                      cy={pointY}
-                      r="4"
-                      fill={colors[i]}
-                      stroke="white"
-                      strokeWidth="2"
-                      className="transition-all duration-1000 ease-out"
-                      style={{ 
-                        animationDelay: `${(i * 0.2 + j * 0.1)}s`,
-                        opacity: animationProgress > 50 ? 1 : 0
-                      }}
-                    >
-                      {showDetails && revealLevel !== 'novice' && (
-                        <title>{`${metrics[j]}: ${(score * 100).toFixed(1)}%`}</title>
-                      )}
-                    </circle>
+                    <g key={j}>
+                      <circle
+                        cx={pointX}
+                        cy={pointY}
+                        r={isAnomaly ? 7 : 4}
+                        fill={isAnomaly ? "#fde047" : colors[i]}
+                        stroke={isAnomaly ? "#fbbf24" : "white"}
+                        strokeWidth="2"
+                        className="transition-all duration-1000 ease-out"
+                        style={{
+                          animationDelay: `${(i * 0.2 + j * 0.1)}s`,
+                          opacity: animationProgress > 50 ? 1 : 0,
+                        }}
+                      />
+                      {/* Icon marker for anomaly */}
+                      {isAnomaly && anomalyIcon}
+                    </g>
                   );
                 })}
               </g>
