@@ -5,6 +5,7 @@ export interface CalculatorInputs {
   weight: number;
   volume: number;
   cargoType: string;
+  modeOfShipment: 'Air' | 'Sea' | 'Road' | 'Rail';
   priorities: {
     time: number;
     cost: number;

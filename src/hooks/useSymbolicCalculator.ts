@@ -60,10 +60,9 @@ export const useSymbolicCalculator = () => {
     setValidation(val);
   }, [inputs.weight, inputs.volume, setValidation]);
 
-  // Reference shipment selection effect - only populate when user actively selects
+  // Reference shipment selection effect
   useEffect(() => {
     if (!selectedReference) {
-      // Clear everything when no reference is selected
       resetOutput();
       resetForwarderRFQ();
       resetInputs();
@@ -74,25 +73,23 @@ export const useSymbolicCalculator = () => {
       const mappedInputs = mapShipmentToInputs(selectedShipment);
       const usedForwarders = populateRFQFromShipment(selectedShipment);
 
-      // Update inputs with mapped data and selected forwarders
+      // Determine mode of shipment from historical data
+      const modeOfShipment = selectedShipment.mode_of_shipment || 'Air';
+
       setInputs(prev => ({
         ...prev,
         ...mappedInputs,
+        modeOfShipment: modeOfShipment as any,
         selectedForwarders: usedForwarders
       }));
 
       const historicalResults = generateHistoricalResults(selectedShipment, mappedInputs);
       setResults(historicalResults);
       
-      // Show output with animation
       setTimeout(() => {
         resetOutput();
         setTimeout(() => {
           setResults(historicalResults);
-          // Trigger show and animate
-          setTimeout(() => {
-            // This will be handled by the output panel
-          }, 150);
         }, 50);
       }, 100);
     }
@@ -111,7 +108,7 @@ export const useSymbolicCalculator = () => {
       };
       loadData();
     }
-  }, [inputs.origin, inputs.destination, inputs.weight, inputs.volume, inputs.cargoType, inputs.selectedForwarders, resetOutput]);
+  }, [inputs.origin, inputs.destination, inputs.weight, inputs.volume, inputs.cargoType, inputs.modeOfShipment, inputs.selectedForwarders, resetOutput]);
 
   return {
     inputs,

@@ -8,6 +8,7 @@ const DEFAULT_INPUTS: CalculatorInputs = {
   weight: 0,
   volume: 0,
   cargoType: 'Emergency Health Kits',
+  modeOfShipment: 'Air',
   priorities: {
     time: 33,
     cost: 33,

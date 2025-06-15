@@ -6,6 +6,7 @@ import DataStalenessWarning from '@/components/calculator/DataStalenessWarning';
 import ReferenceShipmentSelector from '@/components/calculator/ReferenceShipmentSelector';
 import ShipmentConfigurationPanel from '@/components/calculator/ShipmentConfigurationPanel';
 import OracleResultsPanel from '@/components/calculator/OracleResultsPanel';
+import FlightIntelligenceCard from '@/components/calculator/FlightIntelligenceCard';
 import MagicalOverlay from '@/components/calculator/MagicalOverlay';
 
 const SymbolicCalculator = () => {
@@ -65,19 +66,29 @@ const SymbolicCalculator = () => {
           />
         </div>
         
-        <div className={`lg:col-span-2 relative min-h-[300px] flex items-center justify-center`}>
-          <OracleResultsPanel
-            showOutput={showOutput}
-            outputAnimation={outputAnimation}
-            results={results}
-            selectedShipment={selectedShipment}
-            anomalyMap={anomalyMap}
+        <div className={`lg:col-span-2 space-y-6`}>
+          {/* Flight Intelligence Card */}
+          <FlightIntelligenceCard
+            origin={inputs.origin}
+            destination={inputs.destination}
+            modeOfShipment={inputs.modeOfShipment}
           />
           
-          <MagicalOverlay 
-            showOutput={showOutput}
-            outputAnimation={outputAnimation}
-          />
+          {/* Oracle Results Panel */}
+          <div className="relative min-h-[300px] flex items-center justify-center">
+            <OracleResultsPanel
+              showOutput={showOutput}
+              outputAnimation={outputAnimation}
+              results={results}
+              selectedShipment={selectedShipment}
+              anomalyMap={anomalyMap}
+            />
+            
+            <MagicalOverlay 
+              showOutput={showOutput}
+              outputAnimation={outputAnimation}
+            />
+          </div>
         </div>
       </div>
     </CalculatorLayout>

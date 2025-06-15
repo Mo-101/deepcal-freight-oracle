@@ -35,10 +35,13 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
     weight: "Total shipment weight in kilograms.",
     volume: "Total shipment volume in cubic meters (CBM).",
     cargoType: "What type of cargo is being shipped?",
+    modeOfShipment: "Select the transportation method for your shipment.",
     origin: "Select the shipment starting country.",
     destination: "Select the shipment destination.",
     forwarder: "Select one or more companies to compare."
   };
+
+  const MODE_OPTIONS = ['Air', 'Sea', 'Road', 'Rail'];
 
   // Extract unique countries from shipment data
   const getUniqueCountries = (field: 'origin' | 'destination') => {
@@ -84,6 +87,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.origin}
                 onChange={(e) => onInputsChange({...inputs, origin: e.target.value})}
               >
+                <option value="">Select Origin</option>
                 {originCountries.length > 0 ? (
                   originCountries.map(country => (
                     <option key={country} value={country}>{country}</option>
@@ -105,6 +109,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.destination}
                 onChange={(e) => onInputsChange({...inputs, destination: e.target.value})}
               >
+                <option value="">Select Destination</option>
                 {destinationCountries.length > 0 ? (
                   destinationCountries.map(country => (
                     <option key={country} value={country}>{country}</option>
@@ -114,6 +119,25 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 )}
               </select>
             </div>
+          </div>
+          
+          {/* Mode of Shipment */}
+          <div className="mt-4">
+            <label className="block text-sm mb-1 flex items-center gap-1">
+              Mode of Shipment
+              <span title={helpText.modeOfShipment}>
+                <Info className="text-purple-400 w-3 h-3" aria-label={helpText.modeOfShipment} />
+              </span>
+            </label>
+            <select 
+              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+              value={inputs.modeOfShipment}
+              onChange={(e) => onInputsChange({...inputs, modeOfShipment: e.target.value as any})}
+            >
+              {MODE_OPTIONS.map(mode => (
+                <option key={mode} value={mode}>{mode}</option>
+              ))}
+            </select>
           </div>
         </div>
         
@@ -133,7 +157,8 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
               </label>
               <input 
                 type="number" 
-                value={inputs.weight}
+                value={inputs.weight || ''}
+                placeholder="0"
                 onChange={(e) => onInputsChange({...inputs, weight: parseFloat(e.target.value) || 0})}
                 className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
                 aria-describedby="weight-help"
@@ -151,7 +176,8 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
               </label>
               <input 
                 type="number" 
-                value={inputs.volume}
+                value={inputs.volume || ''}
+                placeholder="0"
                 onChange={(e) => onInputsChange({...inputs, volume: parseFloat(e.target.value) || 0})}
                 className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
                 aria-describedby="volume-help"
