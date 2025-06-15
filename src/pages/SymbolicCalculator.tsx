@@ -224,7 +224,7 @@ const SymbolicCalculator = () => {
                         <span className="ml-2 text-slate-600">{sh.origin_country || "?"}→{sh.destination_country || "?"}</span>
                       </SelectItem>
                     )) : (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="__no_shipments__" disabled>
                         No shipments available
                       </SelectItem>
                     )

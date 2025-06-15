@@ -141,7 +141,8 @@ const FreightCalculator = () => {
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="" disabled>
+                    // Use a non-empty value; this item is disabled and will never be selected.
+                    <SelectItem value="__no_shipments__" disabled>
                       <span className="italic text-muted-foreground">No shipments available</span>
                     </SelectItem>
                   )}
