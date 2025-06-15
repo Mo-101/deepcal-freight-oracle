@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Calculator } from "lucide-react";
+import { BrainCog, Calculator, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -9,7 +10,7 @@ const navLinks = [
   { label: "Ranking", to: "/ranking" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Training", to: "/training" }, // Newly added link
+  { label: "Training", to: "/training", icon: Dumbbell }, // Now includes Dumbbell icon
 ];
 
 const logoJoke = [
@@ -56,3 +57,4 @@ const DeepCALHeader: React.FC = () => {
 };
 
 export default DeepCALHeader;
+
