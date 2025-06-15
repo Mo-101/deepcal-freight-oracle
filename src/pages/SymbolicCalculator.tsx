@@ -151,6 +151,72 @@ const SymbolicCalculator = () => {
         ...mappedInputs
       }));
 
+      // Auto-select forwarders that were used in this shipment
+      const usedForwarders: string[] = [];
+      
+      // Check for awarded forwarder
+      const awardedForwarder = shipment.final_quote_awarded_freight_forwader_carrier || 
+                              shipment.initial_quote_awarded || 
+                              shipment.awarded_forwarder;
+      
+      if (awardedForwarder) {
+        // Map awarded forwarder to our standard forwarder names
+        if (awardedForwarder.toLowerCase().includes('kuehne')) {
+          usedForwarders.push('Kuehne + Nagel');
+        }
+        if (awardedForwarder.toLowerCase().includes('dhl')) {
+          usedForwarders.push('DHL Global Forwarding');
+        }
+        if (awardedForwarder.toLowerCase().includes('scan')) {
+          usedForwarders.push('Scan Global Logistics');
+        }
+        if (awardedForwarder.toLowerCase().includes('siginon')) {
+          usedForwarders.push('Siginon Logistics');
+        }
+        if (awardedForwarder.toLowerCase().includes('agility') || awardedForwarder.toLowerCase().includes('agl')) {
+          usedForwarders.push('Agility Logistics');
+        }
+      }
+
+      // Check for forwarders with actual quotes/costs
+      if (shipment.kuehne_nagel && shipment.kuehne_nagel > 0) {
+        if (!usedForwarders.includes('Kuehne + Nagel')) {
+          usedForwarders.push('Kuehne + Nagel');
+        }
+      }
+      if ((shipment.dhl_global && shipment.dhl_global > 0) || (shipment.dhl && shipment.dhl > 0)) {
+        if (!usedForwarders.includes('DHL Global Forwarding')) {
+          usedForwarders.push('DHL Global Forwarding');
+        }
+      }
+      if ((shipment.scan_global_logistics && shipment.scan_global_logistics > 0) || (shipment.scan_global && shipment.scan_global > 0)) {
+        if (!usedForwarders.includes('Scan Global Logistics')) {
+          usedForwarders.push('Scan Global Logistics');
+        }
+      }
+      if (shipment.siginon && shipment.siginon > 0) {
+        if (!usedForwarders.includes('Siginon Logistics')) {
+          usedForwarders.push('Siginon Logistics');
+        }
+      }
+      if ((shipment.agl && shipment.agl > 0) || (shipment.agility && shipment.agility > 0)) {
+        if (!usedForwarders.includes('Agility Logistics')) {
+          usedForwarders.push('Agility Logistics');
+        }
+      }
+
+      // If no forwarders found, default to at least one
+      if (usedForwarders.length === 0) {
+        usedForwarders.push('Kuehne + Nagel');
+      }
+
+      // Update selected forwarders
+      setInputs(prev => ({
+        ...prev,
+        ...mappedInputs,
+        selectedForwarders: usedForwarders
+      }));
+
       const forwarderComparison = generateForwarderComparison(shipment);
       const bestForwarder = shipment.final_quote_awarded_freight_forwader_carrier || 
                            shipment.initial_quote_awarded || 
