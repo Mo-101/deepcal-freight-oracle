@@ -9,6 +9,8 @@ import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
 import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
 import { AlertTriangle } from "lucide-react";
 import { formatCurrency, formatWeight, formatVolume, formatDays } from "@/lib/formatUtils";
+import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from '@/components/ui/select'; // uses shadcn/ui
+import { Card } from '@/components/ui/card';
 
 interface CalculatorInputs {
   origin: string;
@@ -38,6 +40,9 @@ const SymbolicCalculator = () => {
     },
     selectedForwarders: ['Kuehne + Nagel', 'DHL Global Forwarding', 'Siginon Logistics']
   });
+  // shipment selector state
+  const [oldShipments, setOldShipments] = useState<any[]>([]);
+  const [selectedReference, setSelectedReference] = useState<string | null>(null);
   const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
   const [results, setResults] = useState<any>(null);
   const [isAwakening, setIsAwakening] = useState(false);
@@ -137,6 +142,31 @@ const SymbolicCalculator = () => {
     }, 1500);
   };
 
+  // Load old shipments on mount
+  useEffect(() => {
+    const fetchShipments = async () => {
+      const shipments = await csvDataEngine.listShipments();
+      setOldShipments(shipments);
+    };
+    fetchShipments();
+  }, []);
+
+  // Set form fields when shipment is selected
+  useEffect(() => {
+    if (!selectedReference) return;
+    const s = oldShipments.find((sh) => sh.request_reference === selectedReference);
+    if (s) {
+      setInputs(prev => ({
+        ...prev,
+        origin: s.origin_country || "",
+        destination: s.destination_country || "",
+        weight: s.weight_kg ? Number(s.weight_kg) : 0,
+        volume: s.volume_cbm ? Number(s.volume_cbm) : 0,
+        cargoType: s.item_category || "",
+      }));
+    }
+  }, [selectedReference, oldShipments]);
+
   // Hide output panel on initial mount and on input changes
   useEffect(() => {
     setShowOutput(false);
@@ -168,6 +198,42 @@ const SymbolicCalculator = () => {
       
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
+          {/* REFERENCE ID SELECTION */}
+          <Card className="mb-8 p-4 flex flex-col gap-2 bg-white/20 border border-deepcal-light rounded-xl shadow transition">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <div className="font-semibold text-purple-300">
+                Reference Shipment:
+              </div>
+              <Select
+                value={selectedReference || ""}
+                onValueChange={val => setSelectedReference(val)}
+                disabled={oldShipments.length === 0}
+              >
+                <SelectTrigger className="w-80 min-w-[240px]">
+                  <SelectValue placeholder="Select a previous shipment..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {oldShipments.length > 0 ?
+                    oldShipments.map(sh => (
+                      <SelectItem 
+                        value={sh.request_reference}
+                        key={sh.request_reference}
+                        className="text-primary py-2"
+                      >
+                        <span className="font-mono text-accent">{sh.request_reference}</span>
+                        <span className="ml-2 text-slate-600">{sh.origin_country || "?"}→{sh.destination_country || "?"}</span>
+                      </SelectItem>
+                    )) : (
+                      <SelectItem value="" disabled>
+                        No shipments available
+                      </SelectItem>
+                    )
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+          </Card>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Input Panel */}
             <div className="lg:col-span-1">
@@ -403,8 +469,8 @@ const SymbolicCalculator = () => {
                     </div>
                   </div>
                   
-                  {/* Best Forwarder Display */}
-                  {results && (
+                  {/* Best Forwarder Display -- show ONLY if results.bestForwarder */}
+                  {results && results.bestForwarder && (
                     <div className="p-5 bg-green-800/20 rounded-lg border border-green-600/30 mb-6">
                       <h3 className="font-semibold text-green-300 mb-1">🏆 Best Forwarder</h3>
                       <p className="text-2xl font-bold text-green-100">{results.bestForwarder}</p>
@@ -414,15 +480,15 @@ const SymbolicCalculator = () => {
                     </div>
                   )}
 
-                  {/* Recommendation */}
-                  {results && (
+                  {/* Recommendation -- show ONLY if results.recommendation */}
+                  {results && results.recommendation && (
                     <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
                       <h4 className="font-semibold text-blue-200 mb-2">💡 Oracle Recommendation</h4>
                       <p className="text-blue-100">{results.recommendation}</p>
                     </div>
                   )}
 
-                  {/* Forwarder Comparison Table */}
+                  {/* Forwarder Comparison Table -- show header always but rows only if data */}
                   <div className="bg-slate-900/50 rounded-xl overflow-hidden symbolic-border mb-6">
                     <div className="px-5 py-3 bg-gradient-to-r from-deepcal-dark to-deepcal-purple flex justify-between items-center">
                       <h3 className="font-semibold flex items-center">
@@ -510,12 +576,11 @@ const SymbolicCalculator = () => {
 
                   {/* Analytical Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    {/* Symbolic Narrative */}
+                    {/* Symbolic Narrative -- show nothing if no results */}
                     <div className="oracle-card p-5">
                       <div className="flex items-center mb-4">
                         <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
                         <h3 className="font-semibold">Oracle Narrative</h3>
-                        {/* Show anomaly warning if anomalies exist */}
                         {Object.keys(anomalyMap).length > 0 && (
                           <span
                             className="ml-3 inline-flex items-center px-2 py-0.5 bg-yellow-400/90 text-yellow-900 text-[11px] font-bold rounded"
@@ -525,11 +590,11 @@ const SymbolicCalculator = () => {
                         )}
                       </div>
                       <div className="text-sm leading-relaxed text-slate-200">
-                        <p className="mb-3">📜 <span className="font-medium">The Whisper of Logistics:</span> In the realm of urgent cholera kits from Nairobi to Lusaka, where time battles cost and risk shadows every movement, DeepCAL++ has consulted the ancient ledger of probabilities.</p>
-                        <p className="mb-3">🧠 <span className="font-medium">Symbolic Insight:</span> Kuehne Nagel emerges—not as the cheapest carrier (at $4.61/kg) nor the swiftest (5.2 days), but as the golden mean. Its risk factor of 8% is a silent fortress in turbulent times.</p>
-                        <p className="mb-3">⚖️ <span className="font-medium">The Balance Struck:</span> With your critical weight on time (68%) whispering urgency, and cost (45%) pleading economy, the TOPSIS algorithm rendered its impartial verdict: a dominant 0.89 score.</p>
-                        <p>🔱 <span className="font-medium">Oracle Proverb:</span> <em>"In the monsoon of uncertainty, the owl chooses the branch with both roots and reach."</em> Kuehne Nagel is that branch.</p>
-                        {/* If anomalies, show anomalous forwarders */}
+                        {results && results.oracleNarrative ? (
+                          <>{results.oracleNarrative}</>
+                        ) : (
+                          <div className="text-slate-500 italic">No data yet.</div>
+                        )}
                         {Object.keys(anomalyMap).length > 0 && (
                           <div className="mt-4 text-yellow-300 text-xs">
                             <b>Anomaly Report:</b>
@@ -545,24 +610,24 @@ const SymbolicCalculator = () => {
                       </div>
                     </div>
                     
-                    {/* Symbolic Seal */}
+                    {/* Symbolic Seal, data hidden unless avail */}
                     <div className="oracle-card p-5 flex flex-col items-center justify-center">
                       <div className="flex items-center mb-4">
                         <i className="fas fa-drafting-compass text-lg text-purple-400 mr-2"></i>
                         <h3 className="font-semibold">Decision Covenant</h3>
                       </div>
-                      <div className="decision-seal mb-3">
-                        <div className="text-center text-white font-bold text-xs leading-tight">
-                          DEEP++ SEAL<br />
-                          ✦ VERDICT ✦<br />
-                          <span className="text-[8px]">SEALED</span>
+                      {results && results.seal ? (
+                        <div className="decision-seal mb-3">{results.seal}</div>
+                      ) : (
+                        <div className="text-xs text-center text-slate-500">No data yet.</div>
+                      )}
+                      {results && results.qseal && (
+                        <div className="text-xs text-center mt-2">
+                          <div>qseal:{results.qseal}</div>
+                          <div className="text-slate-400 mt-1">Timestamp: {results.timestamp}</div>
+                          <div className="mt-2 text-purple-300">{results.blessing}</div>
                         </div>
-                      </div>
-                      <div className="text-xs text-center mt-2">
-                        <div>qseal:8fa9c27e</div>
-                        <div className="text-slate-400 mt-1">TIMESTAMP: {new Date().toISOString()}</div>
-                        <div className="mt-2 text-purple-300">"Kuehne Nagel honored with cargo blessing"</div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -574,116 +639,55 @@ const SymbolicCalculator = () => {
                         <i className="fas fa-calculator text-lg text-emerald-400 mr-2"></i>
                         <h3 className="font-semibold">Symbolic Methodology Analysis</h3>
                       </div>
-                      <div className="text-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <div className="font-medium mb-1">Neutrosophic AHP Weighting:</div>
-                            <div className="text-xs bg-slate-800/50 p-3 rounded mb-3">
-                              <div>Truth (T) = 0.81</div>
-                              <div>Indeterminacy (I) = 0.12</div>
-                              <div>Falsehood (F) = 0.07</div>
-                              <div className="mt-2">Crisp Score = T - F = 0.74</div>
-                            </div>
-                            
-                            <div className="font-medium mb-1">Normalization Process:</div>
-                            <div className="text-xs bg-slate-800/50 p-3 rounded">
-                              <code className="block mb-1">X_norm = X_ij / √(ΣX²)</code>
-                              <div>Cost Values: [4.61, 5.21, 4.45]</div>
-                              <div>Normalized: [0.59, 0.61, 0.64]</div>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="font-medium mb-1">TOPSIS Algorithm Execution:</div>
-                            <div className="text-xs bg-slate-800/50 p-3 rounded mb-3">
-                              <div>Weighted Matrix = Normalized × Weights</div>
-                              <div>Ideal Solution = [0.57, 0.59, 0.32]</div>
-                              <div>Anti-Ideal = [0.36, 0.42, 0.55]</div>
-                              <div>Separation Measures: S+ = √Σ(X-X*)²</div>
-                              <div className="mt-2">Closeness = S- / (S+ + S-)</div>
-                            </div>
-                            
-                            <div className="font-medium mb-1">Evidence Hash:</div>
-                            <div className="text-xs bg-slate-800/50 p-3 rounded font-mono">
-                              sha256:f31d09a7b93c
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      {results && results.methodology ? (
+                        <div className="text-sm">{results.methodology}</div>
+                      ) : (
+                        <div className="text-xs text-slate-500">No data yet.</div>
+                      )}
                     </div>
                     
-                    {/* Visual Analytics */}
+                    {/* Visual Analytics (Performance Radar) -- show empty unless results.radarData */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="oracle-card p-5">
                         <div className="flex items-center mb-4">
                           <i className="fas fa-chart-line text-lg text-cyan-400 mr-2"></i>
                           <h3 className="font-semibold">Performance Radar</h3>
                         </div>
-                        <div className="h-64 flex items-center justify-center bg-slate-800/30 rounded-lg">
-                          <svg viewBox="0 0 240 240" className="w-full h-full">
-                            {/* Grid Lines */}
-                            <polygon points="120,40 160,90 120,140 80,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
-                            <polygon points="120,60 170,90 120,150 70,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
-                            <polygon points="120,80 180,90 120,160 60,90" fill="none" stroke="rgba(126,34,206,0.2)" strokeWidth="1"/>
-                            
-                            {/* Kuehne Nagel */}
-                            <polygon 
-                              points="120,80 170,65 150,125 100,130"
-                              fill="rgba(126,34,206,0.3)" 
-                              stroke="#7e22ce"
-                              strokeWidth="2"
-                            />
-                            {/* DHL Global */}
-                            <polygon 
-                              points="120,100 160,80 140,140 90,150"
-                              fill="rgba(220,38,38,0.3)" 
-                              stroke="#dc2626"
-                              strokeWidth="2"
-                            />
-                            {/* Siginon */}
-                            <polygon 
-                              points="120,120 150,100 130,160 80,170"
-                              fill="rgba(251,191,36,0.3)" 
-                              stroke="#fbbf24"
-                              strokeWidth="2"
-                            />
-                            
-                            {/* Labels */}
-                            <text x="200" y="120" textAnchor="end" fill="#e2e8f0" fontSize="10">TIME</text>
-                            <text x="120" y="205" textAnchor="middle" fill="#e2e8f0" fontSize="10">COST</text>
-                            <text x="40" y="120" textAnchor="start" fill="#e2e8f0" fontSize="10">RISK</text>
-                            <text x="180" y="165" textAnchor="middle" fill="#e2e8f0" fontSize="10">RELIABILITY</text>
-                          </svg>
-                        </div>
+                        {results && results.radarData ? (
+                          // ... place SVG/radar chart based on results.radarData
+                          <div className="h-64 flex items-center justify-center bg-slate-800/30 rounded-lg">
+                            {/* Radar chart from results.radarData */}
+                          </div>
+                        ) : (
+                          <div className="h-64 flex items-center justify-center">
+                            <span className="text-xs text-slate-400">No data yet.</span>
+                          </div>
+                        )}
                         <div className="text-xs text-center mt-4 flex justify-around">
-                          <span className="text-purple-400">K+N</span>
-                          <span className="text-rose-400">DHL</span>
-                          <span className="text-amber-400">SIG</span>
+                          {results && results.radarData ? (
+                            <span className="text-purple-400">K+N</span>
+                          ) : (
+                            ""
+                          )}
                         </div>
                       </div>
-                      
                       <div className="oracle-card p-5">
                         <div className="flex items-center mb-4">
                           <i className="fas fa-map-marked-alt text-lg text-rose-400 mr-2"></i>
                           <h3 className="font-semibold">Optimal Route Map</h3>
                         </div>
-                        <div className="map-container h-64">
-                          <div className="map-grid"></div>
-                          {/* Origin - Nairobi */}
-                          <div className="shipment-node" style={{left: '35%', top: '60%'}}></div>
-                          {/* Destination - Lusaka */}
-                          <div className="shipment-node" style={{left: '60%', top: '75%'}}></div>
-                          {/* Route Line */}
-                          <div className="route-line" style={{width: '30%', left: '35%', top: '63%', transform: 'rotate(35deg)'}}></div>
-                        </div>
-                        <div className="text-xs text-center mt-3">
-                          <div className="font-semibold">Nairobi → Lusaka</div>
-                          <div className="text-slate-400">Great North Road Corridor (2,100 km)</div>
-                          <div className="mt-2 text-sm">
-                            <span className="text-green-400">Projected Time: 5.2d</span>
-                            <span className="mx-2">|</span>
-                            <span>Historic Risk: 8.2%</span>
+                        {results && results.routeMap ? (
+                          <div className="map-container h-64">
+                            {/* Render map from results.routeMap */}
                           </div>
-                        </div>
+                        ) : (
+                          <div className="h-64 flex items-center justify-center">
+                            <span className="text-xs text-slate-400">No data yet.</span>
+                          </div>
+                        )}
+                        {results && results.routeMapDesc && (
+                          <div className="text-xs text-center mt-3 text-slate-400">{results.routeMapDesc}</div>
+                        )}
                       </div>
                     </div>
                   </div>
