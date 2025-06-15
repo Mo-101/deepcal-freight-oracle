@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,8 @@ import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import FreightCalculatorPage from "./pages/FreightCalculator";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
+import Map from "./pages/Map";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -22,11 +23,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<SymbolicCalculator />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/calculator" element={<FreightCalculatorPage />} />
-          <Route path="/ranking" element={<Ranking />} />
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/deeptalk" element={<DeepTalk />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

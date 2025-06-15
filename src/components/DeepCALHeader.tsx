@@ -1,24 +1,14 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Calculator } from "lucide-react";
+import { Calculator, BarChart, Map, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Calculator", to: "/", icon: Calculator },
-  { label: "Training", to: "/training" },
-  { label: "Settings", to: "/settings" },
-  { label: "Map (Soon Come)", to: "/map" },
-  { label: "Dashboard", to: "/dashboard" },
-  { label: "Ranking", to: "/ranking" },
-  { label: "Analytics", to: "/analytics" },
-  { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Freight Calculator", to: "/calculator" },
-];
-
-const logoJoke = [
-  "DeepCAL:",
-  <span key="slogan" className="text-primary font-semibold">Freight is Uncertain. Logic is Not.</span>,
+  { label: "DeepCAL", to: "/", icon: Calculator },
+  { label: "Analytics", to: "/analytics", icon: BarChart },
+  { label: "Map", to: "/map", icon: Map },
+  { label: "Settings", to: "/settings", icon: Settings },
 ];
 
 const DeepCALHeader: React.FC = () => {
@@ -28,10 +18,10 @@ const DeepCALHeader: React.FC = () => {
       <div className="flex items-center justify-between max-w-screen-2xl mx-auto px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/10 rounded-lg">
-            <BrainCog className="w-9 h-9 text-lime-400" />
+            <Calculator className="w-9 h-9 text-lime-400" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2" title="DeepCAL">
-            {logoJoke}
+          <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2">
+            DeepCAL: <span className="text-primary font-semibold">Freight is Uncertain. Logic is Not.</span>
           </h1>
         </div>
         <nav className="flex gap-2 flex-wrap">
