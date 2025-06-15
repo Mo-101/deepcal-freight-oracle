@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
+import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
+import { Info } from "lucide-react";
 
 interface CalculatorInputs {
   origin: string;
@@ -44,6 +46,37 @@ const SymbolicCalculator = () => {
     'Scan Global Logistics',
     'Agility Logistics'
   ];
+
+  const [validation, setValidation] = useState<{weight?: string; volume?: string}>({});
+  // Handle priorities change from slider
+  const handlePrioritiesChange = (priorities: CalculatorInputs["priorities"]) => {
+    setInputs((prev) => ({
+      ...prev,
+      priorities,
+    }));
+  };
+
+  // For field tooltips
+  const help = {
+    weight: "Total shipment weight in kilograms (range: 100 - 20,000kg).",
+    volume: "Total shipment volume in cubic meters (CBM) (range: 1 - 80).",
+    cargoType: "What type of cargo is being shipped?",
+    origin: "Select the shipment starting country.",
+    destination: "Select the shipment destination.",
+    forwarder: "Select one or more companies to compare."
+  };
+
+  // Validation for form inputs
+  useEffect(() => {
+    let val: typeof validation = {};
+    if (inputs.weight < 100 || inputs.weight > 20000) {
+      val.weight = "Weight must be between 100 and 20,000 kg.";
+    }
+    if (inputs.volume < 1 || inputs.volume > 80) {
+      val.volume = "Volume must be between 1 and 80 CBM.";
+    }
+    setValidation(val);
+  }, [inputs.weight, inputs.volume]);
 
   const handleForwarderToggle = (forwarder: string) => {
     setInputs(prev => ({
@@ -117,7 +150,10 @@ const SymbolicCalculator = () => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm mb-1">Origin</label>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Origin
+                          <Info className="text-purple-400 w-3 h-3" title={help.origin} />
+                        </label>
                         <select 
                           className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
                           value={inputs.origin}
@@ -129,7 +165,10 @@ const SymbolicCalculator = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm mb-1">Destination</label>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Destination
+                          <Info className="text-purple-400 w-3 h-3" title={help.destination} />
+                        </label>
                         <select 
                           className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
                           value={inputs.destination}
@@ -151,26 +190,45 @@ const SymbolicCalculator = () => {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm mb-1">Weight (kg)</label>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Weight (kg)
+                          <Info className="text-purple-400 w-3 h-3" title={help.weight} />
+                        </label>
                         <input 
                           type="number" 
                           value={inputs.weight}
                           onChange={(e) => setInputs({...inputs, weight: parseFloat(e.target.value) || 0})}
-                          className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                          className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                          min={100} max={20000}
+                          aria-describedby="weight-help"
                         />
+                        <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-slate-400"}`}>
+                          {validation.weight || help.weight}
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-sm mb-1">Volume (CBM)</label>
+                        <label className="block text-sm mb-1 flex items-center gap-1">
+                          Volume (CBM)
+                          <Info className="text-purple-400 w-3 h-3" title={help.volume} />
+                        </label>
                         <input 
                           type="number" 
                           value={inputs.volume}
                           onChange={(e) => setInputs({...inputs, volume: parseFloat(e.target.value) || 0})}
-                          className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                          className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                          min={1} max={80}
+                          aria-describedby="volume-help"
                         />
+                        <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-slate-400"}`}>
+                          {validation.volume || help.volume}
+                        </div>
                       </div>
                     </div>
                     <div className="mt-4">
-                      <label className="block text-sm mb-1">Cargo Type</label>
+                      <label className="block text-sm mb-1 flex items-center gap-1">
+                        Cargo Type
+                        <Info className="text-purple-400 w-3 h-3" title={help.cargoType} />
+                      </label>
                       <select 
                         className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
                         value={inputs.cargoType}
@@ -184,67 +242,17 @@ const SymbolicCalculator = () => {
                     </div>
                   </div>
                   
-                  {/* Priority Weighting */}
+                  {/* Priority Weighting - now interactive */}
                   <div>
                     <h3 className="font-medium mb-2 flex items-center">
                       <i className="fas fa-balance-scale mr-2 text-purple-400"></i>
                       Symbolic Priority Weighting
+                      <Info className="text-purple-400 w-3 h-3 ml-2" title="Distribute 100% between these priorities to guide your result" />
                     </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Time Criticality</span>
-                          <span className="text-sm font-semibold">{inputs.priorities.time}%</span>
-                        </div>
-                        <div className="relative pt-1">
-                          <div className="flex items-center">
-                            <div className="text-xs text-purple-200">0</div>
-                            <div className="flex-1 mx-2">
-                              <div className="h-2 bg-slate-700 rounded-full">
-                                <div className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" style={{width: `${inputs.priorities.time}%`}}></div>
-                              </div>
-                            </div>
-                            <div className="text-xs text-purple-200">100</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Cost Sensitivity</span>
-                          <span className="text-sm font-semibold">{inputs.priorities.cost}%</span>
-                        </div>
-                        <div className="relative pt-1">
-                          <div className="flex items-center">
-                            <div className="text-xs text-purple-200">0</div>
-                            <div className="flex-1 mx-2">
-                              <div className="h-2 bg-slate-700 rounded-full">
-                                <div className="h-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500" style={{width: `${inputs.priorities.cost}%`}}></div>
-                              </div>
-                            </div>
-                            <div className="text-xs text-purple-200">100</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Risk Tolerance</span>
-                          <span className="text-sm font-semibold">{inputs.priorities.risk}%</span>
-                        </div>
-                        <div className="relative pt-1">
-                          <div className="flex items-center">
-                            <div className="text-xs text-purple-200">0</div>
-                            <div className="flex-1 mx-2">
-                              <div className="h-2 bg-slate-700 rounded-full">
-                                <div className="h-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500" style={{width: `${inputs.priorities.risk}%`}}></div>
-                              </div>
-                            </div>
-                            <div className="text-xs text-purple-200">100</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <InteractivePrioritySliders
+                      value={inputs.priorities}
+                      onChange={handlePrioritiesChange}
+                    />
                   </div>
                   
                   {/* Forwarders Selection */}
@@ -252,6 +260,7 @@ const SymbolicCalculator = () => {
                     <h3 className="font-medium mb-2 flex items-center">
                       <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
                       Freight Forwarders
+                      <Info className="text-purple-400 w-3 h-3 ml-2" title={help.forwarder} />
                     </h3>
                     <div className="space-y-2">
                       {forwarderOptions.map(forwarder => (
@@ -272,7 +281,7 @@ const SymbolicCalculator = () => {
                   <div>
                     <button 
                       onClick={awakenOracle}
-                      disabled={isAwakening}
+                      disabled={isAwakening || validation.weight || validation.volume}
                       className="w-full mt-2 bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <i className="fas fa-bolt mr-2"></i>
