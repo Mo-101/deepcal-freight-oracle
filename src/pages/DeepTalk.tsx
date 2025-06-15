@@ -1,5 +1,5 @@
-
 import React, { useRef } from "react";
+import DeepCALHeader from "@/components/DeepCALHeader";
 
 const INITIAL_MESSAGES = [
   {
@@ -64,26 +64,8 @@ const DeepTalkChat = () => {
       fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
       backgroundColor: "#F3F4F6"
     }}>
-      {/* Header */}
-      <header className="bg-indigo-600 text-white py-4 px-6 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-indigo-700 font-bold text-xl">
-              DT
-            </div>
-            <h1 className="text-xl font-bold tracking-tight">DeepTalk AI</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button className="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center space-x-2" type="button" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 18a6 6 0 0 0 6-6V8m0-2a6 6 0 1 0-12 0v4a6 6 0 0 0 6 6Zm0 0v4m-6 0h12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Voice (soon)
-            </button>
-            <button className="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-full font-medium" type="button" disabled>
-              Settings
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Top nav - unified */}
+      <DeepCALHeader />
 
       {/* Main area */}
       <main className="flex-1 container mx-auto py-8 px-2 sm:px-6 flex flex-col md:flex-row gap-6">
