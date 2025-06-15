@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -107,6 +106,7 @@ export default {
 				'scroll-appear': 'scroll-appear 1.2s ease-out'
 			},
 			fontFamily: {
+				aptos: ["Aptos", "Arial", "Helvetica", "sans-serif"],
 				'orbitron': ['Orbitron', 'sans-serif'],
 			}
 		}
