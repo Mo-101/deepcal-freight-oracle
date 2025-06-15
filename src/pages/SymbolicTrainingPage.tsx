@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Brain,
@@ -39,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DeepCALHeader from "@/components/DeepCALHeader";
 
 const lossData = Array.from({ length: 25 }, (_, i) => ({
   epoch: i + 1,
@@ -88,7 +88,8 @@ const SymbolicTrainingPage: React.FC = () => {
   }, [isTrainingActive]);
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-gray-900 text-gray-100 min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
+      <DeepCALHeader />
       {/* Header */}
       <header className="mb-10 text-center">
         <div className="flex items-center justify-center mb-4">
@@ -624,4 +625,3 @@ const ModelVersionCard: React.FC<{
 };
 
 export default SymbolicTrainingPage;
-

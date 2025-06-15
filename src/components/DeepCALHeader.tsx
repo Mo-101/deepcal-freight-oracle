@@ -5,11 +5,15 @@ import { BrainCog, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Dashboard", to: "/" },
-  { label: "Calculator", to: "/calculator", icon: Calculator },
+  { label: "Calculator", to: "/", icon: Calculator },
+  { label: "Training", to: "/training" },
+  { label: "Settings", to: "/settings" },
+  { label: "Map (Soon Come)", to: "/map" },
+  { label: "Dashboard", to: "/dashboard" },
   { label: "Ranking", to: "/ranking" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
+  { label: "Freight Calculator", to: "/calculator" },
 ];
 
 const logoJoke = [
@@ -30,7 +34,7 @@ const DeepCALHeader: React.FC = () => {
             {logoJoke}
           </h1>
         </div>
-        <nav className="flex gap-2">
+        <nav className="flex gap-2 flex-wrap">
           {navLinks.map(link => (
             <Link
               key={link.to}
