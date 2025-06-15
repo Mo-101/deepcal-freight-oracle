@@ -49,6 +49,8 @@ const SymbolicCalculator = () => {
   const [showOutput, setShowOutput] = useState(false);
   const [outputAnimation, setOutputAnimation] = useState(false);
   const [anomalyMap, setAnomalyMap] = useState<any>({});
+  const [dataStale, setDataStale] = useState(false);
+  const [refreshingData, setRefreshingData] = useState(false);
 
   const forwarderOptions = [
     'Kuehne + Nagel',
@@ -142,14 +144,40 @@ const SymbolicCalculator = () => {
     }, 1500);
   };
 
-  // Load old shipments on mount
+  // Load old shipments on mount and check for stale data
   useEffect(() => {
     const fetchShipments = async () => {
       const shipments = await csvDataEngine.listShipments();
       setOldShipments(shipments);
+      
+      // Check if data is stale
+      const isStale = await csvDataEngine.isDataStale();
+      setDataStale(isStale);
     };
     fetchShipments();
   }, []);
+
+  // Handle data refresh
+  const handleRefreshData = async () => {
+    setRefreshingData(true);
+    try {
+      await csvDataEngine.forceReloadEmbeddedData();
+      const freshShipments = await csvDataEngine.listShipments();
+      setOldShipments(freshShipments);
+      setDataStale(false);
+      
+      // Clear current selection to avoid confusion
+      setSelectedReference(null);
+      setResults(null);
+      setShowOutput(false);
+      setOutputAnimation(false);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+      humorToast("❌ Refresh Failed", "Could not reload fresh data from CSV", 3000);
+    } finally {
+      setRefreshingData(false);
+    }
+  };
 
   // Set form fields when shipment is selected
   useEffect(() => {
@@ -297,6 +325,28 @@ const SymbolicCalculator = () => {
       
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
+          {/* DATA STALENESS WARNING */}
+          {dataStale && (
+            <Card className="mb-6 p-4 bg-amber-900/20 border border-amber-600/30 rounded-xl">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <i className="fas fa-exclamation-triangle text-amber-400"></i>
+                  <div>
+                    <div className="font-semibold text-amber-200">Updated Data Detected</div>
+                    <div className="text-sm text-amber-300">Your CSV file has been updated. Click refresh to load the latest data.</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleRefreshData}
+                  disabled={refreshingData}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  {refreshingData ? 'Refreshing...' : 'Refresh Data'}
+                </button>
+              </div>
+            </Card>
+          )}
+
           {/* REFERENCE ID SELECTION */}
           <Card className="mb-8 p-4 flex flex-col gap-2 bg-white/20 border border-deepcal-light rounded-xl shadow transition">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -330,6 +380,16 @@ const SymbolicCalculator = () => {
                   }
                 </SelectContent>
               </Select>
+              {!dataStale && (
+                <button
+                  onClick={handleRefreshData}
+                  disabled={refreshingData}
+                  className="px-3 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 rounded border border-slate-600 transition-colors disabled:opacity-50"
+                  title="Force refresh data from CSV"
+                >
+                  {refreshingData ? '⟳' : '↻'} Refresh
+                </button>
+              )}
             </div>
           </Card>
 

@@ -1,3 +1,4 @@
+
 // CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
 import { humorToast } from "@/components/HumorToast";
 import { set, get, del } from "idb-keyval";
@@ -44,19 +45,6 @@ export interface LineageMeta {
 // IndexedDB key for base shipments
 const SHIPMENT_BASE_KEY = "shipments_base_v1";
 
-export interface FreightCalculatorResult {
-  lineageMeta: {
-    records: number;
-    sha256: string;
-    timestamp: string;
-    source: string;
-  };
-  forwarderComparison: any[];
-  rulesFired: string[];
-  recommendation?: string;
-  routeScore?: number;
-}
-
 class CSVDataLoader {
   private lineageMeta: LineageMeta | null = null;
 
@@ -79,6 +67,30 @@ class CSVDataLoader {
     } catch (error) {
       console.error("❌ Failed to auto-load embedded data:", error);
       throw new Error("Embedded dataset not available - system locked.");
+    }
+  }
+
+  // Force reload fresh data from CSV (clears cache first)
+  async forceReloadEmbeddedData(): Promise<void> {
+    console.log("🔄 Force reloading embedded dataset (clearing cache)...");
+    await this.clearShipments();
+    
+    try {
+      const response = await fetch('/embedded_shipments.csv?t=' + Date.now()); // Cache bust
+      if (!response.ok) {
+        throw new Error(`Failed to load embedded data: ${response.status}`);
+      }
+      const csvText = await response.text();
+      await this.loadCSVData(csvText, 'embedded');
+      
+      humorToast(
+        "🔄 Data Refreshed", 
+        "Loaded fresh data from updated CSV file",
+        3000
+      );
+    } catch (error) {
+      console.error("❌ Failed to force reload embedded data:", error);
+      throw new Error("Failed to reload fresh data from CSV");
     }
   }
 
@@ -121,6 +133,26 @@ class CSVDataLoader {
   async clearShipments(): Promise<void> {
     await del(SHIPMENT_BASE_KEY);
     this.lineageMeta = null;
+    console.log("🗑️ Cleared cached shipment data from IndexedDB");
+  }
+
+  // Check if current data hash matches what's in cache
+  async isDataStale(): Promise<boolean> {
+    try {
+      const response = await fetch('/embedded_shipments.csv?t=' + Date.now());
+      if (!response.ok) return false;
+      
+      const csvText = await response.text();
+      const currentHash = await this.generateDataHash(csvText);
+      
+      const cached = await get(SHIPMENT_BASE_KEY);
+      if (!cached || !cached.meta) return true;
+      
+      return cached.meta.sha256 !== currentHash;
+    } catch (error) {
+      console.error("Error checking data staleness:", error);
+      return false;
+    }
   }
 
   getLineageMeta(): LineageMeta | null {
