@@ -152,7 +152,9 @@ const SymbolicCalculator = () => {
                       <div>
                         <label className="block text-sm mb-1 flex items-center gap-1">
                           Origin
-                          <Info className="text-purple-400 w-3 h-3" title={help.origin} />
+                          <span title={help.origin}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.origin} />
+                          </span>
                         </label>
                         <select 
                           className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
@@ -167,7 +169,9 @@ const SymbolicCalculator = () => {
                       <div>
                         <label className="block text-sm mb-1 flex items-center gap-1">
                           Destination
-                          <Info className="text-purple-400 w-3 h-3" title={help.destination} />
+                          <span title={help.destination}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.destination} />
+                          </span>
                         </label>
                         <select 
                           className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
@@ -192,7 +196,9 @@ const SymbolicCalculator = () => {
                       <div>
                         <label className="block text-sm mb-1 flex items-center gap-1">
                           Weight (kg)
-                          <Info className="text-purple-400 w-3 h-3" title={help.weight} />
+                          <span title={help.weight}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.weight} />
+                          </span>
                         </label>
                         <input 
                           type="number" 
@@ -209,7 +215,9 @@ const SymbolicCalculator = () => {
                       <div>
                         <label className="block text-sm mb-1 flex items-center gap-1">
                           Volume (CBM)
-                          <Info className="text-purple-400 w-3 h-3" title={help.volume} />
+                          <span title={help.volume}>
+                            <Info className="text-purple-400 w-3 h-3" aria-label={help.volume} />
+                          </span>
                         </label>
                         <input 
                           type="number" 
@@ -227,7 +235,9 @@ const SymbolicCalculator = () => {
                     <div className="mt-4">
                       <label className="block text-sm mb-1 flex items-center gap-1">
                         Cargo Type
-                        <Info className="text-purple-400 w-3 h-3" title={help.cargoType} />
+                        <span title={help.cargoType}>
+                          <Info className="text-purple-400 w-3 h-3" aria-label={help.cargoType} />
+                        </span>
                       </label>
                       <select 
                         className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
@@ -247,7 +257,9 @@ const SymbolicCalculator = () => {
                     <h3 className="font-medium mb-2 flex items-center">
                       <i className="fas fa-balance-scale mr-2 text-purple-400"></i>
                       Symbolic Priority Weighting
-                      <Info className="text-purple-400 w-3 h-3 ml-2" title="Distribute 100% between these priorities to guide your result" />
+                      <span title="Distribute 100% between these priorities to guide your result">
+                        <Info className="text-purple-400 w-3 h-3 ml-2" aria-label="Distribute 100% between these priorities to guide your result" />
+                      </span>
                     </h3>
                     <InteractivePrioritySliders
                       value={inputs.priorities}
@@ -260,7 +272,9 @@ const SymbolicCalculator = () => {
                     <h3 className="font-medium mb-2 flex items-center">
                       <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
                       Freight Forwarders
-                      <Info className="text-purple-400 w-3 h-3 ml-2" title={help.forwarder} />
+                      <span title={help.forwarder}>
+                        <Info className="text-purple-400 w-3 h-3 ml-2" aria-label={help.forwarder} />
+                      </span>
                     </h3>
                     <div className="space-y-2">
                       {forwarderOptions.map(forwarder => (
@@ -281,7 +295,7 @@ const SymbolicCalculator = () => {
                   <div>
                     <button 
                       onClick={awakenOracle}
-                      disabled={isAwakening || validation.weight || validation.volume}
+                      disabled={isAwakening || !!validation.weight || !!validation.volume}
                       className="w-full mt-2 bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <i className="fas fa-bolt mr-2"></i>

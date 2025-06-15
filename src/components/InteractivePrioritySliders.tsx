@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Slider } from "@/components/ui/slider";
 import { Info } from "lucide-react";
@@ -94,8 +93,8 @@ export const InteractivePrioritySliders: React.FC<Props> = ({ value, onChange })
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm font-medium flex items-center gap-1">
               {sliderLabel(key)}
-              <span className="tooltip" style={{display:"inline-block"}}>
-                <Info className="inline ml-1 text-purple-400 w-3 h-3" title={infos[key]} />
+              <span className="tooltip" style={{ display: "inline-block" }} title={infos[key]}>
+                <Info className="inline ml-1 text-purple-400 w-3 h-3" aria-label={infos[key]} />
               </span>
             </span>
             <span className="text-sm font-semibold">{value[key]}%</span>
