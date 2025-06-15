@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,9 @@ import { ConfidenceVisualization } from './analytical/ConfidenceVisualization';
 import { SymbolicDecisionSeal } from './analytical/SymbolicDecisionSeal';
 import { RouteVisualization } from './analytical/RouteVisualization';
 import { MethodologyExplainer } from './analytical/MethodologyExplainer';
-import type { FreightCalculatorResult } from '@/services/csvDataEngine';
 
 interface PowerAnalyticalEngineProps {
-  result: FreightCalculatorResult;
+  result: any;
   inputs: {
     origin: string;
     destination: string;

@@ -1,6 +1,7 @@
+
 // CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
 import { humorToast } from "@/components/HumorToast";
-import { set, get, del, keys } from "idb-keyval";
+import { set, get, del } from "idb-keyval";
 
 export interface ShipmentRecord {
   request_reference: string;
@@ -49,10 +50,8 @@ class CSVDataLoader {
 
   // **Loader only, no calculations.**
   async autoLoadEmbeddedData(): Promise<void> {
-    // Loads embedded CSV, parses, stores to IDB if not already there.
     const hasBase = await get(SHIPMENT_BASE_KEY);
     if (hasBase && Array.isArray(hasBase.rows) && hasBase.rows.length > 0) {
-      // Already loaded once
       this.lineageMeta = hasBase.meta;
       return;
     }
@@ -72,7 +71,6 @@ class CSVDataLoader {
   }
 
   async loadCSVData(csvText: string, source: 'uploaded' | 'embedded' | 'sample' = 'uploaded'): Promise<void> {
-    // Parse CSV, store rows in IndexedDB, and store lineage meta
     console.log("🔄 Loading CSV data into DeepCAL loader (IndexedDB) ...");
 
     const dataHash = await this.generateDataHash(csvText);
@@ -127,10 +125,10 @@ class CSVDataLoader {
 
   private parseValue(header: string, value: string): any {
     if (!value || value === '0' || value === '') return 0;
-    // Numeric fields
-    if (header.includes('cost') || header.includes('weight') || header.includes('volume') || 
-        header.includes('latitude') || header.includes('longitude') ||
-        ['kuehne_nagel', 'scan_global_logistics', 'dhl_express', 'dhl_global', 'bwosi', 'agl', 'siginon', 'frieght_in_time'].includes(header)) {
+    if (
+      header.includes('cost') || header.includes('weight') || header.includes('volume') || 
+      header.includes('latitude') || header.includes('longitude') ||
+      ['kuehne_nagel', 'scan_global_logistics', 'dhl_express', 'dhl_global', 'bwosi', 'agl', 'siginon', 'frieght_in_time'].includes(header)) {
       const numValue = parseFloat(value.replace(/[,$]/g, ''));
       return isNaN(numValue) ? 0 : numValue;
     }
@@ -144,19 +142,19 @@ class CSVDataLoader {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
+
+  // ADD THESE loader utility methods (so TS sees them!)
+  async isDataLoaded(): Promise<boolean> {
+    const dbPayload = await get(SHIPMENT_BASE_KEY);
+    return !!(dbPayload && Array.isArray(dbPayload.rows) && dbPayload.rows.length > 0);
+  }
+
+  async listShipments(): Promise<ShipmentRecord[]> {
+    const dbPayload = await get(SHIPMENT_BASE_KEY);
+    return dbPayload && Array.isArray(dbPayload.rows) ? dbPayload.rows : [];
+  }
 }
-
-// Attach a static async check for row presence (used for "data loaded" state).
-CSVDataLoader.prototype.isDataLoaded = async function () {
-  const dbPayload = await get(SHIPMENT_BASE_KEY);
-  return !!(dbPayload && Array.isArray(dbPayload.rows) && dbPayload.rows.length > 0);
-};
-
-// Allow static, non-reactive row getter: not to be confused with calculations.
-CSVDataLoader.prototype.listShipments = async function () {
-  const dbPayload = await get(SHIPMENT_BASE_KEY);
-  return dbPayload && Array.isArray(dbPayload.rows) ? dbPayload.rows : [];
-};
 
 export { ShipmentRecord, LineageMeta };
 export const csvDataEngine = new CSVDataLoader();
+

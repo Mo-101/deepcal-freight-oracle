@@ -119,25 +119,21 @@ const SymbolicCalculator = () => {
   };
 
   const awakenOracle = async () => {
-    if (!csvDataEngine.isDataLoaded()) {
+    const isLoaded = await csvDataEngine.isDataLoaded();
+    if (!isLoaded) {
       await csvDataEngine.autoLoadEmbeddedData();
     }
     setIsAwakening(true);
     humorToast("🔮 Oracle Awakening", "The Symbolic Intelligence is stirring...", 2000);
 
-    // Show animated output after Oracle is "awakened"
+    // Engine is offline—remove calculation call (just simulate result panel or show engine offline)
     setTimeout(() => {
-      const calculationResult = csvDataEngine.calculateFreightOptions(
-        inputs.origin,
-        inputs.destination,
-        inputs.weight,
-        inputs.volume
-      );
-      setResults(calculationResult);
+      // Simulate awakening oracle output OFFLINE
+      setResults(null); // Results panel will show "engine coming soon" or similar
       setIsAwakening(false);
-      setShowOutput(true); // Show the output panel
-      setTimeout(() => setOutputAnimation(true), 150); // Small delay for animation trigger
-      humorToast("✨ Transmission Complete", "The Oracle has spoken!", 3000);
+      setShowOutput(true);
+      setTimeout(() => setOutputAnimation(true), 150);
+      humorToast("✨ Transmission Complete", "The Oracle is dormant until the engine is connected.", 3000);
     }, 1500);
   };
 

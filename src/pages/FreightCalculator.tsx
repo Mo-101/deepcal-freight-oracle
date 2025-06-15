@@ -7,12 +7,13 @@ import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 
 const FreightCalculatorPage = () => {
-  const [isDataLoaded, setIsDataLoaded] = useState(csvDataEngine.isDataLoaded());
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isAutoLoading, setIsAutoLoading] = useState(false);
 
   useEffect(() => {
     const autoLoadEmbeddedData = async () => {
-      if (!csvDataEngine.isDataLoaded() && !isAutoLoading) {
+      const isLoaded = await csvDataEngine.isDataLoaded();
+      if (!isLoaded && !isAutoLoading) {
         setIsAutoLoading(true);
         try {
           await csvDataEngine.autoLoadEmbeddedData();
@@ -20,10 +21,11 @@ const FreightCalculatorPage = () => {
           humorToast("🚀 DeepCAL Boot Complete", "Embedded dataset auto-loaded. No more locked features!", 3000);
         } catch (error) {
           console.error("Auto-load failed:", error);
-          // Let user manually load data
         } finally {
           setIsAutoLoading(false);
         }
+      } else {
+        setIsDataLoaded(isLoaded);
       }
     };
 
