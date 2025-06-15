@@ -1,12 +1,12 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Dumbbell, Calculator } from "lucide-react";
+import { Dumbbell } from "lucide-react";
 
 const navLinks = [
   { label: "Dashboard", to: "/" },
-  { label: "Calculator", to: "/calculator", icon: Calculator },
-  { label: "Ranking", to: "/ranking" },
+  // { label: "Calculator", to: "/calculator", icon: Calculator }, // removed
+  // { label: "Ranking", to: "/ranking" }, // removed
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },

@@ -23,8 +23,6 @@ const App = () => (
         <Routes>
           <Route path="/" element={<SymbolicCalculator />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/calculator" element={<FreightCalculatorPage />} />
-          <Route path="/ranking" element={<Ranking />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/deeptalk" element={<DeepTalk />} />
           <Route path="/training" element={<Training />} />

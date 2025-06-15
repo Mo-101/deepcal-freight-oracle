@@ -1,16 +1,13 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Calculator, Dumbbell } from "lucide-react";
+import { BrainCog, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Dashboard", to: "/" },
-  { label: "Calculator", to: "/calculator", icon: Calculator },
-  { label: "Ranking", to: "/ranking" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Training", to: "/training", icon: Dumbbell }, // Now includes Dumbbell icon
+  { label: "Training", to: "/training", icon: Dumbbell }, // dumbbell icon kept for Training
 ];
 
 const logoJoke = [
@@ -57,4 +54,3 @@ const DeepCALHeader: React.FC = () => {
 };
 
 export default DeepCALHeader;
-
