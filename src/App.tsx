@@ -14,13 +14,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <Routes>
-        {/* Uncomment these lines if those files exist: */}
+        {/* Set Analytics page as the default root route */}
+        <Route path="/" element={<Analytics />} />
+        <Route path="/analytics" element={<Analytics />} />
+        {/* Uncomment these lines if those pages exist: */}
         {/*
-        <Route path="/" element={<DeepCAL />} />
+        <Route path="/deepcal" element={<DeepCAL />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/map" element={<Map />} />
         */}
-        <Route path="/analytics" element={<Analytics />} />
       </Routes>
     </BrowserRouter>
   </QueryClientProvider>
