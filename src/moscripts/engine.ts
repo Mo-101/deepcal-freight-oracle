@@ -1,4 +1,6 @@
 
+import { toast } from "@/hooks/use-toast";
+
 /**
  * MoScript Engine – Runtime and Registry
  */
@@ -36,13 +38,11 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
     .map(m => {
       const result = m.logic(inputs);
       if (m.voiceLine) {
-        // Add toast here if available, else console.log as fallback
-        if (typeof window !== "undefined" && window?.toast) {
-          window.toast[m.sass ? "info" : "success"](m.voiceLine(result));
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`[${m.name}]: ${m.voiceLine(result)}`);
-        }
+        // Use shadcn toast directly
+        toast({
+          title: m.voiceLine(result),
+          variant: m.sass ? "default" : "success",
+        });
       }
       return result;
     });
@@ -54,3 +54,4 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
 export function listMoScripts() {
   return [...MOS_REGISTRY];
 }
+
