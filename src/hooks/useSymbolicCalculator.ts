@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
@@ -19,7 +18,7 @@ export const useSymbolicCalculator = () => {
       cost: 45,
       risk: 22
     },
-    selectedForwarders: ['Kuehne + Nagel', 'DHL Global Forwarding', 'Siginon Logistics']
+    selectedForwarders: [] // Start with no forwarders selected
   });
 
   const [shipments, setShipments] = useState<ShipmentData[]>([]);
@@ -99,11 +98,17 @@ export const useSymbolicCalculator = () => {
       setShipments(freshShipments);
       setDataStale(false);
       
+      // Clear selection and reset form to default state
       setSelectedReference(null);
       setSelectedShipment(null);
       setResults(null);
       setShowOutput(false);
       setOutputAnimation(false);
+      setForwarderRFQ({});
+      setInputs(prev => ({
+        ...prev,
+        selectedForwarders: []
+      }));
     } catch (error) {
       console.error('Failed to refresh data:', error);
       humorToast("❌ Refresh Failed", "Could not reload fresh data from CSV", 3000);
@@ -130,13 +135,15 @@ export const useSymbolicCalculator = () => {
     fetchShipments();
   }, []);
 
-  // Reference shipment selection effect
+  // Reference shipment selection effect - only populate when user actively selects
   useEffect(() => {
     if (!selectedReference) {
+      // Clear everything when no reference is selected
       setSelectedShipment(null);
       setResults(null);
       setShowOutput(false);
       setOutputAnimation(false);
+      setForwarderRFQ({});
       return;
     }
     
@@ -150,6 +157,7 @@ export const useSymbolicCalculator = () => {
       const usedForwarders: string[] = [];
       const newForwarderRFQ: Record<string, ForwarderRFQData> = {};
       
+      // Only add forwarders that have actual quote values
       if (shipment.kuehne_nagel && shipment.kuehne_nagel > 0) {
         usedForwarders.push('Kuehne + Nagel');
         newForwarderRFQ['Kuehne + Nagel'] = {
@@ -195,6 +203,7 @@ export const useSymbolicCalculator = () => {
         };
       }
 
+      // Update inputs with mapped data and selected forwarders
       setInputs(prev => ({
         ...prev,
         ...mappedInputs,

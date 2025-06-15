@@ -26,6 +26,12 @@ const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps> = ({
   onReferenceChange,
   onRefresh
 }) => {
+  const handleSelectionChange = (value: string) => {
+    if (value !== "__no_shipments__") {
+      onReferenceChange(value);
+    }
+  };
+
   return (
     <Card className="mb-8 p-4 flex flex-col gap-2 bg-white/20 border border-deepcal-light rounded-xl shadow transition">
       <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -34,25 +40,25 @@ const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps> = ({
         </div>
         <Select
           value={selectedReference || ""}
-          onValueChange={onReferenceChange}
+          onValueChange={handleSelectionChange}
           disabled={oldShipments.length === 0}
         >
-          <SelectTrigger className="w-80 min-w-[240px]">
-            <SelectValue placeholder="Select a previous shipment..." />
+          <SelectTrigger className="w-80 min-w-[240px] bg-slate-800/80 border-slate-600 text-slate-200">
+            <SelectValue placeholder="Select Shipment" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-slate-800 border-slate-600">
             {oldShipments.length > 0 ?
               oldShipments.map(sh => (
                 <SelectItem 
                   value={sh.request_reference}
                   key={sh.request_reference}
-                  className="text-primary py-2"
+                  className="text-slate-200 hover:bg-slate-700 py-2"
                 >
-                  <span className="font-mono text-accent">{sh.request_reference}</span>
-                  <span className="ml-2 text-slate-600">{sh.origin_country || "?"}→{sh.destination_country || "?"}</span>
+                  <span className="font-mono text-purple-400">{sh.request_reference}</span>
+                  <span className="ml-2 text-slate-400">{sh.origin_country || "?"}→{sh.destination_country || "?"}</span>
                 </SelectItem>
               )) : (
-                <SelectItem value="__no_shipments__" disabled>
+                <SelectItem value="__no_shipments__" disabled className="text-slate-500">
                   No shipments available
                 </SelectItem>
               )
