@@ -1,4 +1,3 @@
-
 // CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
 import { humorToast } from "@/components/HumorToast";
 import { set, get, del, keys } from "idb-keyval";
@@ -109,13 +108,6 @@ class CSVDataLoader {
     console.log(`✅ Loader: ${rows.length} shipment records persisted (${source})`);
   }
 
-  async listShipments(): Promise<ShipmentRecord[]> {
-    // Read the shipments directly from IndexedDB
-    const dbPayload = await get(SHIPMENT_BASE_KEY);
-    if (!dbPayload || !Array.isArray(dbPayload.rows)) return [];
-    return dbPayload.rows;
-  }
-
   async clearShipments(): Promise<void> {
     await del(SHIPMENT_BASE_KEY);
     this.lineageMeta = null;
@@ -154,4 +146,17 @@ class CSVDataLoader {
   }
 }
 
+// Attach a static async check for row presence (used for "data loaded" state).
+CSVDataLoader.prototype.isDataLoaded = async function () {
+  const dbPayload = await get(SHIPMENT_BASE_KEY);
+  return !!(dbPayload && Array.isArray(dbPayload.rows) && dbPayload.rows.length > 0);
+};
+
+// Allow static, non-reactive row getter: not to be confused with calculations.
+CSVDataLoader.prototype.listShipments = async function () {
+  const dbPayload = await get(SHIPMENT_BASE_KEY);
+  return dbPayload && Array.isArray(dbPayload.rows) ? dbPayload.rows : [];
+};
+
+export { ShipmentRecord, LineageMeta };
 export const csvDataEngine = new CSVDataLoader();
