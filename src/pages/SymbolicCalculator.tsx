@@ -4,6 +4,7 @@ import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
 import { Info } from "lucide-react";
+import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQInputs";
 
 interface CalculatorInputs {
   origin: string;
@@ -33,7 +34,7 @@ const SymbolicCalculator = () => {
     },
     selectedForwarders: ['Kuehne + Nagel', 'DHL Global Forwarding', 'Siginon Logistics']
   });
-
+  const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
   const [results, setResults] = useState<any>(null);
   const [isAwakening, setIsAwakening] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
@@ -79,11 +80,36 @@ const SymbolicCalculator = () => {
   }, [inputs.weight, inputs.volume]);
 
   const handleForwarderToggle = (forwarder: string) => {
-    setInputs(prev => ({
-      ...prev,
-      selectedForwarders: prev.selectedForwarders.includes(forwarder)
+    setInputs(prev => {
+      const selected = prev.selectedForwarders.includes(forwarder)
         ? prev.selectedForwarders.filter(f => f !== forwarder)
-        : [...prev.selectedForwarders, forwarder]
+        : [...prev.selectedForwarders, forwarder];
+      return {
+        ...prev,
+        selectedForwarders: selected
+      };
+    });
+    setForwarderRFQ(prev => {
+      // When adding, initialize if missing. When removing, prune.
+      if (inputs.selectedForwarders.includes(forwarder)) {
+        // Removing
+        const newRFQ = { ...prev };
+        delete newRFQ[forwarder];
+        return newRFQ;
+      } else {
+        // Adding
+        return {
+          ...prev,
+          [forwarder]: prev[forwarder] || { rate: "", days: "", comments: "" }
+        };
+      }
+    });
+  };
+
+  const handleRFQChange = (forwarder: string, data: ForwarderRFQData) => {
+    setForwarderRFQ(prev => ({
+      ...prev,
+      [forwarder]: data
     }));
   };
 
@@ -272,8 +298,14 @@ const SymbolicCalculator = () => {
                     <h3 className="font-medium mb-2 flex items-center">
                       <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
                       Freight Forwarders
-                      <span title={help.forwarder}>
-                        <Info className="text-purple-400 w-3 h-3 ml-2" aria-label={help.forwarder} />
+                      <span
+                        className="ml-2"
+                        aria-label={help.forwarder}
+                        tabIndex={0}
+                        role="img"
+                        style={{ outline: "none" }}
+                      >
+                        <Info className="text-purple-400 w-3 h-3" aria-label={help.forwarder} />
                       </span>
                     </h3>
                     <div className="space-y-2">
@@ -289,6 +321,12 @@ const SymbolicCalculator = () => {
                         </div>
                       ))}
                     </div>
+                    {/* Render RFQ input fields for selected forwarders */}
+                    <ForwarderRFQInputs
+                      selectedForwarders={inputs.selectedForwarders}
+                      rfqData={forwarderRFQ}
+                      onChange={handleRFQChange}
+                    />
                   </div>
                   
                   {/* Oracle Activation */}
