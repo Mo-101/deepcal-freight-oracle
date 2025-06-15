@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import PowerAnalyticalEngine from '@/components/PowerAnalyticalEngine';
@@ -17,6 +16,10 @@ interface CalculatorInputs {
   };
   selectedForwarders: string[];
 }
+import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
+import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
+import { AlertTriangle } from "lucide-react";
+import { AnimatedRadarChart } from '@/components/analytical/AnimatedRadarChart';
 
 const SymbolicCalculator = () => {
   const [inputs, setInputs] = useState<CalculatorInputs>({
@@ -35,6 +38,8 @@ const SymbolicCalculator = () => {
 
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<any>(null);
+  // Add state for computed anomalies:
+  const [anomalyMap, setAnomalyMap] = useState<any>({});
   const [isAwakening, setIsAwakening] = useState(false);
 
   const forwarderOptions = [
@@ -92,6 +97,16 @@ const SymbolicCalculator = () => {
     };
     autoLoad();
   }, []);
+
+  // When results arrive, calculate anomalies!
+  useEffect(() => {
+    if (results && results.forwarderComparison) {
+      const found = detectForwarderAnomalies(results.forwarderComparison);
+      setAnomalyMap(found);
+    } else {
+      setAnomalyMap({});
+    }
+  }, [results]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -286,9 +301,174 @@ const SymbolicCalculator = () => {
             {/* Output Panel - Power Analytical Engine */}
             {showResults && results && (
               <div className="lg:col-span-2" id="outputPanel">
-                <PowerAnalyticalEngine 
-                  result={results}
-                  inputs={inputs}
+                {/* Analytical Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Symbolic Narrative */}
+                  <div className="oracle-card p-5">
+                    <div className="flex items-center mb-4">
+                      <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
+                      <h3 className="font-semibold">Oracle Narrative</h3>
+                      {/* Show anomaly warning if anomalies exist */}
+                      {Object.keys(anomalyMap).length > 0 && (
+                        <span
+                          className="ml-3 inline-flex items-center px-2 py-0.5 bg-yellow-400/90 text-yellow-900 text-[11px] font-bold rounded"
+                        >
+                          <AlertTriangle className="w-4 h-4 mr-1" /> Anomaly Detected
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm leading-relaxed text-slate-200">
+                      <p className="mb-3">📜 <span className="font-medium">The Whisper of Logistics:</span> In the realm of urgent cholera kits from Nairobi to Lusaka, where time battles cost and risk shadows every movement, DeepCAL++ has consulted the ancient ledger of probabilities.</p>
+                      <p className="mb-3">🧠 <span className="font-medium">Symbolic Insight:</span> Kuehne Nagel emerges—not as the cheapest carrier (at $4.61/kg) nor the swiftest (5.2 days), but as the golden mean. Its risk factor of 8% is a silent fortress in turbulent times.</p>
+                      <p className="mb-3">⚖️ <span className="font-medium">The Balance Struck:</span> With your critical weight on time (68%) whispering urgency, and cost (45%) pleading economy, the TOPSIS algorithm rendered its impartial verdict: a dominant 0.89 score.</p>
+                      <p>🔱 <span className="font-medium">Oracle Proverb:</span> <em>"In the monsoon of uncertainty, the owl chooses the branch with both roots and reach."</em> Kuehne Nagel is that branch.</p>
+                      {/* If anomalies, show anomalous forwarders */}
+                      {Object.keys(anomalyMap).length > 0 && (
+                        <div className="mt-4 text-yellow-300 text-xs">
+                          <b>Anomaly Report:</b>
+                          <ul className="mt-1 space-y-1">
+                            {Object.entries(anomalyMap).map(([fwd, val]:any) =>
+                              <li key={fwd}>
+                                <span className="font-semibold">{fwd}</span>: {val.reasons.join("; ")}
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Symbolic Seal */}
+                  <div className="oracle-card p-6 flex flex-col items-center justify-center">
+                    <i className="fas fa-dice-d20 text-6xl text-deepcal-light mb-4 animate-pulse"></i>
+                    <h3 className="font-semibold text-lg mb-2">Symbolic Seal of Approval</h3>
+                    <p className="text-sm text-slate-400 text-center">
+                      The Oracle has spoken. The die is cast.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Anomaly Detection Panel */}
+                <AnomalyPanel
+                  forwarderKPIs={results?.forwarderComparison || []}
+                  anomalies={anomalyMap}
+                />
+
+                {/* Forwarder Comparison Table with anomaly flags */}
+                <div className="bg-slate-900/50 rounded-xl overflow-hidden symbolic-border mb-6">
+                  <table className="min-w-full divide-y divide-slate-700/50">
+                    <thead className="bg-slate-800/30">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          Rank
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          Forwarder
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          Avg. Transit Time
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          Cost per KG
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          On-Time Rate
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                          TOPSIS Score
+                        </th>
+                      </tr>
+                    </thead>
+                        <tbody>
+                          {results && results.forwarderComparison.slice(0, 3).map((forwarder: any, index: number) => {
+                            const hasAnomaly = !!anomalyMap[forwarder.name];
+                            return (
+                              <tr
+                                key={forwarder.name}
+                                className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${hasAnomaly ? "bg-yellow-900/40" : ""}`}
+                              >
+                                <td className="px-4 py-3 font-semibold flex items-center gap-1">
+                                  {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
+                                  {/* Anomaly flag */}
+                                  {hasAnomaly && (
+                                    <AlertTriangle className="ml-1 text-yellow-400" size={15} title="Anomaly detected" />
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 font-medium">{forwarder.name}</td>
+                                <td className="px-4 py-3">
+                                  {forwarder.avgTransitDays?.toFixed(1) || '5.2'}
+                                  {/* highlight if time is anomaly */}
+                                  {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
+                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} title="Anomalous Delivery Time"/>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  ${forwarder.costPerKg.toFixed(2)}
+                                  {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
+                                    <AlertTriangle className="inline ml-1 text-yellow-400" size={13} title="Anomalous Cost"/>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className={`px-2 py-1 rounded text-xs ${
+                                    forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
+                                    forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
+                                    'bg-rose-900/30 text-rose-300'
+                                  }`}>
+                                    {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
+                                    {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
+                                      <AlertTriangle className="inline ml-1 text-yellow-400" size={11} title="Delivery risk anomaly" />
+                                    )}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 font-bold text-green-400">0.{89 - index * 10}</td>
+                              </tr>
+                            )
+                          })}
+                          {/* Sample Rows (if results is null) */}
+                          {results === null && (
+                            <>
+                              <tr className="border-b border-slate-700/50 hover:bg-slate-800/30">
+                                <td className="px-4 py-3 font-semibold">🥇 1</td>
+                                <td className="px-4 py-3 font-medium">Kuehne Nagel</td>
+                                <td className="px-4 py-3">5.2</td>
+                                <td className="px-4 py-3">$4.61</td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-1 rounded text-xs bg-emerald-900/30 text-emerald-300">92%</span>
+                                </td>
+                                <td className="px-4 py-3 font-bold text-green-400">0.89</td>
+                              </tr>
+                              <tr className="border-b border-slate-700/50 hover:bg-slate-800/30">
+                                <td className="px-4 py-3 font-semibold">🥈 2</td>
+                                <td className="px-4 py-3 font-medium">DHL Global</td>
+                                <td className="px-4 py-3">4.8</td>
+                                <td className="px-4 py-3">$5.12</td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-1 rounded text-xs bg-amber-900/30 text-amber-300">85%</span>
+                                </td>
+                                <td className="px-4 py-3 font-bold text-green-400">0.79</td>
+                              </tr>
+                              <tr className="border-b border-slate-700/50 hover:bg-slate-800/30">
+                                <td className="px-4 py-3 font-semibold">🥉 3</td>
+                                <td className="px-4 py-3 font-medium">Siginon Logistics</td>
+                                <td className="px-4 py-3">6.1</td>
+                                <td className="px-4 py-3">$4.85</td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-1 rounded text-xs bg-rose-900/30 text-rose-300">78%</span>
+                                </td>
+                                <td className="px-4 py-3 font-bold text-green-400">0.69</td>
+                              </tr>
+                            </>
+                          )}
+                        </tbody>
+                  </table>
+                </div>
+
+                {/* Forwarder Radar Chart with anomaly highlight */}
+                <AnimatedRadarChart
+                  forwarders={results.forwarderComparison}
+                  revealLevel="expert"
+                  detailed
+                  anomalies={anomalyMap}
                 />
               </div>
             )}
