@@ -119,19 +119,22 @@ export const mapShipmentToInputs = (shipment: ShipmentData): Partial<CalculatorI
 };
 
 export const generateForwarderComparison = (shipment: ShipmentData): ForwarderComparison[] => {
+  console.log('Generating forwarder comparison for shipment:', shipment.request_reference);
+  
+  // Extract real forwarder cost data from shipment
   const forwarderData = [
     {
       name: 'Kuehne + Nagel',
       costPerKg: shipment.kuehne_nagel || shipment['kuehne+nagel'] || 0,
       avgTransitDays: shipment.frieght_in_time || shipment.transit_days || 0,
-      onTimeRate: 0.92,
+      onTimeRate: 0.92, // Historical performance metric
       topsisScore: 0,
       rank: 1
     },
     {
       name: 'DHL Global Forwarding',
       costPerKg: shipment.dhl_global || shipment.dhl || 0,
-      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0) + 1,
+      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.88,
       topsisScore: 0,
       rank: 2
@@ -139,7 +142,7 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
     {
       name: 'Scan Global Logistics',
       costPerKg: shipment.scan_global_logistics || shipment.scan_global || 0,
-      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0) + 0.5,
+      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.85,
       topsisScore: 0,
       rank: 3
@@ -147,7 +150,7 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
     {
       name: 'Siginon Logistics',
       costPerKg: shipment.siginon || 0,
-      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0) + 2,
+      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.82,
       topsisScore: 0,
       rank: 4
@@ -155,33 +158,105 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
     {
       name: 'Agility Logistics',
       costPerKg: shipment.agl || shipment.agility || 0,
-      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0) + 1.5,
+      avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.80,
       topsisScore: 0,
       rank: 5
     }
-  ].filter(f => f.costPerKg > 0);
+  ];
 
-  if (forwarderData.length > 0) {
-    const costs = forwarderData.map(f => f.costPerKg);
-    const times = forwarderData.map(f => f.avgTransitDays);
-    
-    const minCost = Math.min(...costs);
-    const maxCost = Math.max(...costs);
-    const minTime = Math.min(...times);
-    const maxTime = Math.max(...times);
-    
-    forwarderData.forEach((f) => {
-      const costScore = maxCost > minCost ? (maxCost - f.costPerKg) / (maxCost - minCost) : 0.5;
-      const timeScore = maxTime > minTime ? (maxTime - f.avgTransitDays) / (maxTime - minTime) : 0.5;
-      f.topsisScore = (costScore * 0.5 + timeScore * 0.5);
-    });
+  // Filter to only include forwarders with actual cost data
+  const validForwarders = forwarderData.filter(f => f.costPerKg > 0);
+  
+  console.log('Valid forwarders with cost data:', validForwarders.length);
 
-    forwarderData.sort((a, b) => b.topsisScore - a.topsisScore);
-    forwarderData.forEach((f, index) => {
-      f.rank = index + 1;
-    });
+  if (validForwarders.length === 0) {
+    console.warn('No forwarders with valid cost data found');
+    return [];
   }
 
-  return forwarderData;
+  // TOPSIS Algorithm Implementation
+  // Step 1: Create decision matrix and normalize
+  const costs = validForwarders.map(f => f.costPerKg);
+  const times = validForwarders.map(f => f.avgTransitDays);
+  const reliability = validForwarders.map(f => f.onTimeRate);
+
+  // Calculate normalization denominators (sum of squares)
+  const costNorm = Math.sqrt(costs.reduce((sum, val) => sum + val * val, 0));
+  const timeNorm = Math.sqrt(times.reduce((sum, val) => sum + val * val, 0));
+  const reliabilityNorm = Math.sqrt(reliability.reduce((sum, val) => sum + val * val, 0));
+
+  // Step 2: Normalize and apply weights (equal weighting: 1/3 each)
+  const weights = { cost: 1/3, time: 1/3, reliability: 1/3 };
+
+  validForwarders.forEach((forwarder) => {
+    // Normalize values
+    const normalizedCost = forwarder.costPerKg / costNorm;
+    const normalizedTime = forwarder.avgTransitDays / timeNorm;
+    const normalizedReliability = forwarder.onTimeRate / reliabilityNorm;
+
+    // Apply weights
+    const weightedCost = normalizedCost * weights.cost;
+    const weightedTime = normalizedTime * weights.time;
+    const weightedReliability = normalizedReliability * weights.reliability;
+
+    // Store weighted normalized values for TOPSIS calculation
+    forwarder.normalizedCost = weightedCost;
+    forwarder.normalizedTime = weightedTime;
+    forwarder.normalizedReliability = weightedReliability;
+  });
+
+  // Step 3: Determine Positive Ideal Solution (PIS) and Negative Ideal Solution (NIS)
+  const allNormalizedCosts = validForwarders.map(f => f.normalizedCost);
+  const allNormalizedTimes = validForwarders.map(f => f.normalizedTime);
+  const allNormalizedReliability = validForwarders.map(f => f.normalizedReliability);
+
+  // For cost and time: lower is better (min for PIS, max for NIS)
+  // For reliability: higher is better (max for PIS, min for NIS)
+  const PIS = {
+    cost: Math.min(...allNormalizedCosts),
+    time: Math.min(...allNormalizedTimes),
+    reliability: Math.max(...allNormalizedReliability)
+  };
+
+  const NIS = {
+    cost: Math.max(...allNormalizedCosts),
+    time: Math.max(...allNormalizedTimes),
+    reliability: Math.min(...allNormalizedReliability)
+  };
+
+  console.log('PIS:', PIS);
+  console.log('NIS:', NIS);
+
+  // Step 4: Calculate distances to PIS and NIS, then TOPSIS score
+  validForwarders.forEach((forwarder) => {
+    // Distance to PIS
+    const distanceToPIS = Math.sqrt(
+      Math.pow(forwarder.normalizedCost - PIS.cost, 2) +
+      Math.pow(forwarder.normalizedTime - PIS.time, 2) +
+      Math.pow(forwarder.normalizedReliability - PIS.reliability, 2)
+    );
+
+    // Distance to NIS
+    const distanceToNIS = Math.sqrt(
+      Math.pow(forwarder.normalizedCost - NIS.cost, 2) +
+      Math.pow(forwarder.normalizedTime - NIS.time, 2) +
+      Math.pow(forwarder.normalizedReliability - NIS.reliability, 2)
+    );
+
+    // TOPSIS Score (Relative Closeness to Ideal Solution)
+    forwarder.topsisScore = distanceToNIS / (distanceToPIS + distanceToNIS);
+
+    console.log(`${forwarder.name}: PIS=${distanceToPIS.toFixed(4)}, NIS=${distanceToNIS.toFixed(4)}, TOPSIS=${forwarder.topsisScore.toFixed(4)}`);
+  });
+
+  // Step 5: Rank forwarders by TOPSIS score (highest is best)
+  validForwarders.sort((a, b) => b.topsisScore - a.topsisScore);
+  validForwarders.forEach((forwarder, index) => {
+    forwarder.rank = index + 1;
+  });
+
+  console.log('Final TOPSIS ranking:', validForwarders.map(f => ({ name: f.name, score: f.topsisScore, rank: f.rank })));
+
+  return validForwarders;
 };

@@ -1,4 +1,3 @@
-
 export interface CalculatorInputs {
   origin: string;
   destination: string;
@@ -55,6 +54,10 @@ export interface ForwarderComparison {
   onTimeRate: number;
   topsisScore: number;
   rank: number;
+  // TOPSIS calculation fields
+  normalizedCost?: number;
+  normalizedTime?: number;
+  normalizedReliability?: number;
 }
 
 export interface OracleResults {

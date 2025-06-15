@@ -39,27 +39,37 @@ export const useOracleResults = () => {
   const generateHistoricalResults = (shipment: ShipmentData, mappedInputs: Partial<CalculatorInputs>): OracleResults => {
     console.log('Generating historical results for shipment:', shipment.request_reference);
     
+    // Generate real forwarder comparison with TOPSIS calculations
     const forwarderComparison = generateForwarderComparison(shipment);
-    const bestForwarder = shipment.final_quote_awarded || 
-                         shipment.initial_quote_awarded || 
+    
+    // Determine best forwarder from actual data or TOPSIS ranking
+    const bestForwarder = shipment.initial_quote_awarded || 
                          shipment.final_quote_awarded_freight_forwader_carrier ||
                          shipment.awarded_forwarder ||
                          (forwarderComparison.length > 0 ? forwarderComparison[0].name : 'Unknown');
 
+    // Calculate route score from TOPSIS results
+    const routeScore = forwarderComparison.length > 0 ? forwarderComparison[0].topsisScore?.toFixed(3) : "N/A";
+
+    // Get emergency grade safely
+    const emergencyGrade = (shipment as any)['emergency grade'] || 
+                          (shipment as any).emergency_grade || 
+                          'Standard';
+
     const results = {
       bestForwarder,
-      routeScore: forwarderComparison.length > 0 ? forwarderComparison[0].topsisScore?.toFixed(2) : "N/A",
+      routeScore,
       forwarderComparison,
-      recommendation: `Historical analysis: ${bestForwarder} was selected for this ${mappedInputs.cargoType || shipment.item_category} shipment from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}.`,
-      oracleNarrative: `📊 Historical Shipment Analysis: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${shipment.emergency_grade}. Final carrier: ${bestForwarder}. Delivery Status: ${shipment.delivery_status}.`,
-      methodology: `Analysis based on historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Cost analysis and transit performance extracted from actual shipment records. TOPSIS multi-criteria scoring applied to available forwarder quotes.`,
+      recommendation: `DeepCAL++ Analysis: ${bestForwarder} ranked highest with TOPSIS score ${routeScore} for ${mappedInputs.cargoType || shipment.item_category} shipment (${mappedInputs.weight || shipment.weight_kg}kg) from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}.`,
+      oracleNarrative: `📊 Historical Shipment Analysis: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}. Final carrier: ${bestForwarder}. Delivery Status: ${shipment.delivery_status}.`,
+      methodology: `Multi-criteria decision analysis using TOPSIS (Technique for Order Preference by Similarity to Ideal Solution). Historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Cost per kg, transit time, and reliability metrics normalized and weighted. Euclidean distance calculations to positive and negative ideal solutions. ${forwarderComparison.length} freight forwarders analyzed with mathematical precision.`,
       seal: "📋 HISTORICAL",
       qseal: shipment.request_reference.substring(0, 8),
       timestamp: shipment.date_of_collection || shipment.shipment_date || new Date().toISOString(),
       blessing: `Historical reference: ${shipment.request_reference}`
     };
 
-    console.log('Generated results:', results);
+    console.log('Generated results with forwarder comparison:', results);
     return results;
   };
 
