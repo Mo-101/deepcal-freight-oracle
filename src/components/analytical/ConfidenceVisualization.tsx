@@ -5,20 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import type { FreightCalculatorResult } from '@/services/csvDataEngine';
 
-// Local type definition for FreightCalculatorResult
-type FreightCalculatorResult = {
-  lineageMeta: {
-    records: number;
-    sha256: string;
-    timestamp: string;
-    source: string;
-  };
-  forwarderComparison: any[];
-  rulesFired: string[];
-  recommendation?: string;
-  routeScore?: number;
-};
-
 interface ConfidenceVisualizationProps {
   result: FreightCalculatorResult;
   confidenceScore: number;
