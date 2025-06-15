@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BrainCog, Dumbbell } from "lucide-react";
@@ -10,10 +11,7 @@ const navLinks = [
   { label: "Training", to: "/training", icon: Dumbbell }, // dumbbell icon kept for Training
 ];
 
-const logoJoke = [
-  "DeepCAL:",
-];
-
+// Removed logoJoke array and put JSX directly in render
 const DeepCALHeader: React.FC = () => {
   const location = useLocation();
   return (
@@ -24,7 +22,9 @@ const DeepCALHeader: React.FC = () => {
             <BrainCog className="w-9 h-9 text-lime-400" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2" title="DeepCAL">
-            {logoJoke}
+            DeepCAL:
+            {/* you can uncomment or edit the span below if you want a slogan or styled text */}
+            {/* <span className="text-primary font-semibold">Your Slogan Here</span> */}
           </h1>
         </div>
         <nav className="flex gap-2">
