@@ -90,74 +90,76 @@ const SymbolicTrainingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
       <DeepCALHeader />
-      {/* Header */}
-      <header className="mb-10 text-center">
-        <div className="flex items-center justify-center mb-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mr-4 shadow-[0_0_25px_rgba(139,92,246,0.5)]">
-            <Brain className="w-10 h-10" />
+      <div className="container mx-auto px-4 py-8 bg-gray-900 text-gray-100 min-h-screen">
+        {/* Header */}
+        <header className="mb-10 text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center mr-4 shadow-[0_0_25px_rgba(139,92,246,0.5)]">
+              <Brain className="w-10 h-10" />
+            </div>
+            <h1 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                DeepCAL++
+              </span>{" "}
+              Symbolic Engine Training
+            </h1>
           </div>
-          <h1 className="text-4xl font-bold">
-            <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              DeepCAL++
-            </span>{" "}
-            Symbolic Engine Training
-          </h1>
-        </div>
-        <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-          Train and optimize the symbolic intelligence engine with real-time feedback. Integrated with Groq NLU for advanced voice capabilities.
-        </p>
-        <div className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 h-1 w-32 mx-auto rounded-full"></div>
-      </header>
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            Train and optimize the symbolic intelligence engine with real-time feedback. Integrated with Groq NLU for advanced voice capabilities.
+          </p>
+          <div className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 h-1 w-32 mx-auto rounded-full"></div>
+        </header>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column */}
-        <div className="lg:col-span-1 space-y-8">
-          <ModelConfigCard
-            selectedModel={selectedModel}
-            setSelectedModel={setSelectedModel}
-            learningRate={learningRate}
-            setLearningRate={setLearningRate}
-          />
-          <DataUploadCard />
-          <GroqIntegrationCard />
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-1 space-y-8">
+            <ModelConfigCard
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              learningRate={learningRate}
+              setLearningRate={setLearningRate}
+            />
+            <DataUploadCard />
+            <GroqIntegrationCard />
+          </div>
+          {/* Center/Right Columns */}
+          <div className="lg:col-span-2 space-y-8">
+            <TrainingVisualization
+              trainingProgress={trainingProgress}
+              isTrainingActive={isTrainingActive}
+              epoch={epoch}
+              lossData={lossData}
+              accuracyData={accuracyData}
+            />
+            <ModelTesting />
+            <VoiceInterfaceTesting />
+          </div>
         </div>
-        {/* Center/Right Columns */}
-        <div className="lg:col-span-2 space-y-8">
-          <TrainingVisualization
-            trainingProgress={trainingProgress}
-            isTrainingActive={isTrainingActive}
-            epoch={epoch}
-            lossData={lossData}
-            accuracyData={accuracyData}
-          />
-          <ModelTesting />
-          <VoiceInterfaceTesting />
-        </div>
-      </div>
 
-      {/* Model Version Section */}
-      <div className="mt-10">
-        <h2 className="text-2xl font-bold mb-6 text-center text-blue-400 flex items-center justify-center">
-          <GitBranch className="mr-2" /> Model Versions
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {modelVersions.map((version) => (
-            <ModelVersionCard key={version.id} version={version} />
-          ))}
+        {/* Model Version Section */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-6 text-center text-blue-400 flex items-center justify-center">
+            <GitBranch className="mr-2" /> Model Versions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {modelVersions.map((version) => (
+              <ModelVersionCard key={version.id} version={version} />
+            ))}
+          </div>
         </div>
+        {/* Wave Animation style for voice viz */}
+        <style>{`
+          .animate-wave {
+            background-size: 200% 100%;
+            animation: wave 1.5s linear infinite;
+          }
+          @keyframes wave {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+          }
+        `}</style>
       </div>
-      {/* Wave Animation style for voice viz */}
-      <style>{`
-        .animate-wave {
-          background-size: 200% 100%;
-          animation: wave 1.5s linear infinite;
-        }
-        @keyframes wave {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
-        }
-      `}</style>
     </div>
   );
 };
