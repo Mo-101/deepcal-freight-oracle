@@ -1,14 +1,4 @@
-
 import { CalculatorInputs, ShipmentData, ForwarderComparison } from '@/types/shipment';
-
-export const COUNTRY_OPTIONS = [
-  { value: 'Kenya', label: 'Nairobi, Kenya' },
-  { value: 'UAE', label: 'Dubai, UAE' },
-  { value: 'China', label: 'Shanghai, China' },
-  { value: 'Zambia', label: 'Lusaka, Zambia' },
-  { value: 'South Africa', label: 'Johannesburg, South Africa' },
-  { value: 'Nigeria', label: 'Lagos, Nigeria' }
-];
 
 export const CARGO_TYPE_OPTIONS = [
   'Emergency Health Kits',

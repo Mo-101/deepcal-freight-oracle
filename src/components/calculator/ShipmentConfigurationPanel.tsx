@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Info } from "lucide-react";
-import { CalculatorInputs } from '@/types/shipment';
-import { COUNTRY_OPTIONS, CARGO_TYPE_OPTIONS, FORWARDER_OPTIONS } from '@/utils/shipmentMapper';
+import { CalculatorInputs, ShipmentData } from '@/types/shipment';
+import { CARGO_TYPE_OPTIONS, FORWARDER_OPTIONS } from '@/utils/shipmentMapper';
 import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
 import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQInputs";
 
@@ -11,6 +11,7 @@ interface ShipmentConfigurationPanelProps {
   validation: { weight?: string; volume?: string };
   forwarderRFQ: Record<string, ForwarderRFQData>;
   isAwakening: boolean;
+  shipments: ShipmentData[];
   onInputsChange: (inputs: CalculatorInputs) => void;
   onPrioritiesChange: (priorities: CalculatorInputs["priorities"]) => void;
   onForwarderToggle: (forwarder: string) => void;
@@ -23,6 +24,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
   validation,
   forwarderRFQ,
   isAwakening,
+  shipments,
   onInputsChange,
   onPrioritiesChange,
   onForwarderToggle,
@@ -37,6 +39,23 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
     destination: "Select the shipment destination.",
     forwarder: "Select one or more companies to compare."
   };
+
+  // Extract unique countries from shipment data
+  const getUniqueCountries = (field: 'origin' | 'destination') => {
+    const countries = new Set<string>();
+    shipments.forEach(shipment => {
+      const country = field === 'origin' 
+        ? (shipment.origin_country || shipment.origin)
+        : (shipment.destination_country || shipment.destination);
+      if (country && country.trim()) {
+        countries.add(country.trim());
+      }
+    });
+    return Array.from(countries).sort();
+  };
+
+  const originCountries = getUniqueCountries('origin');
+  const destinationCountries = getUniqueCountries('destination');
 
   return (
     <div className="oracle-card p-6 h-full">
@@ -65,9 +84,13 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.origin}
                 onChange={(e) => onInputsChange({...inputs, origin: e.target.value})}
               >
-                {COUNTRY_OPTIONS.slice(0, 3).map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
+                {originCountries.length > 0 ? (
+                  originCountries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))
+                ) : (
+                  <option value="Kenya">Kenya</option>
+                )}
               </select>
             </div>
             <div>
@@ -82,9 +105,13 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.destination}
                 onChange={(e) => onInputsChange({...inputs, destination: e.target.value})}
               >
-                {COUNTRY_OPTIONS.slice(3).map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
+                {destinationCountries.length > 0 ? (
+                  destinationCountries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))
+                ) : (
+                  <option value="Zambia">Zambia</option>
+                )}
               </select>
             </div>
           </div>

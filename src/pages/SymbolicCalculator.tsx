@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import { csvDataEngine } from '@/services/csvDataEngine';
@@ -229,6 +228,7 @@ const SymbolicCalculator = () => {
                 validation={validation}
                 forwarderRFQ={forwarderRFQ}
                 isAwakening={isAwakening}
+                shipments={shipments}
                 onInputsChange={setInputs}
                 onPrioritiesChange={handlePrioritiesChange}
                 onForwarderToggle={handleForwarderToggle}
