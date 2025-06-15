@@ -26,6 +26,119 @@ interface CalculatorInputs {
   selectedForwarders: string[];
 }
 
+// Helper function to generate emergency context based on shipment data
+const generateEmergencyContext = (shipment: any) => {
+  if (!shipment) {
+    return {
+      isEmergency: false,
+      context: "No shipment data available",
+      grade: "Ungraded"
+    };
+  }
+
+  const emergencyGrade = shipment['emergency grade'] || shipment.emergency_grade || 'Ungraded';
+  const isEmergency = emergencyGrade.toLowerCase().includes('grade');
+  const cargoType = shipment.item_category || shipment.cargo_description || 'Unknown cargo';
+  const destination = shipment.destination_country || 'Unknown destination';
+
+  if (isEmergency) {
+    // Generate emergency-specific context based on cargo type
+    let emergencyDetails = "";
+    if (cargoType.toLowerCase().includes('cholera')) {
+      emergencyDetails = `Cholera outbreak response in ${destination}. Critical medical supplies required urgently.`;
+    } else if (cargoType.toLowerCase().includes('health') || cargoType.toLowerCase().includes('medical')) {
+      emergencyDetails = `Health emergency in ${destination}. Medical intervention supplies needed.`;
+    } else if (cargoType.toLowerCase().includes('trauma')) {
+      emergencyDetails = `Trauma response deployment to ${destination}. Emergency medical kits required.`;
+    } else {
+      emergencyDetails = `Emergency humanitarian response to ${destination}. Critical supplies deployment.`;
+    }
+
+    return {
+      isEmergency: true,
+      context: emergencyDetails,
+      grade: emergencyGrade,
+      priority: "HIGH PRIORITY"
+    };
+  } else {
+    return {
+      isEmergency: false,
+      context: `Standard logistics operation: ${cargoType} delivery to ${destination}.`,
+      grade: emergencyGrade || "Standard",
+      priority: "STANDARD"
+    };
+  }
+};
+
+// Helper function to generate route intelligence based on shipment data
+const generateRouteIntelligence = (shipment: any) => {
+  if (!shipment) {
+    return {
+      distance: "Unknown",
+      corridor: "Unknown route",
+      borderRisk: "Unknown",
+      weather: "Unknown"
+    };
+  }
+
+  const origin = shipment.origin_country || 'Unknown';
+  const destination = shipment.destination_country || 'Unknown';
+  const mode = shipment.mode_of_shipment || 'Unknown';
+  
+  // Calculate approximate distance based on coordinates if available
+  let distance = "Unknown";
+  if (shipment.origin_latitude && shipment.origin_longitude && 
+      shipment.destination_latitude && shipment.destination_longitude) {
+    const lat1 = parseFloat(shipment.origin_latitude);
+    const lon1 = parseFloat(shipment.origin_longitude);
+    const lat2 = parseFloat(shipment.destination_latitude);
+    const lon2 = parseFloat(shipment.destination_longitude);
+    
+    // Haversine formula for distance calculation
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const calculatedDistance = R * c;
+    distance = `${Math.round(calculatedDistance)} km`;
+  }
+
+  // Determine corridor based on route
+  let corridor = "Unknown route";
+  if (origin.toLowerCase().includes('kenya') && destination.toLowerCase().includes('zambia')) {
+    corridor = "Great North Road (A104)";
+  } else if (origin.toLowerCase().includes('kenya') && destination.toLowerCase().includes('zimbabwe')) {
+    corridor = "North-South Corridor";
+  } else if (origin.toLowerCase().includes('kenya')) {
+    corridor = `${origin} → ${destination} Corridor`;
+  } else {
+    corridor = `${origin} → ${destination}`;
+  }
+
+  // Assess border risk based on historical delivery status
+  let borderRisk = "⚠️ Medium";
+  const deliveryStatus = shipment.delivery_status || '';
+  if (deliveryStatus.toLowerCase() === 'delivered') {
+    borderRisk = "✅ Low";
+  } else if (deliveryStatus.toLowerCase().includes('delayed')) {
+    borderRisk = "🔴 High";
+  }
+
+  // Weather assessment (simplified)
+  const weather = mode.toLowerCase() === 'air' ? "✅ Clear for aviation" : "🌤️ Ground conditions normal";
+
+  return {
+    distance,
+    corridor,
+    borderRisk,
+    weather,
+    mode: mode.toUpperCase()
+  };
+};
+
 const SymbolicCalculator = () => {
   const [inputs, setInputs] = useState<CalculatorInputs>({
     origin: 'Kenya',
@@ -43,6 +156,7 @@ const SymbolicCalculator = () => {
   // shipment selector state
   const [oldShipments, setOldShipments] = useState<any[]>([]);
   const [selectedReference, setSelectedReference] = useState<string | null>(null);
+  const [selectedShipment, setSelectedShipment] = useState<any>(null);
   const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
   const [results, setResults] = useState<any>(null);
   const [isAwakening, setIsAwakening] = useState(false);
@@ -168,6 +282,7 @@ const SymbolicCalculator = () => {
       
       // Clear current selection to avoid confusion
       setSelectedReference(null);
+      setSelectedShipment(null);
       setResults(null);
       setShowOutput(false);
       setOutputAnimation(false);
@@ -183,6 +298,7 @@ const SymbolicCalculator = () => {
   useEffect(() => {
     if (!selectedReference) {
       // Clear results when no reference is selected
+      setSelectedShipment(null);
       setResults(null);
       setShowOutput(false);
       setOutputAnimation(false);
@@ -191,6 +307,7 @@ const SymbolicCalculator = () => {
     
     const s = oldShipments.find((sh) => sh.request_reference === selectedReference);
     if (s) {
+      setSelectedShipment(s);
       setInputs(prev => ({
         ...prev,
         origin: s.origin_country || "",
@@ -318,6 +435,10 @@ const SymbolicCalculator = () => {
       setAnomalyMap({});
     }
   }, [results]);
+
+  // Generate dynamic context based on selected shipment
+  const emergencyContext = generateEmergencyContext(selectedShipment);
+  const routeIntelligence = generateRouteIntelligence(selectedShipment);
 
   return (
     <div className="min-h-screen flex flex-col font-space-grotesk" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
@@ -609,20 +730,34 @@ const SymbolicCalculator = () => {
                     </div>
                   </div>
 
-                  {/* Emergency Context */}
+                  {/* Dynamic Emergency Context */}
                   <div className="p-5 border-b border-slate-700/50">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <h3 className="font-semibold text-deepcal-light mb-2">🚨 Emergency Context</h3>
-                        <p className="text-sm">Cholera spike reported in Kanyama District. ICU stocks at 23%. WHO pre-clearance granted.</p>
+                        <h3 className={`font-semibold mb-2 flex items-center ${emergencyContext.isEmergency ? 'text-red-400' : 'text-blue-400'}`}>
+                          {emergencyContext.isEmergency ? '🚨 Emergency Context' : '📋 Logistics Context'}
+                          <span className={`ml-2 px-2 py-1 rounded text-xs font-bold ${
+                            emergencyContext.isEmergency ? 'bg-red-900/30 text-red-300' : 'bg-blue-900/30 text-blue-300'
+                          }`}>
+                            {emergencyContext.priority}
+                          </span>
+                        </h3>
+                        <p className="text-sm">{emergencyContext.context}</p>
+                        <div className="mt-2 text-xs">
+                          <span className="font-medium">Grade: </span>
+                          <span className={emergencyContext.isEmergency ? 'text-red-300' : 'text-slate-300'}>
+                            {emergencyContext.grade}
+                          </span>
+                        </div>
                       </div>
                       <div>
                         <h3 className="font-semibold text-deepcal-light mb-2">📍 Route Intelligence</h3>
                         <div className="text-sm grid grid-cols-2 gap-2">
-                          <div>Distance: <span className="font-mono">2,100 km</span></div>
-                          <div>Corridor: <span className="font-mono">Great North Road</span></div>
-                          <div>Border Risk: <span className="text-amber-400">⚠️ Medium</span></div>
-                          <div>Weather: <span className="text-emerald-400">✅ Clear</span></div>
+                          <div>Distance: <span className="font-mono">{routeIntelligence.distance}</span></div>
+                          <div>Corridor: <span className="font-mono text-xs">{routeIntelligence.corridor}</span></div>
+                          <div>Border Risk: <span>{routeIntelligence.borderRisk}</span></div>
+                          <div>Weather: <span>{routeIntelligence.weather}</span></div>
+                          <div>Mode: <span className="font-mono">{routeIntelligence.mode}</span></div>
                         </div>
                       </div>
                     </div>
@@ -813,7 +948,6 @@ const SymbolicCalculator = () => {
                           <h3 className="font-semibold">Performance Radar</h3>
                         </div>
                         {results && results.radarData ? (
-                          // ... place SVG/radar chart based on results.radarData
                           <div className="h-64 flex items-center justify-center bg-slate-800/30 rounded-lg">
                             {/* Radar chart from results.radarData */}
                           </div>
