@@ -1,22 +1,10 @@
 
 import React from 'react';
 import { Info } from "lucide-react";
+import { CalculatorInputs } from '@/types/shipment';
+import { COUNTRY_OPTIONS, CARGO_TYPE_OPTIONS, FORWARDER_OPTIONS } from '@/utils/shipmentMapper';
 import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
 import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQInputs";
-
-interface CalculatorInputs {
-  origin: string;
-  destination: string;
-  weight: number;
-  volume: number;
-  cargoType: string;
-  priorities: {
-    time: number;
-    cost: number;
-    risk: number;
-  };
-  selectedForwarders: string[];
-}
 
 interface ShipmentConfigurationPanelProps {
   inputs: CalculatorInputs;
@@ -41,15 +29,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
   onRFQChange,
   onAwakenOracle
 }) => {
-  const forwarderOptions = [
-    'Kuehne + Nagel',
-    'DHL Global Forwarding',
-    'Siginon Logistics',
-    'Scan Global Logistics',
-    'Agility Logistics'
-  ];
-
-  const help = {
+  const helpText = {
     weight: "Total shipment weight in kilograms.",
     volume: "Total shipment volume in cubic meters (CBM).",
     cargoType: "What type of cargo is being shipped?",
@@ -76,8 +56,8 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
             <div>
               <label className="block text-sm mb-1 flex items-center gap-1">
                 Origin
-                <span title={help.origin}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={help.origin} />
+                <span title={helpText.origin}>
+                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.origin} />
                 </span>
               </label>
               <select 
@@ -85,16 +65,16 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.origin}
                 onChange={(e) => onInputsChange({...inputs, origin: e.target.value})}
               >
-                <option value="Kenya">Nairobi, Kenya</option>
-                <option value="UAE">Dubai, UAE</option>
-                <option value="China">Shanghai, China</option>
+                {COUNTRY_OPTIONS.slice(0, 3).map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block text-sm mb-1 flex items-center gap-1">
                 Destination
-                <span title={help.destination}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={help.destination} />
+                <span title={helpText.destination}>
+                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.destination} />
                 </span>
               </label>
               <select 
@@ -102,9 +82,9 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.destination}
                 onChange={(e) => onInputsChange({...inputs, destination: e.target.value})}
               >
-                <option value="Zambia">Lusaka, Zambia</option>
-                <option value="South Africa">Johannesburg, South Africa</option>
-                <option value="Nigeria">Lagos, Nigeria</option>
+                {COUNTRY_OPTIONS.slice(3).map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -120,8 +100,8 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
             <div>
               <label className="block text-sm mb-1 flex items-center gap-1">
                 Weight (kg)
-                <span title={help.weight}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={help.weight} />
+                <span title={helpText.weight}>
+                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.weight} />
                 </span>
               </label>
               <input 
@@ -132,14 +112,14 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 aria-describedby="weight-help"
               />
               <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-slate-400"}`}>
-                {validation.weight || help.weight}
+                {validation.weight || helpText.weight}
               </div>
             </div>
             <div>
               <label className="block text-sm mb-1 flex items-center gap-1">
                 Volume (CBM)
-                <span title={help.volume}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={help.volume} />
+                <span title={helpText.volume}>
+                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.volume} />
                 </span>
               </label>
               <input 
@@ -150,15 +130,15 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 aria-describedby="volume-help"
               />
               <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-slate-400"}`}>
-                {validation.volume || help.volume}
+                {validation.volume || helpText.volume}
               </div>
             </div>
           </div>
           <div className="mt-4">
             <label className="block text-sm mb-1 flex items-center gap-1">
               Cargo Type
-              <span title={help.cargoType}>
-                <Info className="text-purple-400 w-3 h-3" aria-label={help.cargoType} />
+              <span title={helpText.cargoType}>
+                <Info className="text-purple-400 w-3 h-3" aria-label={helpText.cargoType} />
               </span>
             </label>
             <select 
@@ -166,10 +146,9 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
               value={inputs.cargoType}
               onChange={(e) => onInputsChange({...inputs, cargoType: e.target.value})}
             >
-              <option>Emergency Health Kits</option>
-              <option>Pharmaceuticals</option>
-              <option>Laboratory Equipment</option>
-              <option>Cold Chain Supplies</option>
+              {CARGO_TYPE_OPTIONS.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -194,18 +173,12 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
           <h3 className="font-medium mb-2 flex items-center">
             <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
             Freight Forwarders
-            <span
-              className="ml-2"
-              aria-label={help.forwarder}
-              tabIndex={0}
-              role="img"
-              style={{ outline: "none" }}
-            >
-              <Info className="text-purple-400 w-3 h-3" aria-label={help.forwarder} />
+            <span title={helpText.forwarder}>
+              <Info className="text-purple-400 w-3 h-3 ml-2" aria-label={helpText.forwarder} />
             </span>
           </h3>
           <div className="space-y-2">
-            {forwarderOptions.map(forwarder => (
+            {FORWARDER_OPTIONS.map(forwarder => (
               <div key={forwarder} className="flex items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
                 <input 
                   type="checkbox" 
