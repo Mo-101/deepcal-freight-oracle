@@ -41,7 +41,7 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
         // Use shadcn toast directly
         toast({
           title: m.voiceLine(result),
-          variant: m.sass ? "default" : "success",
+          variant: m.sass ? "default" : "destructive", // Type fix: use only "default" | "destructive"
         });
       }
       return result;
@@ -54,4 +54,3 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
 export function listMoScripts() {
   return [...MOS_REGISTRY];
 }
-

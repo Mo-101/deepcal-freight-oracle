@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin, Database } from 'lucide-react';
-import { csvDataEngine } from '@/services/csvDataEngine';
+import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 import { fire } from "@/moscripts/engine";
 
@@ -27,26 +27,44 @@ const FreightCalculator = () => {
     urgency: 'medium',
     cargoType: ''
   });
-
   const [calculating, setCalculating] = useState(false);
-
   const [dataLoaded, setDataLoaded] = useState(false);
-  React.useEffect(() => {
+
+  // All old shipments for reference selection
+  const [oldShipments, setOldShipments] = useState<ShipmentRecord[]>([]);
+  const [selectedReference, setSelectedReference] = useState<string | null>(null);
+
+  useEffect(() => {
     (async () => {
       const shipments = await csvDataEngine.listShipments();
       setDataLoaded(Array.isArray(shipments) && shipments.length > 0);
+      setOldShipments(shipments);
     })();
   }, []);
 
+  // Handle selecting an old shipment by reference
+  useEffect(() => {
+    if (selectedReference) {
+      const found = oldShipments.find(s => s.request_reference === selectedReference);
+      if (found) {
+        setInputs({
+          origin: found.origin_country ?? "",
+          destination: found.destination_country ?? "",
+          weight: found.weight_kg ?? 0,
+          volume: found.volume_cbm ?? 0,
+          urgency: 'medium', // No urgency field on ShipmentRecord; use default or infer logic if needed
+          cargoType: found.item_category ?? "",
+        });
+      }
+    }
+  }, [selectedReference, oldShipments]);
+
   const handleCalculate = async () => {
-    // Call MoScripts for validation before proceeding
     fire("onBeforeSaveShipment", {
       shipment: {
         ...inputs,
-        // Add other fields as needed for rules
       },
     });
-
     humorToast("❌ Calculation Engine Disabled", "Calculation methods have been decoupled from loader; scoring coming via @deepcal/core-mcdm.", 3000);
   };
 
@@ -59,6 +77,7 @@ const FreightCalculator = () => {
       urgency: 'medium',
       cargoType: ''
     });
+    setSelectedReference(null);
   };
 
   const lineageMeta = csvDataEngine.getLineageMeta?.();
@@ -79,6 +98,33 @@ const FreightCalculator = () => {
             {lineageMeta.records} real records • {lineageMeta.source} • Hash: {lineageMeta.sha256.substring(0, 8)}
           </div>
         )}
+      </div>
+      
+      {/* Old Shipment Selector Slot */}
+      <div className="mb-4">
+        <Label htmlFor="old-shipment-select" className="input-label">Load from old shipment (by Reference)</Label>
+        <Select
+          value={selectedReference || ""}
+          onValueChange={val => setSelectedReference(val)}
+          disabled={oldShipments.length === 0}
+        >
+          <SelectTrigger id="old-shipment-select" className="elegant-input mt-1 max-w-md">
+            <SelectValue placeholder="Select previous shipment..." />
+          </SelectTrigger>
+          <SelectContent>
+            {oldShipments.length > 0 ? (
+              oldShipments.map((s) => (
+                <SelectItem value={s.request_reference} key={s.request_reference}>
+                  {s.request_reference} — {s.origin_country} → {s.destination_country} ({s.item_category})
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="" disabled>
+                No shipments found
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* INPUT GRID */}
