@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import { csvDataEngine } from '@/services/csvDataEngine';
@@ -159,37 +160,65 @@ const SymbolicCalculator = () => {
     
     const s = oldShipments.find((sh) => sh.request_reference === selectedReference);
     if (s) {
+      console.log('Selected shipment data:', s);
       setSelectedShipment(s);
+      
+      // Map country names to match the dropdown options
+      const mapCountryName = (country: string) => {
+        if (!country) return '';
+        const countryLower = country.toLowerCase();
+        if (countryLower.includes('kenya') || countryLower.includes('nairobi')) return 'Kenya';
+        if (countryLower.includes('zambia') || countryLower.includes('lusaka')) return 'Zambia';
+        if (countryLower.includes('south africa') || countryLower.includes('johannesburg')) return 'South Africa';
+        if (countryLower.includes('nigeria') || countryLower.includes('lagos')) return 'Nigeria';
+        if (countryLower.includes('uae') || countryLower.includes('dubai')) return 'UAE';
+        if (countryLower.includes('china') || countryLower.includes('shanghai')) return 'China';
+        return country; // fallback to original value
+      };
+
+      // Map cargo type to match dropdown options
+      const mapCargoType = (cargoType: string) => {
+        if (!cargoType) return 'Emergency Health Kits';
+        const cargoLower = cargoType.toLowerCase();
+        if (cargoLower.includes('pharmaceutical') || cargoLower.includes('medicine')) return 'Pharmaceuticals';
+        if (cargoLower.includes('laboratory') || cargoLower.includes('lab')) return 'Laboratory Equipment';
+        if (cargoLower.includes('cold') || cargoLower.includes('vaccine')) return 'Cold Chain Supplies';
+        if (cargoLower.includes('health') || cargoLower.includes('medical') || cargoLower.includes('emergency')) return 'Emergency Health Kits';
+        return cargoType; // fallback to original value
+      };
+
+      // Update all form fields with shipment data
       setInputs(prev => ({
         ...prev,
-        origin: s.origin_country || "",
-        destination: s.destination_country || "",
-        weight: s.weight_kg ? Number(s.weight_kg) : 0,
-        volume: s.volume_cbm ? Number(s.volume_cbm) : 0,
-        cargoType: s.item_category || "",
+        origin: mapCountryName(s.origin_country || s.origin || ''),
+        destination: mapCountryName(s.destination_country || s.destination || ''),
+        weight: s.weight_kg ? Number(s.weight_kg) : (s.weight ? Number(s.weight) : 0),
+        volume: s.volume_cbm ? Number(s.volume_cbm) : (s.volume ? Number(s.volume) : 0),
+        cargoType: mapCargoType(s.item_category || s.cargo_description || s.cargo_type || ''),
       }));
 
+      // Generate forwarder comparison data from shipment
       const forwarderData = [
         {
           name: 'Kuehne + Nagel',
-          costPerKg: s.kuehne_nagel || 0,
-          avgTransitDays: s.frieght_in_time || 0,
+          costPerKg: s.kuehne_nagel || s['kuehne+nagel'] || 0,
+          avgTransitDays: s.frieght_in_time || s.transit_days || 0,
           onTimeRate: 0.92,
           topsisScore: 0,
           rank: 1
         },
         {
           name: 'DHL Global Forwarding',
-          costPerKg: s.dhl_global || 0,
-          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 1 : 0,
+          costPerKg: s.dhl_global || s.dhl || 0,
+          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 1 : (s.transit_days ? s.transit_days + 1 : 0),
           onTimeRate: 0.88,
           topsisScore: 0,
           rank: 2
         },
         {
           name: 'Scan Global Logistics',
-          costPerKg: s.scan_global_logistics || 0,
-          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 0.5 : 0,
+          costPerKg: s.scan_global_logistics || s.scan_global || 0,
+          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 0.5 : (s.transit_days ? s.transit_days + 0.5 : 0),
           onTimeRate: 0.85,
           topsisScore: 0,
           rank: 3
@@ -197,15 +226,15 @@ const SymbolicCalculator = () => {
         {
           name: 'Siginon Logistics',
           costPerKg: s.siginon || 0,
-          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 2 : 0,
+          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 2 : (s.transit_days ? s.transit_days + 2 : 0),
           onTimeRate: 0.82,
           topsisScore: 0,
           rank: 4
         },
         {
           name: 'Agility Logistics',
-          costPerKg: s.agl || 0,
-          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 1.5 : 0,
+          costPerKg: s.agl || s.agility || 0,
+          avgTransitDays: s.frieght_in_time ? s.frieght_in_time + 1.5 : (s.transit_days ? s.transit_days + 1.5 : 0),
           onTimeRate: 0.80,
           topsisScore: 0,
           rank: 5
@@ -233,7 +262,7 @@ const SymbolicCalculator = () => {
         });
       }
 
-      let bestForwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
+      let bestForwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded || s.awarded_forwarder;
       if (!bestForwarder && forwarderData.length > 0) {
         bestForwarder = forwarderData[0].name;
       }
@@ -242,12 +271,12 @@ const SymbolicCalculator = () => {
         bestForwarder: bestForwarder,
         routeScore: forwarderData.length > 0 ? forwarderData[0].topsisScore?.toFixed(2) : "N/A",
         forwarderComparison: forwarderData,
-        recommendation: `Historical data shows ${bestForwarder || 'selected forwarder'} was chosen for this ${s.item_category || 'shipment'} route from ${s.origin_country} to ${s.destination_country}.`,
-        oracleNarrative: `📊 Historical Analysis: This ${s.item_category || 'shipment'} of ${s.weight_kg || 'unknown'}kg was transported from ${s.origin_country} to ${s.destination_country}. ${bestForwarder ? `${bestForwarder} was selected` : 'Forwarder selection recorded'} with delivery status: ${s.delivery_status || 'unknown'}.`,
-        methodology: `Analysis based on historical shipment data from ${s.date_of_collection || 'recorded date'}. Costs and transit times extracted from actual shipment record. TOPSIS scoring calculated from available forwarder quotes.`,
+        recommendation: `Historical data shows ${bestForwarder || 'selected forwarder'} was chosen for this ${s.item_category || s.cargo_description || 'shipment'} route from ${s.origin_country || s.origin} to ${s.destination_country || s.destination}.`,
+        oracleNarrative: `📊 Historical Analysis: This ${s.item_category || s.cargo_description || 'shipment'} of ${s.weight_kg || s.weight || 'unknown'}kg was transported from ${s.origin_country || s.origin} to ${s.destination_country || s.destination}. ${bestForwarder ? `${bestForwarder} was selected` : 'Forwarder selection recorded'} with delivery status: ${s.delivery_status || 'unknown'}.`,
+        methodology: `Analysis based on historical shipment data from ${s.date_of_collection || s.shipment_date || 'recorded date'}. Costs and transit times extracted from actual shipment record. TOPSIS scoring calculated from available forwarder quotes.`,
         seal: "📋 HISTORICAL",
         qseal: s.request_reference.substring(0, 8),
-        timestamp: s.date_of_collection || new Date().toISOString(),
+        timestamp: s.date_of_collection || s.shipment_date || new Date().toISOString(),
         blessing: `Historical shipment reference: ${s.request_reference}`
       };
 
@@ -365,7 +394,7 @@ const SymbolicCalculator = () => {
             © 2025 DeepCAL++ Technologies • The First Symbolic Logistical Intelligence Engine • 🔱
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };
