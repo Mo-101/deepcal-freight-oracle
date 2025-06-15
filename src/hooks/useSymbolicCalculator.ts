@@ -44,7 +44,8 @@ export const useSymbolicCalculator = () => {
     anomalyMap,
     awakenOracle,
     resetOutput,
-    generateHistoricalResults
+    generateHistoricalResults,
+    displayResults
   } = useOracleResults();
 
   const handleRefreshData = async () => {
@@ -60,7 +61,7 @@ export const useSymbolicCalculator = () => {
     setValidation(val);
   }, [inputs.weight, inputs.volume, setValidation]);
 
-  // Reference shipment selection effect
+  // Reference shipment selection effect - this is where Oracle results should be generated
   useEffect(() => {
     if (!selectedReference) {
       resetOutput();
@@ -70,6 +71,8 @@ export const useSymbolicCalculator = () => {
     }
     
     if (selectedShipment) {
+      console.log('Processing selected shipment:', selectedShipment.request_reference);
+      
       const mappedInputs = mapShipmentToInputs(selectedShipment);
       const usedForwarders = populateRFQFromShipment(selectedShipment);
 
@@ -83,21 +86,14 @@ export const useSymbolicCalculator = () => {
         selectedForwarders: usedForwarders
       }));
 
+      // Generate and display Oracle results immediately
       const historicalResults = generateHistoricalResults(selectedShipment, mappedInputs);
-      setResults(historicalResults);
-      
-      setTimeout(() => {
-        resetOutput();
-        setTimeout(() => {
-          setResults(historicalResults);
-        }, 50);
-      }, 100);
+      displayResults(historicalResults);
     }
-  }, [selectedReference, selectedShipment, setInputs, setResults, resetOutput, resetForwarderRFQ, resetInputs, populateRFQFromShipment, generateHistoricalResults]);
+  }, [selectedReference, selectedShipment, setInputs, resetOutput, resetForwarderRFQ, resetInputs, populateRFQFromShipment, generateHistoricalResults, displayResults]);
 
-  // Reset output on input changes
+  // Load data effect
   useEffect(() => {
-    resetOutput();
     if (!csvDataEngine.isDataLoaded()) {
       const loadData = async () => {
         try {
@@ -108,7 +104,7 @@ export const useSymbolicCalculator = () => {
       };
       loadData();
     }
-  }, [inputs.origin, inputs.destination, inputs.weight, inputs.volume, inputs.cargoType, inputs.modeOfShipment, inputs.selectedForwarders, resetOutput]);
+  }, []);
 
   return {
     inputs,

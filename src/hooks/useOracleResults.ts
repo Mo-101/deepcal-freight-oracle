@@ -26,7 +26,7 @@ export const useOracleResults = () => {
       setIsAwakening(false);
       setShowOutput(true);
       setTimeout(() => setOutputAnimation(true), 150);
-      humorToast("✨ Transmission Complete", "The Oracle is dormant until the engine is connected.", 3000);
+      humorToast("✨ Transmission Complete", "Oracle analysis ready.", 3000);
     }, 1500);
   };
 
@@ -37,24 +37,37 @@ export const useOracleResults = () => {
   };
 
   const generateHistoricalResults = (shipment: ShipmentData, mappedInputs: Partial<CalculatorInputs>): OracleResults => {
+    console.log('Generating historical results for shipment:', shipment.request_reference);
+    
     const forwarderComparison = generateForwarderComparison(shipment);
-    const bestForwarder = shipment.final_quote_awarded_freight_forwader_carrier || 
+    const bestForwarder = shipment.final_quote_awarded || 
                          shipment.initial_quote_awarded || 
+                         shipment.final_quote_awarded_freight_forwader_carrier ||
                          shipment.awarded_forwarder ||
-                         (forwarderComparison.length > 0 ? forwarderComparison[0].name : '');
+                         (forwarderComparison.length > 0 ? forwarderComparison[0].name : 'Unknown');
 
-    return {
+    const results = {
       bestForwarder,
       routeScore: forwarderComparison.length > 0 ? forwarderComparison[0].topsisScore?.toFixed(2) : "N/A",
       forwarderComparison,
-      recommendation: `Historical data shows ${bestForwarder || 'selected forwarder'} was chosen for this ${mappedInputs.cargoType} route from ${mappedInputs.origin} to ${mappedInputs.destination}.`,
-      oracleNarrative: `📊 Historical Analysis: This ${mappedInputs.cargoType} of ${mappedInputs.weight}kg was transported from ${mappedInputs.origin} to ${mappedInputs.destination}. ${bestForwarder ? `${bestForwarder} was selected` : 'Forwarder selection recorded'} with delivery status: ${shipment.delivery_status || 'unknown'}.`,
-      methodology: `Analysis based on historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Costs and transit times extracted from actual shipment record. TOPSIS scoring calculated from available forwarder quotes.`,
+      recommendation: `Historical analysis: ${bestForwarder} was selected for this ${mappedInputs.cargoType || shipment.item_category} shipment from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}.`,
+      oracleNarrative: `📊 Historical Shipment Analysis: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${shipment.emergency_grade}. Final carrier: ${bestForwarder}. Delivery Status: ${shipment.delivery_status}.`,
+      methodology: `Analysis based on historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Cost analysis and transit performance extracted from actual shipment records. TOPSIS multi-criteria scoring applied to available forwarder quotes.`,
       seal: "📋 HISTORICAL",
       qseal: shipment.request_reference.substring(0, 8),
       timestamp: shipment.date_of_collection || shipment.shipment_date || new Date().toISOString(),
-      blessing: `Historical shipment reference: ${shipment.request_reference}`
+      blessing: `Historical reference: ${shipment.request_reference}`
     };
+
+    console.log('Generated results:', results);
+    return results;
+  };
+
+  const displayResults = (newResults: OracleResults) => {
+    console.log('Displaying results:', newResults);
+    setResults(newResults);
+    setShowOutput(true);
+    setTimeout(() => setOutputAnimation(true), 100);
   };
 
   // Anomaly detection effect
@@ -76,6 +89,7 @@ export const useOracleResults = () => {
     anomalyMap,
     awakenOracle,
     resetOutput,
-    generateHistoricalResults
+    generateHistoricalResults,
+    displayResults
   };
 };
