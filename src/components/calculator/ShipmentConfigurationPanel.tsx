@@ -50,8 +50,8 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
   ];
 
   const help = {
-    weight: "Total shipment weight in kilograms (range: 100 - 20,000kg).",
-    volume: "Total shipment volume in cubic meters (CBM) (range: 1 - 80).",
+    weight: "Total shipment weight in kilograms.",
+    volume: "Total shipment volume in cubic meters (CBM).",
     cargoType: "What type of cargo is being shipped?",
     origin: "Select the shipment starting country.",
     destination: "Select the shipment destination.",
@@ -129,7 +129,6 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.weight}
                 onChange={(e) => onInputsChange({...inputs, weight: parseFloat(e.target.value) || 0})}
                 className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
-                min={100} max={20000}
                 aria-describedby="weight-help"
               />
               <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-slate-400"}`}>
@@ -148,7 +147,6 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.volume}
                 onChange={(e) => onInputsChange({...inputs, volume: parseFloat(e.target.value) || 0})}
                 className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
-                min={1} max={80}
                 aria-describedby="volume-help"
               />
               <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-slate-400"}`}>

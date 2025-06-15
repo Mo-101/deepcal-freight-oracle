@@ -59,15 +59,9 @@ const SymbolicCalculator = () => {
     }));
   };
 
-  // Validation for form inputs
+  // Validation for form inputs - remove range restrictions
   useEffect(() => {
     let val: typeof validation = {};
-    if (inputs.weight < 100 || inputs.weight > 20000) {
-      val.weight = "Weight must be between 100 and 20,000 kg.";
-    }
-    if (inputs.volume < 1 || inputs.volume > 80) {
-      val.volume = "Volume must be between 1 and 80 CBM.";
-    }
     setValidation(val);
   }, [inputs.weight, inputs.volume]);
 
