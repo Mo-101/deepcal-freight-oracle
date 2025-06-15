@@ -61,12 +61,16 @@ const SymbolicCalculator = () => {
         selectedForwarders: selected
       };
     });
+    
+    // Update RFQ data when toggling forwarders
     setForwarderRFQ(prev => {
       if (inputs.selectedForwarders.includes(forwarder)) {
+        // Forwarder is being unchecked, remove its RFQ data
         const newRFQ = { ...prev };
         delete newRFQ[forwarder];
         return newRFQ;
       } else {
+        // Forwarder is being checked, add empty RFQ data if not exists
         return {
           ...prev,
           [forwarder]: prev[forwarder] || { rate: "", days: "", comments: "" }
@@ -146,76 +150,65 @@ const SymbolicCalculator = () => {
       setSelectedShipment(shipment);
       
       const mappedInputs = mapShipmentToInputs(shipment);
-      setInputs(prev => ({
-        ...prev,
-        ...mappedInputs
-      }));
-
+      
       // Auto-select forwarders that were used in this shipment
       const usedForwarders: string[] = [];
+      const newForwarderRFQ: Record<string, ForwarderRFQData> = {};
       
-      // Check for awarded forwarder
-      const awardedForwarder = shipment.final_quote_awarded_freight_forwader_carrier || 
-                              shipment.initial_quote_awarded || 
-                              shipment.awarded_forwarder;
-      
-      if (awardedForwarder) {
-        // Map awarded forwarder to our standard forwarder names
-        if (awardedForwarder.toLowerCase().includes('kuehne')) {
-          usedForwarders.push('Kuehne + Nagel');
-        }
-        if (awardedForwarder.toLowerCase().includes('dhl')) {
-          usedForwarders.push('DHL Global Forwarding');
-        }
-        if (awardedForwarder.toLowerCase().includes('scan')) {
-          usedForwarders.push('Scan Global Logistics');
-        }
-        if (awardedForwarder.toLowerCase().includes('siginon')) {
-          usedForwarders.push('Siginon Logistics');
-        }
-        if (awardedForwarder.toLowerCase().includes('agility') || awardedForwarder.toLowerCase().includes('agl')) {
-          usedForwarders.push('Agility Logistics');
-        }
-      }
-
-      // Check for forwarders with actual quotes/costs
+      // Check for forwarders with actual quotes/costs and populate RFQ data
       if (shipment.kuehne_nagel && shipment.kuehne_nagel > 0) {
-        if (!usedForwarders.includes('Kuehne + Nagel')) {
-          usedForwarders.push('Kuehne + Nagel');
-        }
-      }
-      if ((shipment.dhl_global && shipment.dhl_global > 0) || (shipment.dhl && shipment.dhl > 0)) {
-        if (!usedForwarders.includes('DHL Global Forwarding')) {
-          usedForwarders.push('DHL Global Forwarding');
-        }
-      }
-      if ((shipment.scan_global_logistics && shipment.scan_global_logistics > 0) || (shipment.scan_global && shipment.scan_global > 0)) {
-        if (!usedForwarders.includes('Scan Global Logistics')) {
-          usedForwarders.push('Scan Global Logistics');
-        }
-      }
-      if (shipment.siginon && shipment.siginon > 0) {
-        if (!usedForwarders.includes('Siginon Logistics')) {
-          usedForwarders.push('Siginon Logistics');
-        }
-      }
-      if ((shipment.agl && shipment.agl > 0) || (shipment.agility && shipment.agility > 0)) {
-        if (!usedForwarders.includes('Agility Logistics')) {
-          usedForwarders.push('Agility Logistics');
-        }
-      }
-
-      // If no forwarders found, default to at least one
-      if (usedForwarders.length === 0) {
         usedForwarders.push('Kuehne + Nagel');
+        newForwarderRFQ['Kuehne + Nagel'] = {
+          rate: shipment.kuehne_nagel,
+          days: shipment.transit_days || shipment.frieght_in_time || "",
+          comments: ""
+        };
+      }
+      
+      if ((shipment.dhl_global && shipment.dhl_global > 0) || (shipment.dhl && shipment.dhl > 0)) {
+        usedForwarders.push('DHL Global Forwarding');
+        newForwarderRFQ['DHL Global Forwarding'] = {
+          rate: shipment.dhl_global || shipment.dhl || 0,
+          days: shipment.transit_days || shipment.frieght_in_time || "",
+          comments: ""
+        };
+      }
+      
+      if ((shipment.scan_global_logistics && shipment.scan_global_logistics > 0) || (shipment.scan_global && shipment.scan_global > 0)) {
+        usedForwarders.push('Scan Global Logistics');
+        newForwarderRFQ['Scan Global Logistics'] = {
+          rate: shipment.scan_global_logistics || shipment.scan_global || 0,
+          days: shipment.transit_days || shipment.frieght_in_time || "",
+          comments: ""
+        };
+      }
+      
+      if (shipment.siginon && shipment.siginon > 0) {
+        usedForwarders.push('Siginon Logistics');
+        newForwarderRFQ['Siginon Logistics'] = {
+          rate: shipment.siginon,
+          days: shipment.transit_days || shipment.frieght_in_time || "",
+          comments: ""
+        };
+      }
+      
+      if ((shipment.agl && shipment.agl > 0) || (shipment.agility && shipment.agility > 0)) {
+        usedForwarders.push('Agility Logistics');
+        newForwarderRFQ['Agility Logistics'] = {
+          rate: shipment.agl || shipment.agility || 0,
+          days: shipment.transit_days || shipment.frieght_in_time || "",
+          comments: ""
+        };
       }
 
-      // Update selected forwarders
+      // Update inputs and RFQ data together
       setInputs(prev => ({
         ...prev,
         ...mappedInputs,
         selectedForwarders: usedForwarders
       }));
+      
+      setForwarderRFQ(newForwarderRFQ);
 
       const forwarderComparison = generateForwarderComparison(shipment);
       const bestForwarder = shipment.final_quote_awarded_freight_forwader_carrier || 
