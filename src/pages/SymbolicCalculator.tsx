@@ -60,7 +60,7 @@ const SymbolicCalculator = () => {
     }));
   };
 
-  // Validation for form inputs - remove range restrictions
+  // Validation for form inputs - no range restrictions
   useEffect(() => {
     let val: typeof validation = {};
     setValidation(val);
@@ -148,6 +148,136 @@ const SymbolicCalculator = () => {
     }
   };
 
+  // Comprehensive mapping of CSV columns to interface fields
+  const mapShipmentToInputs = (shipment: any) => {
+    console.log('Mapping shipment data:', shipment);
+    
+    // Map country names with all possible variations
+    const mapCountryName = (country: string) => {
+      if (!country) return '';
+      const countryLower = country.toLowerCase().trim();
+      
+      // Comprehensive country mapping
+      if (countryLower.includes('kenya') || countryLower.includes('nairobi')) return 'Kenya';
+      if (countryLower.includes('zambia') || countryLower.includes('lusaka')) return 'Zambia';
+      if (countryLower.includes('south africa') || countryLower.includes('johannesburg') || countryLower.includes('rsa')) return 'South Africa';
+      if (countryLower.includes('nigeria') || countryLower.includes('lagos') || countryLower.includes('abuja')) return 'Nigeria';
+      if (countryLower.includes('uae') || countryLower.includes('dubai') || countryLower.includes('emirates')) return 'UAE';
+      if (countryLower.includes('china') || countryLower.includes('shanghai') || countryLower.includes('beijing')) return 'China';
+      if (countryLower.includes('ethiopia') || countryLower.includes('addis')) return 'Ethiopia';
+      if (countryLower.includes('uganda') || countryLower.includes('kampala')) return 'Uganda';
+      if (countryLower.includes('tanzania') || countryLower.includes('dar es salaam')) return 'Tanzania';
+      if (countryLower.includes('rwanda') || countryLower.includes('kigali')) return 'Rwanda';
+      if (countryLower.includes('burundi') || countryLower.includes('bujumbura')) return 'Burundi';
+      if (countryLower.includes('madagascar') || countryLower.includes('antananarivo')) return 'Madagascar';
+      if (countryLower.includes('malawi') || countryLower.includes('lilongwe')) return 'Malawi';
+      if (countryLower.includes('zimbabwe') || countryLower.includes('harare')) return 'Zimbabwe';
+      if (countryLower.includes('congo') || countryLower.includes('kinshasa') || countryLower.includes('brazzaville')) return 'DR Congo';
+      if (countryLower.includes('sudan') || countryLower.includes('khartoum')) return 'Sudan';
+      if (countryLower.includes('chad') || countryLower.includes('ndjamena')) return 'Chad';
+      if (countryLower.includes('comoros') || countryLower.includes('moroni')) return 'Comoros';
+      if (countryLower.includes('mauritius') || countryLower.includes('port louis')) return 'Mauritius';
+      if (countryLower.includes('guinea') || countryLower.includes('conakry') || countryLower.includes('bissau')) return 'Guinea';
+      if (countryLower.includes('senegal') || countryLower.includes('dakar')) return 'Senegal';
+      if (countryLower.includes('benin') || countryLower.includes('porto novo')) return 'Benin';
+      if (countryLower.includes('togo') || countryLower.includes('lome')) return 'Togo';
+      if (countryLower.includes('ghana') || countryLower.includes('accra')) return 'Ghana';
+      if (countryLower.includes('ivory') || countryLower.includes('cote') || countryLower.includes('abidjan')) return 'Cote d\'Ivoire';
+      if (countryLower.includes('sierra leone') || countryLower.includes('freetown')) return 'Sierra Leone';
+      if (countryLower.includes('central africa') || countryLower.includes('bangui')) return 'Central African Republic';
+      if (countryLower.includes('eritrea') || countryLower.includes('asmara')) return 'Eritrea';
+      if (countryLower.includes('sao tome') || countryLower.includes('principe')) return 'Sao Tome';
+      if (countryLower.includes('eswatini') || countryLower.includes('swaziland')) return 'Eswatini';
+      
+      return country; // fallback to original value
+    };
+
+    // Map cargo types with comprehensive matching
+    const mapCargoType = (cargoType: string) => {
+      if (!cargoType) return 'Emergency Health Kits';
+      const cargoLower = cargoType.toLowerCase().trim();
+      
+      if (cargoLower.includes('pharmaceutical') || cargoLower.includes('medicine') || 
+          cargoLower.includes('drug') || cargoLower.includes('ampicillin') || 
+          cargoLower.includes('ringer') || cargoLower.includes('dextrose') || 
+          cargoLower.includes('ors') || cargoLower.includes('infusion')) return 'Pharmaceuticals';
+      
+      if (cargoLower.includes('laboratory') || cargoLower.includes('lab') || 
+          cargoLower.includes('rdt') || cargoLower.includes('covid') || 
+          cargoLower.includes('test') || cargoLower.includes('extraction') || 
+          cargoLower.includes('viral') || cargoLower.includes('malaria') || 
+          cargoLower.includes('cholera lab') || cargoLower.includes('evd') || 
+          cargoLower.includes('vhf')) return 'Laboratory Equipment';
+      
+      if (cargoLower.includes('cold') || cargoLower.includes('chain') || 
+          cargoLower.includes('freezer') || cargoLower.includes('vaccine') || 
+          cargoLower.includes('isothermal') || cargoLower.includes('tmd')) return 'Cold Chain Supplies';
+      
+      if (cargoLower.includes('ppe') || cargoLower.includes('glove') || 
+          cargoLower.includes('mask') || cargoLower.includes('gown') || 
+          cargoLower.includes('boot') || cargoLower.includes('antifog') || 
+          cargoLower.includes('goggle')) return 'PPE';
+      
+      if (cargoLower.includes('tent') || cargoLower.includes('field') || 
+          cargoLower.includes('support') || cargoLower.includes('mosquito') || 
+          cargoLower.includes('repellant') || cargoLower.includes('fuel') || 
+          cargoLower.includes('dispenser')) return 'Field Support Material';
+      
+      if (cargoLower.includes('biomedical') || cargoLower.includes('equipment') || 
+          cargoLower.includes('defibrillator') || cargoLower.includes('thermometer') || 
+          cargoLower.includes('analyser') || cargoLower.includes('piccolo') || 
+          cargoLower.includes('cabinet')) return 'Biomedical Equipment';
+      
+      if (cargoLower.includes('vest') || cargoLower.includes('visibility')) return 'Visibility';
+      
+      if (cargoLower.includes('wash') || cargoLower.includes('ipc')) return 'WASH/IPC';
+      
+      if (cargoLower.includes('wellbeing') || cargoLower.includes('trauma')) return 'Wellbeing';
+      
+      // Default for health-related items
+      if (cargoLower.includes('health') || cargoLower.includes('medical') || 
+          cargoLower.includes('emergency') || cargoLower.includes('iehk') || 
+          cargoLower.includes('cholera') || cargoLower.includes('kit') || 
+          cargoLower.includes('mpox') || cargoLower.includes('marburg') || 
+          cargoLower.includes('tesk') || cargoLower.includes('filovirus')) return 'Emergency Health Kits';
+      
+      return cargoType; // fallback to original value
+    };
+
+    // Extract all possible weight values
+    const getWeight = (s: any) => {
+      return s.weight_kg || s.weight || 0;
+    };
+
+    // Extract all possible volume values
+    const getVolume = (s: any) => {
+      return s.volume_cbm || s.volume || 0;
+    };
+
+    // Extract origin with multiple possible column names
+    const getOrigin = (s: any) => {
+      return mapCountryName(s.origin_country || s.origin || '');
+    };
+
+    // Extract destination with multiple possible column names
+    const getDestination = (s: any) => {
+      return mapCountryName(s.destination_country || s.destination || '');
+    };
+
+    // Extract cargo type with multiple possible column names
+    const getCargoType = (s: any) => {
+      return mapCargoType(s.item_category || s.cargo_description || s.cargo_type || s.item_description || '');
+    };
+
+    return {
+      origin: getOrigin(shipment),
+      destination: getDestination(shipment),
+      weight: Number(getWeight(shipment)) || 0,
+      volume: Number(getVolume(shipment)) || 0,
+      cargoType: getCargoType(shipment),
+    };
+  };
+
   // Set form fields when shipment is selected
   useEffect(() => {
     if (!selectedReference) {
@@ -163,38 +293,13 @@ const SymbolicCalculator = () => {
       console.log('Selected shipment data:', s);
       setSelectedShipment(s);
       
-      // Map country names to match the dropdown options
-      const mapCountryName = (country: string) => {
-        if (!country) return '';
-        const countryLower = country.toLowerCase();
-        if (countryLower.includes('kenya') || countryLower.includes('nairobi')) return 'Kenya';
-        if (countryLower.includes('zambia') || countryLower.includes('lusaka')) return 'Zambia';
-        if (countryLower.includes('south africa') || countryLower.includes('johannesburg')) return 'South Africa';
-        if (countryLower.includes('nigeria') || countryLower.includes('lagos')) return 'Nigeria';
-        if (countryLower.includes('uae') || countryLower.includes('dubai')) return 'UAE';
-        if (countryLower.includes('china') || countryLower.includes('shanghai')) return 'China';
-        return country; // fallback to original value
-      };
-
-      // Map cargo type to match dropdown options
-      const mapCargoType = (cargoType: string) => {
-        if (!cargoType) return 'Emergency Health Kits';
-        const cargoLower = cargoType.toLowerCase();
-        if (cargoLower.includes('pharmaceutical') || cargoLower.includes('medicine')) return 'Pharmaceuticals';
-        if (cargoLower.includes('laboratory') || cargoLower.includes('lab')) return 'Laboratory Equipment';
-        if (cargoLower.includes('cold') || cargoLower.includes('vaccine')) return 'Cold Chain Supplies';
-        if (cargoLower.includes('health') || cargoLower.includes('medical') || cargoLower.includes('emergency')) return 'Emergency Health Kits';
-        return cargoType; // fallback to original value
-      };
-
-      // Update all form fields with shipment data
+      // Map all shipment data to inputs
+      const mappedInputs = mapShipmentToInputs(s);
+      
+      // Update all form fields with comprehensive shipment data
       setInputs(prev => ({
         ...prev,
-        origin: mapCountryName(s.origin_country || s.origin || ''),
-        destination: mapCountryName(s.destination_country || s.destination || ''),
-        weight: s.weight_kg ? Number(s.weight_kg) : (s.weight ? Number(s.weight) : 0),
-        volume: s.volume_cbm ? Number(s.volume_cbm) : (s.volume ? Number(s.volume) : 0),
-        cargoType: mapCargoType(s.item_category || s.cargo_description || s.cargo_type || ''),
+        ...mappedInputs
       }));
 
       // Generate forwarder comparison data from shipment
@@ -271,8 +376,8 @@ const SymbolicCalculator = () => {
         bestForwarder: bestForwarder,
         routeScore: forwarderData.length > 0 ? forwarderData[0].topsisScore?.toFixed(2) : "N/A",
         forwarderComparison: forwarderData,
-        recommendation: `Historical data shows ${bestForwarder || 'selected forwarder'} was chosen for this ${s.item_category || s.cargo_description || 'shipment'} route from ${s.origin_country || s.origin} to ${s.destination_country || s.destination}.`,
-        oracleNarrative: `📊 Historical Analysis: This ${s.item_category || s.cargo_description || 'shipment'} of ${s.weight_kg || s.weight || 'unknown'}kg was transported from ${s.origin_country || s.origin} to ${s.destination_country || s.destination}. ${bestForwarder ? `${bestForwarder} was selected` : 'Forwarder selection recorded'} with delivery status: ${s.delivery_status || 'unknown'}.`,
+        recommendation: `Historical data shows ${bestForwarder || 'selected forwarder'} was chosen for this ${mappedInputs.cargoType} route from ${mappedInputs.origin} to ${mappedInputs.destination}.`,
+        oracleNarrative: `📊 Historical Analysis: This ${mappedInputs.cargoType} of ${mappedInputs.weight}kg was transported from ${mappedInputs.origin} to ${mappedInputs.destination}. ${bestForwarder ? `${bestForwarder} was selected` : 'Forwarder selection recorded'} with delivery status: ${s.delivery_status || 'unknown'}.`,
         methodology: `Analysis based on historical shipment data from ${s.date_of_collection || s.shipment_date || 'recorded date'}. Costs and transit times extracted from actual shipment record. TOPSIS scoring calculated from available forwarder quotes.`,
         seal: "📋 HISTORICAL",
         qseal: s.request_reference.substring(0, 8),
@@ -394,7 +499,7 @@ const SymbolicCalculator = () => {
             © 2025 DeepCAL++ Technologies • The First Symbolic Logistical Intelligence Engine • 🔱
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };
