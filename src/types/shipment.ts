@@ -31,6 +31,7 @@ export interface ShipmentData {
   date_of_collection?: string;
   shipment_date?: string;
   delivery_status?: string;
+  mode_of_shipment?: string;
   final_quote_awarded_freight_forwader_carrier?: string;
   initial_quote_awarded?: string;
   awarded_forwarder?: string;
