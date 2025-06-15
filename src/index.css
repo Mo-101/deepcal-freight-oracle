@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Aptos:wght@500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -90,19 +89,13 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: 'Aptos', Arial, Helvetica, sans-serif !important;
-    font-weight: 500 !important;
-    color: #111 !important;
-    letter-spacing: 0.01em !important;
   }
+
   body {
-    font-family: 'Aptos', Arial, Helvetica, sans-serif !important;
-    font-weight: 500 !important;
-    color: #111 !important;
+    font-family: 'Orbitron', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     min-height: 100vh;
-  }
-  html.dark, body.dark, [data-theme="dark"] {
-    color: #fff !important;
   }
 }
 

@@ -3,14 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Aptos', Arial, Helvetica, sans-serif !important;
-  font-weight: 500 !important;
-  color: #111 !important;
-}
-.dark body,
-body.dark,
-[data-theme="dark"] body {
-  color: #fff !important;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
