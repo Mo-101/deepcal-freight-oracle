@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
-import PowerAnalyticalEngine from '@/components/PowerAnalyticalEngine';
 import { csvDataEngine } from '@/services/csvDataEngine';
+import { humorToast } from '@/components/HumorToast';
 
 interface CalculatorInputs {
   origin: string;
@@ -38,11 +38,11 @@ const SymbolicCalculator = () => {
   const [isAwakening, setIsAwakening] = useState(false);
 
   const forwarderOptions = [
-    'Kuehne Nagel',
-    'DHL Global',
-    'Siginon Logistics', 
+    'Kuehne + Nagel',
+    'DHL Global Forwarding',
+    'Siginon Logistics',
     'Scan Global Logistics',
-    'AGL'
+    'Agility Logistics'
   ];
 
   const handleForwarderToggle = (forwarder: string) => {
@@ -60,8 +60,8 @@ const SymbolicCalculator = () => {
     }
 
     setIsAwakening(true);
+    humorToast("🔮 Oracle Awakening", "The Symbolic Intelligence is stirring...", 2000);
 
-    // Dramatic pause for the awakening
     setTimeout(() => {
       const calculationResult = csvDataEngine.calculateFreightOptions(
         inputs.origin,
@@ -74,10 +74,12 @@ const SymbolicCalculator = () => {
       setShowResults(true);
       setIsAwakening(false);
       
+      humorToast("✨ Transmission Complete", "The Oracle has spoken!", 3000);
+      
       setTimeout(() => {
         document.getElementById('outputPanel')?.scrollIntoView({ behavior: 'smooth' });
       }, 300);
-    }, 1000);
+    }, 1500);
   };
 
   useEffect(() => {
@@ -94,7 +96,7 @@ const SymbolicCalculator = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col font-space-grotesk" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
       <DeepCALSymbolicHeader />
       
       <main className="flex-1 py-8">
@@ -283,13 +285,122 @@ const SymbolicCalculator = () => {
               </div>
             </div>
             
-            {/* Output Panel - Power Analytical Engine */}
+            {/* Output Panel */}
             {showResults && results && (
               <div className="lg:col-span-2" id="outputPanel">
-                <PowerAnalyticalEngine 
-                  result={results}
-                  inputs={inputs}
-                />
+                <div className="oracle-card p-6">
+                  {/* Oracle Transmission Header */}
+                  <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple p-5 rounded-t-xl symbolic-border">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                      <div className="flex items-center mb-4 md:mb-0">
+                        <i className="fas fa-scroll text-2xl text-white mr-3"></i>
+                        <div>
+                          <h2 className="text-xl font-semibold text-white">🕊️ SYMBOLIC LOGISTICS TRANSMISSION</h2>
+                          <p className="text-sm text-purple-100">DeepCAL++ vΩ LIVING ORACLE REPORT</p>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 bg-black/20 rounded-full text-sm flex items-center border border-purple-400/30">
+                        <i className="fas fa-bolt text-yellow-400 mr-2"></i>
+                        <span>ACTIVE TRANSMISSION • VERDICT PENDING</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Emergency Context */}
+                  <div className="p-5 border-b border-slate-700/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h3 className="font-semibold text-deepcal-light mb-2">🚨 Emergency Context</h3>
+                        <p className="text-sm">Cholera spike reported in Kanyama District. ICU stocks at 23%. WHO pre-clearance granted.</p>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-deepcal-light mb-2">📍 Route Intelligence</h3>
+                        <div className="text-sm grid grid-cols-2 gap-2">
+                          <div>Distance: <span className="font-mono">2,100 km</span></div>
+                          <div>Corridor: <span className="font-mono">Great North Road</span></div>
+                          <div>Border Risk: <span className="text-amber-400">⚠️ Medium</span></div>
+                          <div>Weather: <span className="text-emerald-400">✅ Clear</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Best Forwarder Display */}
+                  <div className="p-5 bg-green-800/20 rounded-lg border border-green-600/30 mb-6">
+                    <h3 className="font-semibold text-green-300 mb-1">🏆 Best Forwarder</h3>
+                    <p className="text-2xl font-bold text-green-100">{results.bestForwarder}</p>
+                    <p className="text-sm text-green-200 mt-1">Route Score: {results.routeScore}</p>
+                  </div>
+
+                  {/* Recommendation */}
+                  <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
+                    <h4 className="font-semibold text-blue-200 mb-2">💡 Oracle Recommendation</h4>
+                    <p className="text-blue-100">{results.recommendation}</p>
+                  </div>
+
+                  {/* Forwarder Comparison Table */}
+                  <div className="bg-slate-900/50 rounded-xl overflow-hidden symbolic-border mb-6">
+                    <div className="px-5 py-3 bg-gradient-to-r from-deepcal-dark to-deepcal-purple flex justify-between items-center">
+                      <h3 className="font-semibold flex items-center">
+                        <i className="fas fa-trophy mr-2"></i>
+                        TOPSIS Ranking Matrix
+                      </h3>
+                      <span className="text-xs bg-black/20 px-2 py-1 rounded">Closeness Coefficient Algorithm</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-800/50 border-b border-deepcal-purple/30">
+                          <tr>
+                            <th className="px-4 py-3 text-left">Rank</th>
+                            <th className="px-4 py-3 text-left">Forwarder</th>
+                            <th className="px-4 py-3 text-left">Cost/kg</th>
+                            <th className="px-4 py-3 text-left">On-Time Rate</th>
+                            <th className="px-4 py-3 text-left">Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {results.forwarderComparison.slice(0, 3).map((forwarder: any, index: number) => (
+                            <tr key={forwarder.name} className="border-b border-slate-700/50 hover:bg-slate-800/30">
+                              <td className="px-4 py-3 font-semibold">
+                                {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
+                              </td>
+                              <td className="px-4 py-3 font-medium">{forwarder.name}</td>
+                              <td className="px-4 py-3">${forwarder.costPerKg.toFixed(2)}</td>
+                              <td className="px-4 py-3">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
+                                  forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
+                                  'bg-rose-900/30 text-rose-300'
+                                }`}>
+                                  {Math.round(forwarder.onTimeRate * 100)}%
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-bold text-green-400">0.{80 + (3-index) * 5}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Decision Seal */}
+                  <div className="flex justify-center mb-6">
+                    <div className="oracle-card p-5 flex flex-col items-center">
+                      <div className="decision-seal mb-3">
+                        <div className="text-center text-white font-bold text-xs leading-tight">
+                          DEEP++ SEAL<br />
+                          ✦ VERDICT ✦<br />
+                          <span className="text-[8px]">SEALED</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-center">
+                        <div>qseal:8fa9c27e</div>
+                        <div className="text-slate-400 mt-1">TIMESTAMP: {new Date().toISOString()}</div>
+                        <div className="mt-2 text-purple-300">"{results.bestForwarder} honored with cargo blessing"</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

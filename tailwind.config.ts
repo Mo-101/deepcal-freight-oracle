@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,21 +20,21 @@ export default {
 		},
 		extend: {
 			colors: {
-				background: '#181824',
-				surface: '#23233a',
-				border: '#2b2842',
+				background: '#0f172a',
+				surface: '#1e293b',
+				border: '#334155',
 				glass: 'rgba(255,255,255,0.07)',
-				glassBorder: 'rgba(170,170,255,0.21)',
-				cardShadow: 'rgba(110,0,240,0.10)',
+				glassBorder: 'rgba(126,34,206,0.3)',
+				cardShadow: 'rgba(126,34,206,0.2)',
 				primary: {
-					DEFAULT: '#9557FF',
-					dark: '#441466',
-					foreground: '#f9f9fc'
+					DEFAULT: '#a855f7',
+					dark: '#581c87',
+					foreground: '#f8fafc'
 				},
 				accent: {
-					DEFAULT: '#3290f0',
-					soft: '#78aaff',
-					subtle: '#e6efff'
+					DEFAULT: '#3b82f6',
+					soft: '#60a5fa',
+					subtle: '#dbeafe'
 				},
 				deepcal: {
 					purple: '#7e22ce',
@@ -45,7 +46,7 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
-				xl: '1.2rem',
+				xl: '1rem',
 				glass: '16px'
 			},
 			keyframes: {
@@ -81,16 +82,18 @@ export default {
 				'scroll-appear': 'scroll-appear 1.2s ease-out'
 			},
 			fontFamily: {
+				'space-grotesk': ['Space Grotesk', 'sans-serif'],
 				'orbitron': ['Orbitron', 'sans-serif'],
-				'elegant': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'elegant': ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
 			},
 			boxShadow: {
-				glass: '0 8px 32px 0 rgba(48,68,187,0.22), 0 1.5px 7px 0 rgba(99,80,255,0.12)'
+				glass: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+				symbolic: '0 0 15px rgba(126, 34, 206, 0.2), inset 0 0 10px rgba(126, 34, 206, 0.1)'
 			},
 			backgroundImage: {
-				'glass-blur': 'linear-gradient(120deg, rgba(54, 54, 93, 0.92) 80%, rgba(69, 36, 106, 0.2))',
-				'soft-gradient': 'linear-gradient(97deg, #23233a 0%, #441466 100%)',
-				'card-gradient': 'linear-gradient(120deg, rgba(110,0,240,0.08), rgba(255,255,255,0.00))'
+				'glass-blur': 'linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%)',
+				'symbolic-gradient': 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+				'deepcal-gradient': 'linear-gradient(135deg, #581c87 0%, #7e22ce 100%)'
 			}
 		}
 	},
