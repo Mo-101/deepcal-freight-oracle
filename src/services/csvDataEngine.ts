@@ -44,6 +44,19 @@ export interface LineageMeta {
 // IndexedDB key for base shipments
 const SHIPMENT_BASE_KEY = "shipments_base_v1";
 
+export interface FreightCalculatorResult {
+  lineageMeta: {
+    records: number;
+    sha256: string;
+    timestamp: string;
+    source: string;
+  };
+  forwarderComparison: any[];
+  rulesFired: string[];
+  recommendation?: string;
+  routeScore?: number;
+}
+
 class CSVDataLoader {
   private lineageMeta: LineageMeta | null = null;
 
