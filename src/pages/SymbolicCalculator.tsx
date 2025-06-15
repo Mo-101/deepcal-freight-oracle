@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
-import CanonicalShipmentDetails from '@/components/oracle/CanonicalShipmentDetails';
-import OracleAnalyticsPanel from '@/components/oracle/OracleAnalyticsPanel';
+import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
+import { Info } from "lucide-react";
+import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQInputs";
+import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
+import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
+import { AlertTriangle } from "lucide-react";
+import { formatCurrency, formatWeight, formatVolume, formatDays } from "@/lib/formatUtils";
 
 interface CalculatorInputs {
   origin: string;
@@ -25,12 +30,21 @@ const SymbolicCalculator = () => {
   const [selectedReference, setSelectedReference] = useState<string>('');
   // canonical default: all calculators are based on base data, not user entry
   const [canonicalInputs, setCanonicalInputs] = useState<CalculatorInputs | null>(null);
-  const [inputs, setInputs] = useState<CalculatorInputs | null>(null);
+
   const [results, setResults] = useState<any>(null);
   const [isAwakening, setIsAwakening] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
   const [outputAnimation, setOutputAnimation] = useState(false);
   const [anomalyMap, setAnomalyMap] = useState<any>({});
+
+  const forwarderOptions = [
+    'Kuehne + Nagel',
+    'DHL Global Forwarding',
+    'Siginon Logistics',
+    'Scan Global Logistics',
+    'Agility Logistics'
+  ];
+
   const [validation, setValidation] = useState<{weight?: string; volume?: string}>({});
   // Handle priorities change from slider
   const handlePrioritiesChange = (priorities: CalculatorInputs["priorities"]) => {
@@ -62,7 +76,7 @@ const SymbolicCalculator = () => {
     setValidation(val);
   }, [inputs?.weight, inputs?.volume]);
 
-  const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, any>>({});
+  const [forwarderRFQ, setForwarderRFQ] = useState<Record<string, ForwarderRFQData>>({});
 
   const handleForwarderToggle = (forwarder: string) => {
     setInputs(prev => {
@@ -139,6 +153,8 @@ const SymbolicCalculator = () => {
   }, [selectedReference, allShipments]);
 
   // OVERRIDE: Ignore user entry -- always use canonicalInputs
+  const [inputs, setInputs] = useState<CalculatorInputs | null>(null);
+
   useEffect(() => {
     if (canonicalInputs) {
       setInputs(canonicalInputs);
@@ -213,7 +229,6 @@ const SymbolicCalculator = () => {
               className="w-full max-w-md bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white"
               value={selectedReference}
               onChange={e => setSelectedReference(e.target.value)}
-              data-testid="shipment-select"
             >
               {allShipments.map(s => (
                 <option key={s.request_reference} value={s.request_reference}>
@@ -226,27 +241,130 @@ const SymbolicCalculator = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Input panel, now disabled - only shows canonical shipment info */}
             <div className="lg:col-span-1">
-              <CanonicalShipmentDetails inputs={inputs} />
+              <div className="oracle-card p-6 h-full">
+                <h2 className="text-xl font-semibold mb-6 text-deepcal-light">
+                  Canonical Shipment Details
+                </h2>
+                {inputs ? (
+                  <div className="space-y-3">
+                    <div><b>Origin:</b> {inputs.origin}</div>
+                    <div><b>Destination:</b> {inputs.destination}</div>
+                    <div><b>Weight (kg):</b> {inputs.weight}</div>
+                    <div><b>Volume (CBM):</b> {inputs.volume}</div>
+                    <div><b>Cargo Type:</b> {inputs.cargoType}</div>
+                    <div><b>Forwarders:</b> {inputs.selectedForwarders.join(', ') || "None"}</div>
+                  </div>
+                ) : (
+                  <div className="text-rose-400">No data for selected shipment.</div>
+                )}
 
-              <div className="mt-8">
-                <button
-                  onClick={awakenOracle}
-                  disabled={isAwakening || !inputs}
-                  className="w-full bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-bolt mr-2"></i>
-                  {isAwakening ? 'Analyzing...' : 'Show Full Analytics'}
-                </button>
+                {/* Oracle Activation */}
+                <div className="mt-8">
+                  <button
+                    onClick={awakenOracle}
+                    disabled={isAwakening || !inputs}
+                    className="w-full bg-gradient-to-r from-deepcal-purple to-deepcal-light hover:from-deepcal-light hover:to-deepcal-purple text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg shadow-purple-900/50 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i className="fas fa-bolt mr-2"></i>
+                    {isAwakening ? 'Analyzing...' : 'Show Full Analytics'}
+                  </button>
+                </div>
               </div>
             </div>
-            {/* Output Panel */}
-            <div className="lg:col-span-2 relative min-h-[300px] flex items-center justify-center">
-              <OracleAnalyticsPanel
-                results={results}
-                selectedReference={selectedReference}
-                showOutput={showOutput}
-                outputAnimation={outputAnimation}
-              />
+
+            {/* Output Panel - Only for canonical shipment */}
+            <div className={`lg:col-span-2 relative min-h-[300px] flex items-center justify-center`}>
+              {showOutput && (
+                <div
+                  className={`oracle-card p-6 w-full transition-all duration-1000
+                    ${outputAnimation ? 'animate-magical-appear opacity-100 scale-100 blur-0' : 'opacity-0 scale-90 blur-md'}
+                  `}
+                  style={{
+                    boxShadow:
+                      '0 0 60px 10px rgba(168, 85, 247, 0.24), 0 0 0 2px #a855f7 inset',
+                    borderColor: 'rgba(168, 85, 247, 0.8)',
+                  }}
+                >
+                  {/* Oracle Transmission Header */}
+                  <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple p-5 rounded-t-xl symbolic-border">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                      <div className="flex items-center mb-4 md:mb-0">
+                        <i className="fas fa-scroll text-2xl text-white mr-3"></i>
+                        <div>
+                          <h2 className="text-xl font-semibold text-white">🕊️ DEEPCAL FULL ANALYTICS PANEL</h2>
+                          <p className="text-sm text-purple-100">Canonical Shipment: <span className="font-mono">{selectedReference}</span></p>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 bg-black/20 rounded-full text-sm flex items-center border border-purple-400/30">
+                        <i className="fas fa-bolt text-yellow-400 mr-2"></i>
+                        <span>ARCHIVAL SHIPMENT EVIDENCE</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Oracle Narrative */}
+                  <div className="oracle-card p-5 my-6">
+                    <div className="flex items-center mb-4">
+                      <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
+                      <h3 className="font-semibold">Oracle Narrative</h3>
+                    </div>
+                    <div className="text-sm leading-relaxed text-slate-200">
+                      {/* FUTURE: Display real narrative from analytics */}
+                      {results && results.narrative ? (
+                        <p>{results.narrative}</p>
+                      ) : (
+                        <p className="italic text-slate-400">No Oracle analysis yet for this shipment.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Methodology Analysis */}
+                  <div className="oracle-card p-5 my-6">
+                    <div className="flex items-center mb-4">
+                      <i className="fas fa-calculator text-lg text-emerald-400 mr-2"></i>
+                      <h3 className="font-semibold">Symbolic Methodology Analysis</h3>
+                    </div>
+                    <div className="text-sm">
+                      {!!results && !!results.methodology ? (
+                        <div>{results.methodology}</div>
+                      ) : (
+                        <div className="italic text-slate-400">No methodology data for this shipment.</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Performance Radar */}
+                  <div className="oracle-card p-5 my-6">
+                    <div className="flex items-center mb-4">
+                      <i className="fas fa-chart-line text-lg text-cyan-400 mr-2"></i>
+                      <h3 className="font-semibold">Performance Radar</h3>
+                    </div>
+                    <div>
+                      {!!results && !!results.radarSvg ? (
+                        <div dangerouslySetInnerHTML={{ __html: results.radarSvg }} />
+                      ) : (
+                        <div className="italic text-slate-400">Radar data not available.</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Optimal Route Map */}
+                  <div className="oracle-card p-5 my-6">
+                    <div className="flex items-center mb-4">
+                      <i className="fas fa-map-marked-alt text-lg text-rose-400 mr-2"></i>
+                      <h3 className="font-semibold">Optimal Route Map</h3>
+                    </div>
+                    <div>
+                      {!!results && !!results.routeMapSvg ? (
+                        <div dangerouslySetInnerHTML={{ __html: results.routeMapSvg }} />
+                      ) : (
+                        <div className="italic text-slate-400">Route map not available.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Optional: Magical sparkle overlay */}
               {showOutput && outputAnimation && (
                 <div className="pointer-events-none absolute inset-0 z-20">
                   <div className="magical-sparkle-overlay" />
