@@ -1,214 +1,234 @@
-// CSV Data Loader Engine – loads, parses, and persists shipment records to IndexedDB (no calculations)
-import { humorToast } from "@/components/HumorToast";
-import { set, get, del } from "idb-keyval";
+import { ShipmentData } from '@/types/shipment';
+import { parse } from 'papaparse';
 
 export interface ShipmentRecord {
-  request_reference: string;
-  date_of_collection: string;
-  cargo_description: string;
-  item_category: string;
-  origin_country: string;
-  origin_latitude: number;
-  origin_longitude: number;
-  destination_country: string;
-  destination_latitude: number;
-  destination_longitude: number;
-  carrier: string;
-  freight_carrier_cost: number;
-  kuehne_nagel: number;
-  scan_global_logistics: number;
-  dhl_express: number;
-  dhl_global: number;
-  bwosi: number;
-  agl: number;
-  siginon: number;
-  frieght_in_time: number;
-  weight_kg: number;
-  volume_cbm: number;
-  initial_quote_awarded: string;
-  final_quote_awarded_freight_forwader_carrier: string;
-  comments: string;
-  date_of_arrival_destination: string;
-  delivery_status: string;
-  mode_of_shipment: string;
+    request_reference: string;
+    origin_country?: string;
+    destination_country?: string;
+    weight_kg?: number;
+    volume_cbm?: number;
+    item_category?: string;
+    [key: string]: any;
 }
 
-export interface LineageMeta {
-  file: string;
-  sha256: string;
-  records: number;
-  timestamp: string;
-  source: 'uploaded' | 'embedded' | 'sample';
+export class CSVDataEngine {
+    private static instance: CSVDataEngine;
+    private dataLoaded: boolean = false;
+    private dataStale: boolean = false;
+    private lastLoadTime: number | null = null;
+    private readonly MAX_DATA_AGE = 60 * 60 * 1000; // 1 hour
+    private shipments: ShipmentRecord[] = [];
+    private lineageMeta: any = null;
+
+    private constructor() { }
+
+    public static getInstance(): CSVDataEngine {
+        if (!CSVDataEngine.instance) {
+            CSVDataEngine.instance = new CSVDataEngine();
+        }
+        return CSVDataEngine.instance;
+    }
+
+    public isDataLoaded(): boolean {
+        return this.dataLoaded;
+    }
+
+    public isDataStale(): boolean {
+        return this.dataStale;
+    }
+
+    public getLineageMeta(): any {
+        return this.lineageMeta;
+    }
+
+    private async loadCSVData(csvFilePath: string): Promise<ShipmentRecord[]> {
+        try {
+            const response = await fetch(csvFilePath);
+            const csvText = await response.text();
+
+            const result = parse<ShipmentRecord>(csvText, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                transformHeader: header => header.trim(),
+                transform: value => value.trim()
+            });
+
+            if (result.errors.length > 0) {
+                console.error('CSV Parsing Errors:', result.errors);
+                throw new Error('Failed to parse CSV data.');
+            }
+
+            this.lineageMeta = {
+                source: csvFilePath,
+                records: result.data.length,
+                sha256: 'embedded',
+            };
+
+            return result.data as ShipmentRecord[];
+        } catch (error) {
+            console.error('Error loading or parsing CSV:', error);
+            throw error;
+        }
+    }
+
+    private async autoDetectEmbeddedData(): Promise<ShipmentRecord[]> {
+        try {
+            const embeddedData = await import('../data/shipment_data.csv?raw');
+            const result = parse<ShipmentRecord>(embeddedData.default, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                transformHeader: header => header.trim(),
+                transform: value => value.trim()
+            });
+
+            if (result.errors.length > 0) {
+                console.error('CSV Parsing Errors:', result.errors);
+                throw new Error('Failed to parse embedded CSV data.');
+            }
+
+            // Calculate SHA-256 hash
+            const textEncoder = new TextEncoder();
+            const data = textEncoder.encode(embeddedData.default);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            this.lineageMeta = {
+                source: 'embedded',
+                records: result.data.length,
+                sha256: hashHex,
+            };
+
+            return result.data as ShipmentRecord[];
+        } catch (error) {
+            console.error('Error loading or parsing embedded CSV:', error);
+            throw error;
+        }
+    }
+
+    public async autoLoadEmbeddedData(): Promise<void> {
+        try {
+            const data = await this.autoDetectEmbeddedData();
+            this.shipments = data;
+            this.dataLoaded = true;
+            this.dataStale = false;
+            this.lastLoadTime = Date.now();
+            console.log(`[CSVDataEngine] Loaded ${data.length} records from embedded data.`);
+        } catch (error) {
+            console.error('Auto-load failed:', error);
+            throw error;
+        }
+    }
+
+    public async forceReloadEmbeddedData(): Promise<void> {
+        try {
+            const data = await this.autoDetectEmbeddedData();
+            this.shipments = data;
+            this.dataLoaded = true;
+            this.dataStale = false;
+            this.lastLoadTime = Date.now();
+            console.warn('[CSVDataEngine] Forced reload of embedded data.');
+        } catch (error) {
+            console.error('Forced reload failed:', error);
+            throw error;
+        }
+    }
+
+    public async listShipments(): Promise<ShipmentRecord[]> {
+        if (!this.dataLoaded) {
+            console.warn('Data not loaded, returning empty array.');
+            return [];
+        }
+        return this.shipments;
+    }
+
+    /**
+     * Get comprehensive statistics for a specific route
+     */
+    getRouteStatistics(originCountry: string, destinationCountry: string) {
+        if (!this.shipments.length) return null;
+
+        const routeShipments = this.shipments.filter(s =>
+            s.origin_country === originCountry && s.destination_country === destinationCountry
+        );
+
+        const forwarderUsage = routeShipments.reduce((acc, s) => {
+            const forwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
+            if (forwarder) {
+                acc[forwarder] = (acc[forwarder] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        const totalWeight = routeShipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
+        const totalCost = routeShipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0);
+
+        return {
+            totalShipments: routeShipments.length,
+            totalWeight,
+            totalCost,
+            avgCostPerKg: totalWeight > 0 ? totalCost / totalWeight : 0,
+            forwarderUsage,
+            deliverySuccess: routeShipments.filter(s => s.delivery_status === 'Delivered').length,
+            categories: [...new Set(routeShipments.map(s => s.item_category).filter(Boolean))]
+        };
+    }
+
+    /**
+     * Get destination statistics
+     */
+    getDestinationStatistics(destinationCountry: string) {
+        if (!this.shipments.length) return null;
+
+        const destinationShipments = this.shipments.filter(s =>
+            s.destination_country === destinationCountry
+        );
+
+        const origins = [...new Set(destinationShipments.map(s => s.origin_country).filter(Boolean))];
+        const forwarders = [...new Set(destinationShipments.map(s =>
+            s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded
+        ).filter(Boolean))];
+
+        return {
+            totalShipments: destinationShipments.length,
+            uniqueOrigins: origins.length,
+            uniqueForwarders: forwarders.length,
+            origins,
+            forwarders
+        };
+    }
+
+    /**
+     * Get global network statistics
+     */
+    getNetworkStatistics() {
+        if (!this.shipments.length) return null;
+
+        const countries = new Set();
+        const routes = new Set();
+        const forwarders = new Set();
+
+        this.shipments.forEach(s => {
+            if (s.origin_country) countries.add(s.origin_country);
+            if (s.destination_country) countries.add(s.destination_country);
+            if (s.origin_country && s.destination_country) {
+                routes.add(`${s.origin_country}-${s.destination_country}`);
+            }
+            const forwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
+            if (forwarder) forwarders.add(forwarder);
+        });
+
+        return {
+            totalShipments: this.shipments.length,
+            uniqueCountries: countries.size,
+            uniqueRoutes: routes.size,
+            uniqueForwarders: forwarders.size,
+            totalWeight: this.shipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0),
+            totalValue: this.shipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0)
+        };
+    }
 }
 
-// IndexedDB key for base shipments
-const SHIPMENT_BASE_KEY = "shipments_base_v1";
-
-export interface FreightCalculatorResult {
-  lineageMeta: LineageMeta;
-  forwarderComparison: Array<{
-    name: string;
-    cost: number;
-    transitTime: number;
-    score: number;
-  }>;
-  rulesFired: string[];
-  recommendedCarrier: string;
-  confidenceScore: number;
-}
-
-class CSVDataLoader {
-  private lineageMeta: LineageMeta | null = null;
-
-  // **Loader only, no calculations.**
-  async autoLoadEmbeddedData(): Promise<void> {
-    const hasBase = await get(SHIPMENT_BASE_KEY);
-    if (hasBase && Array.isArray(hasBase.rows) && hasBase.rows.length > 0) {
-      this.lineageMeta = hasBase.meta;
-      return;
-    }
-
-    try {
-      console.log("🔄 Auto-loading embedded dataset...");
-      const response = await fetch('/embedded_shipments.csv');
-      if (!response.ok) {
-        throw new Error(`Failed to load embedded data: ${response.status}`);
-      }
-      const csvText = await response.text();
-      await this.loadCSVData(csvText, 'embedded');
-    } catch (error) {
-      console.error("❌ Failed to auto-load embedded data:", error);
-      throw new Error("Embedded dataset not available - system locked.");
-    }
-  }
-
-  // Force reload fresh data from CSV (clears cache first)
-  async forceReloadEmbeddedData(): Promise<void> {
-    console.log("🔄 Force reloading embedded dataset (clearing cache)...");
-    await this.clearShipments();
-    
-    try {
-      const response = await fetch('/embedded_shipments.csv?t=' + Date.now()); // Cache bust
-      if (!response.ok) {
-        throw new Error(`Failed to load embedded data: ${response.status}`);
-      }
-      const csvText = await response.text();
-      await this.loadCSVData(csvText, 'embedded');
-      
-      humorToast(
-        "🔄 Data Refreshed", 
-        "Loaded fresh data from updated CSV file",
-        3000
-      );
-    } catch (error) {
-      console.error("❌ Failed to force reload embedded data:", error);
-      throw new Error("Failed to reload fresh data from CSV");
-    }
-  }
-
-  async loadCSVData(csvText: string, source: 'uploaded' | 'embedded' | 'sample' = 'uploaded'): Promise<void> {
-    console.log("🔄 Loading CSV data into DeepCAL loader (IndexedDB) ...");
-
-    const dataHash = await this.generateDataHash(csvText);
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split('\t');
-
-    const rows: ShipmentRecord[] = lines.slice(1).map(line => {
-      const values = line.split('\t');
-      const record: any = {};
-      headers.forEach((header, index) => {
-        const value = values[index]?.trim() || '';
-        record[this.normalizeHeader(header)] = this.parseValue(header, value);
-      });
-      return record as ShipmentRecord;
-    }).filter(record => record.request_reference && record.origin_country);
-
-    this.lineageMeta = {
-      file: source === 'embedded' ? 'embedded_shipments.csv' : 'uploaded_data.csv',
-      sha256: dataHash,
-      records: rows.length,
-      timestamp: new Date().toISOString(),
-      source
-    };
-
-    await set(SHIPMENT_BASE_KEY, { rows, meta: this.lineageMeta });
-
-    const sourceEmoji = source === 'embedded' ? '📦' : source === 'uploaded' ? '📤' : '🧪';
-    humorToast(
-      `${sourceEmoji} Loader: Data Persisted`, 
-      `Saved ${rows.length} shipment records to local IndexedDB. Hash: ${dataHash.substring(0, 8)}...`,
-      3000
-    );
-    console.log(`✅ Loader: ${rows.length} shipment records persisted (${source})`);
-  }
-
-  async clearShipments(): Promise<void> {
-    await del(SHIPMENT_BASE_KEY);
-    this.lineageMeta = null;
-    console.log("🗑️ Cleared cached shipment data from IndexedDB");
-  }
-
-  // Check if current data hash matches what's in cache
-  async isDataStale(): Promise<boolean> {
-    try {
-      const response = await fetch('/embedded_shipments.csv?t=' + Date.now());
-      if (!response.ok) return false;
-      
-      const csvText = await response.text();
-      const currentHash = await this.generateDataHash(csvText);
-      
-      const cached = await get(SHIPMENT_BASE_KEY);
-      if (!cached || !cached.meta) return true;
-      
-      return cached.meta.sha256 !== currentHash;
-    } catch (error) {
-      console.error("Error checking data staleness:", error);
-      return false;
-    }
-  }
-
-  getLineageMeta(): LineageMeta | null {
-    return this.lineageMeta;
-  }
-
-  private normalizeHeader(header: string): string {
-    return header.toLowerCase()
-      .replace(/\+/g, '_')
-      .replace(/[^a-z0-9_]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_|_$/g, '');
-  }
-
-  private parseValue(header: string, value: string): any {
-    if (!value || value === '0' || value === '') return 0;
-    if (
-      header.includes('cost') || header.includes('weight') || header.includes('volume') || 
-      header.includes('latitude') || header.includes('longitude') ||
-      ['kuehne_nagel', 'scan_global_logistics', 'dhl_express', 'dhl_global', 'bwosi', 'agl', 'siginon', 'frieght_in_time'].includes(header)) {
-      const numValue = parseFloat(value.replace(/[,$]/g, ''));
-      return isNaN(numValue) ? 0 : numValue;
-    }
-    return value;
-  }
-
-  private async generateDataHash(data: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(data);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // ADD THESE loader utility methods (so TS sees them!)
-  async isDataLoaded(): Promise<boolean> {
-    const dbPayload = await get(SHIPMENT_BASE_KEY);
-    return !!(dbPayload && Array.isArray(dbPayload.rows) && dbPayload.rows.length > 0);
-  }
-
-  async listShipments(): Promise<ShipmentRecord[]> {
-    const dbPayload = await get(SHIPMENT_BASE_KEY);
-    return dbPayload && Array.isArray(dbPayload.rows) ? dbPayload.rows : [];
-  }
-}
-
-export const csvDataEngine = new CSVDataLoader();
+export const csvDataEngine = CSVDataEngine.getInstance();

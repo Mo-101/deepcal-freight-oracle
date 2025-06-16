@@ -1,20 +1,30 @@
+
 import React from 'react';
-import EmergencyContextCard from './EmergencyContextCard';
-import RouteIntelligenceCard from './RouteIntelligenceCard';
-import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
-import { AnomalyPanel } from "@/components/analytical/AnomalyPanel";
-import { AlertTriangle, Plane, Cloud, Clock } from "lucide-react";
-import { formatCurrency, formatDays } from "@/lib/formatUtils";
-import { useFlightData } from '@/hooks/useFlightData';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { 
+  TrendingUp, 
+  MapPin, 
+  Package, 
+  Clock, 
+  DollarSign, 
+  Globe,
+  BarChart3,
+  Target,
+  Database
+} from 'lucide-react';
+import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
+import { csvDataEngine } from '@/services/csvDataEngine';
 
 interface OracleResultsPanelProps {
   showOutput: boolean;
   outputAnimation: boolean;
-  results: any;
-  selectedShipment: any;
+  results: OracleResults | null;
+  selectedShipment: ShipmentData | null;
   anomalyMap: any;
-  inputs: any;
+  inputs: CalculatorInputs;
 }
 
 const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
@@ -25,486 +35,285 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
   anomalyMap,
   inputs
 }) => {
-  // Get flight data for air shipments
-  const { flightData, weatherData, isLoading: flightLoading } = useFlightData(
-    inputs.origin, 
-    inputs.destination, 
-    inputs.modeOfShipment
-  );
+  // Calculate historical statistics based on the selected shipment and current data
+  const getHistoricalStats = () => {
+    if (!selectedShipment) return null;
 
-  // Generate historical date context for shipment
-  const getShipmentTimeContext = (shipment: any) => {
-    if (!shipment) return null;
+    const allShipments = csvDataEngine.listShipments();
     
-    const collectionDate = shipment.date_of_collection || shipment.shipment_date;
-    if (!collectionDate) return null;
-    
-    // Parse the date (handles formats like "03-Feb-24")
-    const shipmentDate = new Date(collectionDate);
-    if (isNaN(shipmentDate.getTime())) return null;
-    
-    return {
-      date: shipmentDate,
-      formattedDate: shipmentDate.toLocaleDateString(),
-      isHistorical: shipmentDate < new Date()
-    };
-  };
+    // Get shipments for the same origin-destination route
+    const routeShipments = allShipments.filter(s => 
+      s.origin_country === selectedShipment.origin_country &&
+      s.destination_country === selectedShipment.destination_country
+    );
 
-  // Generate flight intelligence narrative
-  const generateFlightIntelligence = () => {
-    if (inputs.modeOfShipment !== 'Air' || !inputs.origin || !inputs.destination) {
-      return null;
-    }
+    // Get all shipments to the destination country
+    const destinationShipments = allShipments.filter(s => 
+      s.destination_country === selectedShipment.destination_country
+    );
 
-    const timeContext = getShipmentTimeContext(selectedShipment);
-    
-    let narrative = "";
-    if (timeContext?.isHistorical) {
-      narrative = `Historical air route analysis for ${inputs.origin} → ${inputs.destination} on ${timeContext.formattedDate}. `;
-    } else {
-      narrative = `Current air route analysis for ${inputs.origin} → ${inputs.destination}. `;
-    }
+    // Get shipments from the origin country
+    const originShipments = allShipments.filter(s => 
+      s.origin_country === selectedShipment.origin_country
+    );
 
-    if (weatherData && !flightLoading) {
-      narrative += `Weather conditions: ${weatherData.conditions}, ${weatherData.temperature}°C, wind ${weatherData.windSpeed} km/h. `;
-    }
+    // Get unique countries served from origin
+    const countriesFromOrigin = new Set(
+      originShipments.map(s => s.destination_country).filter(Boolean)
+    );
 
-    if (flightData.length > 0) {
-      narrative += `${flightData.length} flight option(s) identified. Primary route via ${flightData[0].flightId}. `;
-    }
+    // Get unique forwarders used for this route
+    const routeForwarders = new Set(
+      routeShipments.map(s => s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded).filter(Boolean)
+    );
 
-    return narrative;
-  };
+    // Calculate route performance metrics
+    const routeTotalWeight = routeShipments.reduce((sum, s) => sum + (parseFloat(s.weight_kg as string) || 0), 0);
+    const routeTotalCost = routeShipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0);
+    const avgCostPerKg = routeTotalWeight > 0 ? routeTotalCost / routeTotalWeight : 0;
 
-  // Generate dynamic context based on selected shipment
-  const generateEmergencyContext = (shipment: any) => {
-    if (!shipment) {
-      return {
-        isEmergency: false,
-        context: "No shipment data available",
-        grade: "Ungraded"
-      };
-    }
-
-    const emergencyGrade = shipment['emergency grade'] || shipment.emergency_grade || 'Ungraded';
-    const isEmergency = emergencyGrade.toLowerCase().includes('grade');
-    const cargoType = shipment.item_category || shipment.cargo_description || 'Unknown cargo';
-    const destination = shipment.destination_country || 'Unknown destination';
-
-    if (isEmergency) {
-      let emergencyDetails = "";
-      if (cargoType.toLowerCase().includes('cholera')) {
-        emergencyDetails = `Cholera outbreak response in ${destination}. Critical medical supplies required urgently.`;
-      } else if (cargoType.toLowerCase().includes('health') || cargoType.toLowerCase().includes('medical')) {
-        emergencyDetails = `Health emergency in ${destination}. Medical intervention supplies needed.`;
-      } else if (cargoType.toLowerCase().includes('trauma')) {
-        emergencyDetails = `Trauma response deployment to ${destination}. Emergency medical kits required.`;
-      } else {
-        emergencyDetails = `Emergency humanitarian response to ${destination}. Critical supplies deployment.`;
+    // Get most used forwarder for this route
+    const forwarderUsage = routeShipments.reduce((acc, s) => {
+      const forwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
+      if (forwarder) {
+        acc[forwarder] = (acc[forwarder] || 0) + 1;
       }
+      return acc;
+    }, {} as Record<string, number>);
 
-      return {
-        isEmergency: true,
-        context: emergencyDetails,
-        grade: emergencyGrade,
-        priority: "HIGH PRIORITY"
-      };
-    } else {
-      return {
-        isEmergency: false,
-        context: `Standard logistics operation: ${cargoType} delivery to ${destination}.`,
-        grade: emergencyGrade || "Standard",
-        priority: "STANDARD"
-      };
-    }
-  };
+    const mostUsedForwarder = Object.entries(forwarderUsage)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
 
-  const generateRouteIntelligence = (shipment: any) => {
-    if (!shipment) {
-      return {
-        distance: "Unknown",
-        corridor: "Unknown route",
-        borderRisk: "Unknown",
-        weather: "Unknown"
-      };
-    }
-
-    const origin = shipment.origin_country || 'Unknown';
-    const destination = shipment.destination_country || 'Unknown';
-    const mode = shipment.mode_of_shipment || 'Unknown';
-    
-    let distance = "Unknown";
-    if (shipment.origin_latitude && shipment.origin_longitude && 
-        shipment.destination_latitude && shipment.destination_longitude) {
-      const lat1 = parseFloat(shipment.origin_latitude);
-      const lon1 = parseFloat(shipment.origin_longitude);
-      const lat2 = parseFloat(shipment.destination_latitude);
-      const lon2 = parseFloat(shipment.destination_longitude);
-      
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const calculatedDistance = R * c;
-      distance = `${Math.round(calculatedDistance)} km`;
-    }
-
-    let corridor = "Unknown route";
-    if (origin.toLowerCase().includes('kenya') && destination.toLowerCase().includes('zambia')) {
-      corridor = "Great North Road (A104)";
-    } else if (origin.toLowerCase().includes('kenya') && destination.toLowerCase().includes('zimbabwe')) {
-      corridor = "North-South Corridor";
-    } else if (origin.toLowerCase().includes('kenya')) {
-      corridor = `${origin} → ${destination} Corridor`;
-    } else {
-      corridor = `${origin} → ${destination}`;
-    }
-
-    let borderRisk = "⚠️ Medium";
-    const deliveryStatus = shipment.delivery_status || '';
-    if (deliveryStatus.toLowerCase() === 'delivered') {
-      borderRisk = "✅ Low";
-    } else if (deliveryStatus.toLowerCase().includes('delayed')) {
-      borderRisk = "🔴 High";
-    }
-
-    const weather = mode.toLowerCase() === 'air' ? "✅ Clear for aviation" : "🌤️ Ground conditions normal";
+    // Calculate delivery success rate
+    const deliveredShipments = routeShipments.filter(s => s.delivery_status === 'Delivered').length;
+    const deliverySuccessRate = routeShipments.length > 0 ? (deliveredShipments / routeShipments.length) * 100 : 0;
 
     return {
-      distance,
-      corridor,
-      borderRisk,
-      weather,
-      mode: mode.toUpperCase()
+      totalShipments: allShipments.length,
+      routeShipments: routeShipments.length,
+      destinationShipments: destinationShipments.length,
+      originShipments: originShipments.length,
+      countriesFromOrigin: countriesFromOrigin.size,
+      routeForwarders: routeForwarders.size,
+      routeTotalWeight,
+      routeTotalCost,
+      avgCostPerKg,
+      mostUsedForwarder,
+      deliverySuccessRate,
+      selectedRoute: `${selectedShipment.origin_country} → ${selectedShipment.destination_country}`,
+      selectedCategory: selectedShipment.item_category || 'Unknown',
+      selectedWeight: parseFloat(selectedShipment.weight_kg as string) || 0,
+      selectedVolume: parseFloat(selectedShipment.volume_cbm as string) || 0
     };
   };
 
-  const emergencyContext = generateEmergencyContext(selectedShipment);
-  const routeIntelligence = generateRouteIntelligence(selectedShipment);
-  const flightIntelligence = generateFlightIntelligence();
+  const historicalStats = getHistoricalStats();
 
-  if (!showOutput) return null;
+  if (!showOutput) {
+    return (
+      <Card className="p-8 bg-slate-800/50 border-slate-700 text-center">
+        <div className="space-y-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full mx-auto flex items-center justify-center">
+            <TrendingUp className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-slate-200">Oracle Analysis Ready</h3>
+          <p className="text-slate-400">Select a reference shipment to view historical analysis and recommendations</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <div
-      className={`oracle-card p-6 w-full transition-all duration-1000
-        ${outputAnimation ? 'animate-magical-appear opacity-100 scale-100 blur-0' : 'opacity-0 scale-90 blur-md'}
-      `}
-      style={{
-        boxShadow:
-          '0 0 60px 10px rgba(168, 85, 247, 0.24), 0 0 0 2px #a855f7 inset',
-        borderColor: 'rgba(168, 85, 247, 0.8)',
-      }}
-    >
-      {/* Oracle Transmission Header */}
-      <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple p-5 rounded-t-xl symbolic-border">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div className="flex items-center mb-4 md:mb-0">
-            <i className="fas fa-scroll text-2xl text-white mr-3"></i>
-            <div>
-              <h2 className="text-xl font-semibold text-white">🕊️ SYMBOLIC LOGISTICS TRANSMISSION</h2>
-              <p className="text-sm text-purple-100">DeepCAL++ vΩ LIVING ORACLE REPORT</p>
+    <div className={`space-y-6 transition-all duration-500 ${outputAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+      {/* Historical Statistics Panel */}
+      {historicalStats && (
+        <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+              <Database className="w-5 h-5 text-white" />
             </div>
-          </div>
-          <div className="px-4 py-2 bg-black/20 rounded-full text-sm flex items-center border border-purple-400/30">
-            <i className="fas fa-bolt text-yellow-400 mr-2"></i>
-            <span>ACTIVE TRANSMISSION • VERDICT PENDING</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Flight Intelligence Integration - Only show for Air shipments */}
-      {inputs.modeOfShipment === 'Air' && inputs.origin && inputs.destination && (
-        <div className="p-5 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
-          <h3 className="font-semibold text-blue-200 mb-3 flex items-center gap-2">
-            <Plane className="w-5 h-5" />
-            Flight Intelligence Integration
-            <Badge variant="outline" className="ml-2 border-blue-400/50 text-blue-400">
-              {getShipmentTimeContext(selectedShipment)?.isHistorical ? 'Historical' : 'Real-time'}
+            <h3 className="text-lg font-semibold text-amber-400">Historical Data Intelligence</h3>
+            <Badge variant="outline" className="ml-auto border-amber-500 text-amber-400">
+              Live Analysis
             </Badge>
-          </h3>
-          
-          {flightLoading ? (
-            <div className="text-center py-2">
-              <div className="animate-spin h-4 w-4 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-2"></div>
-              <p className="text-xs text-blue-300">Analyzing flight corridor...</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-cyan-400">{historicalStats.totalShipments}</div>
+              <div className="text-xs text-slate-400">Total Shipments</div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Weather Integration */}
-              {weatherData && (
-                <div className="bg-slate-800/50 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Cloud className="w-4 h-4 text-blue-400" />
-                    Conditions ({inputs.origin})
-                  </h4>
-                  <div className="text-xs space-y-1">
-                    <div>{weatherData.temperature}°C, {weatherData.conditions}</div>
-                    <div>Visibility: {weatherData.visibility}</div>
-                    <div>Wind: {weatherData.windSpeed} km/h @ {weatherData.windDirection}°</div>
-                  </div>
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-400">{historicalStats.routeShipments}</div>
+              <div className="text-xs text-slate-400">Same Route</div>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-purple-400">{historicalStats.destinationShipments}</div>
+              <div className="text-xs text-slate-400">To Destination</div>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-orange-400">{historicalStats.countriesFromOrigin}</div>
+              <div className="text-xs text-slate-400">Countries Served</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-300">Selected Route</span>
+              </div>
+              <div className="text-sm font-medium text-white">{historicalStats.selectedRoute}</div>
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-slate-400" />
+                <span className="text-xs text-slate-400">{historicalStats.selectedCategory}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-300">Route Performance</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Delivery Success</span>
+                  <span className="text-green-400">{historicalStats.deliverySuccessRate.toFixed(1)}%</span>
                 </div>
-              )}
+                <Progress value={historicalStats.deliverySuccessRate} className="h-2" />
+              </div>
+              <div className="text-xs text-slate-400">
+                {historicalStats.routeForwarders} forwarders used
+              </div>
+            </div>
 
-              {/* Flight Routing */}
-              {flightData.length > 0 && (
-                <div className="bg-slate-800/50 rounded-lg p-3">
-                  <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-green-400" />
-                    Route Analysis
-                  </h4>
-                  <div className="text-xs space-y-1">
-                    <div>Primary: {flightData[0].flightId}</div>
-                    <div>Status: {flightData[0].status}</div>
-                    <div>ETD: {new Date(flightData[0].departure.scheduled).toLocaleTimeString()}</div>
-                    <div>ETA: {new Date(flightData[0].arrival.scheduled).toLocaleTimeString()}</div>
-                  </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-300">Cost Intelligence</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-lg font-bold text-green-400">
+                  ${historicalStats.avgCostPerKg.toFixed(2)}/kg
                 </div>
-              )}
+                <div className="text-xs text-slate-400">Average route cost</div>
+                <div className="text-xs text-amber-400">
+                  Preferred: {historicalStats.mostUsedForwarder}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        </Card>
       )}
 
-      {/* Dynamic Emergency & Route Context */}
-      <div className="p-5 border-b border-slate-700/50">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EmergencyContextCard emergencyContext={emergencyContext} />
-          <RouteIntelligenceCard routeIntelligence={routeIntelligence} />
-        </div>
-      </div>
-      
-      {/* Best Forwarder Display */}
-      {results && results.bestForwarder && (
-        <div className="p-5 bg-green-800/20 rounded-lg border border-green-600/30 mb-6">
-          <h3 className="font-semibold text-green-300 mb-1">🏆 Best Forwarder</h3>
-          <p className="text-2xl font-bold text-green-100">{results.bestForwarder}</p>
-          <p className="text-sm text-green-200 mt-1">
-            Route Score: <span className="font-mono">{results.routeScore}</span>
-          </p>
-        </div>
+      {/* Main Results Display */}
+      {results && (
+        <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-purple-400">🏆 Best Forwarder</h3>
+            <Badge variant="outline" className="ml-auto border-purple-500 text-purple-400">
+              {results.seal}
+            </Badge>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">{results.bestForwarder}</h2>
+              <div className="text-right">
+                <div className="text-sm text-slate-400">Route Score</div>
+                <div className="text-xl font-bold text-cyan-400">{results.routeScore}</div>
+              </div>
+            </div>
+
+            <Separator className="bg-slate-600" />
+
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-300 mb-2">Oracle Analysis</h4>
+                <p className="text-sm text-slate-200 leading-relaxed">{results.oracleNarrative}</p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-slate-300 mb-2">Recommendation</h4>
+                <p className="text-sm text-slate-200 leading-relaxed">{results.recommendation}</p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-slate-300 mb-2">Methodology</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">{results.methodology}</p>
+              </div>
+            </div>
+
+            {/* Forwarder Comparison Table */}
+            {results.forwarderComparison && results.forwarderComparison.length > 0 && (
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-slate-300 mb-3">Forwarder Comparison</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left border-b border-slate-600">
+                        <th className="pb-2 text-slate-400">Rank</th>
+                        <th className="pb-2 text-slate-400">Forwarder</th>
+                        <th className="pb-2 text-slate-400">Cost/kg</th>
+                        <th className="pb-2 text-slate-400">Transit Days</th>
+                        <th className="pb-2 text-slate-400">On-Time Rate</th>
+                        <th className="pb-2 text-slate-400">TOPSIS Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.forwarderComparison.map((forwarder, index) => (
+                        <tr 
+                          key={forwarder.name} 
+                          className={`border-b border-slate-700 ${
+                            index === 0 ? 'bg-gradient-to-r from-purple-900/30 to-cyan-900/30' : ''
+                          }`}
+                        >
+                          <td className="py-2">
+                            <Badge 
+                              variant={index === 0 ? 'default' : 'secondary'}
+                              className={index === 0 ? 'bg-amber-600' : ''}
+                            >
+                              #{forwarder.rank}
+                            </Badge>
+                          </td>
+                          <td className="py-2 font-medium text-white">{forwarder.name}</td>
+                          <td className="py-2 text-slate-300">${forwarder.costPerKg.toFixed(2)}</td>
+                          <td className="py-2 text-slate-300">{forwarder.avgTransitDays}</td>
+                          <td className="py-2 text-slate-300">{forwarder.onTimeRate.toFixed(1)}%</td>
+                          <td className="py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-cyan-400">
+                                {forwarder.topsisScore.toFixed(3)}
+                              </span>
+                              {anomalyMap[forwarder.name] && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Anomaly
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-4 border-t border-slate-600">
+              <div className="text-xs text-slate-500">
+                Analysis: {results.qseal} • {new Date(results.timestamp).toLocaleDateString()}
+              </div>
+              <div className="text-xs text-slate-500">
+                {results.blessing}
+              </div>
+            </div>
+          </div>
+        </Card>
       )}
-
-      {/* Recommendation */}
-      {results && results.recommendation && (
-        <div className="p-4 bg-blue-900/20 rounded-lg border border-blue-700/30 mb-6">
-          <h4 className="font-semibold text-blue-200 mb-2">💡 Oracle Recommendation</h4>
-          <p className="text-blue-100">{results.recommendation}</p>
-        </div>
-      )}
-
-      {/* Forwarder Comparison Table */}
-      <div className="bg-slate-900/50 rounded-xl overflow-hidden symbolic-border mb-6">
-        <div className="px-5 py-3 bg-gradient-to-r from-deepcal-dark to-deepcal-purple flex justify-between items-center">
-          <h3 className="font-semibold flex items-center">
-            <i className="fas fa-trophy mr-2"></i>
-            TOPSIS Ranking Matrix
-          </h3>
-          <span className="text-xs bg-black/20 px-2 py-1 rounded">Closeness Coefficient Algorithm</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-800/50 border-b border-deepcal-purple/30">
-              <tr>
-                <th className="px-4 py-3 text-left">Rank</th>
-                <th className="px-4 py-3 text-left">Forwarder</th>
-                <th className="px-4 py-3 text-left">Time (days)</th>
-                <th className="px-4 py-3 text-left">Cost (USD/kg)</th>
-                <th className="px-4 py-3 text-left">Risk</th>
-                <th className="px-4 py-3 text-left">TOPSIS Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results && results.forwarderComparison && results.forwarderComparison.length > 0 ? (
-                results.forwarderComparison.map((forwarder: any, index: number) => {
-                  const hasAnomaly = !!anomalyMap[forwarder.name];
-                  return (
-                    <tr
-                      key={forwarder.name}
-                      className={`border-b border-slate-700/50 hover:bg-slate-800/30 ${hasAnomaly ? "bg-yellow-900/40" : ""}`}
-                    >
-                      <td className="px-4 py-3 font-semibold flex items-center gap-1">
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {forwarder.rank}
-                        {hasAnomaly && (
-                          <AlertTriangle className="ml-1 text-yellow-400" size={15} />
-                        )}
-                      </td>
-                      <td className="px-4 py-3 font-medium">{forwarder.name}</td>
-                      <td className="px-4 py-3">
-                        {formatDays(forwarder.avgTransitDays)}
-                        {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("avgTransitDays") && (
-                          <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatCurrency(forwarder.costPerKg)}
-                        {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("costPerKg") && (
-                          <AlertTriangle className="inline ml-1 text-yellow-400" size={13} />
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          forwarder.onTimeRate > 0.9 ? 'bg-emerald-900/30 text-emerald-300' : 
-                          forwarder.onTimeRate > 0.8 ? 'bg-amber-900/30 text-amber-300' : 
-                          'bg-rose-900/30 text-rose-300'
-                        }`}>
-                          {Math.round((forwarder.onTimeRate || 0.9) * 100)}%
-                          {hasAnomaly && anomalyMap[forwarder.name].anomalyFields.includes("onTimeRate") && (
-                            <AlertTriangle className="inline ml-1 text-yellow-400" size={11} />
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-bold text-green-400">
-                        {forwarder.topsisScore ? forwarder.topsisScore.toFixed(2) : ""}
-                      </td>
-                    </tr>
-                  )
-                })
-              ) : (
-                <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground italic">
-                    No results to display. Please run calculation with shipment details.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Anomaly Detection Panel */}
-      <AnomalyPanel
-        forwarderKPIs={results?.forwarderComparison || []}
-        anomalies={anomalyMap}
-      />
-
-      {/* Analytical Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {/* Symbolic Narrative with Flight Intelligence */}
-        <div className="oracle-card p-5">
-          <div className="flex items-center mb-4">
-            <i className="fas fa-book-open text-lg text-blue-400 mr-2"></i>
-            <h3 className="font-semibold">Oracle Narrative</h3>
-            {Object.keys(anomalyMap).length > 0 && (
-              <span
-                className="ml-3 inline-flex items-center px-2 py-0.5 bg-yellow-400/90 text-yellow-900 text-[11px] font-bold rounded"
-              >
-                <AlertTriangle className="w-4 h-4 mr-1" /> Anomaly Detected
-              </span>
-            )}
-          </div>
-          <div className="text-sm leading-relaxed text-slate-200">
-            {results && results.oracleNarrative ? (
-              <>
-                {results.oracleNarrative}
-                {flightIntelligence && (
-                  <div className="mt-3 p-3 bg-blue-900/30 rounded border border-blue-700/30">
-                    <strong className="text-blue-200">Flight Intelligence: </strong>
-                    <span className="text-blue-100">{flightIntelligence}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-slate-500 italic">No data yet.</div>
-            )}
-            {Object.keys(anomalyMap).length > 0 && (
-              <div className="mt-4 text-yellow-300 text-xs">
-                <b>Anomaly Report:</b>
-                <ul className="mt-1 space-y-1">
-                  {Object.entries(anomalyMap).map(([fwd, val]:any) =>
-                    <li key={fwd}>
-                      <span className="font-semibold">{fwd}</span>: {val.reasons.join("; ")}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Symbolic Seal, data hidden unless avail */}
-        <div className="oracle-card p-5 flex flex-col items-center justify-center">
-          <div className="flex items-center mb-4">
-            <i className="fas fa-drafting-compass text-lg text-purple-400 mr-2"></i>
-            <h3 className="font-semibold">Decision Covenant</h3>
-          </div>
-          {results && results.seal ? (
-            <div className="decision-seal mb-3">{results.seal}</div>
-          ) : (
-            <div className="text-xs text-center text-slate-500">No data yet.</div>
-          )}
-          {results && results.qseal && (
-            <div className="text-xs text-center mt-2">
-              <div>qseal:{results.qseal}</div>
-              <div className="text-slate-400 mt-1">Timestamp: {results.timestamp}</div>
-              <div className="mt-2 text-purple-300">{results.blessing}</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Advanced Analytics */}
-      <div className="grid grid-cols-1 gap-6">
-        {/* Methodology Explanation */}
-        <div className="oracle-card p-5">
-          <div className="flex items-center mb-4">
-            <i className="fas fa-calculator text-lg text-emerald-400 mr-2"></i>
-            <h3 className="font-semibold">Symbolic Methodology Analysis</h3>
-          </div>
-          {results && results.methodology ? (
-            <div className="text-sm">{results.methodology}</div>
-          ) : (
-            <div className="text-xs text-slate-500">No data yet.</div>
-          )}
-        </div>
-        
-        {/* Visual Analytics (Performance Radar) -- show empty unless results.radarData */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="oracle-card p-5">
-            <div className="flex items-center mb-4">
-              <i className="fas fa-chart-line text-lg text-cyan-400 mr-2"></i>
-              <h3 className="font-semibold">Performance Radar</h3>
-            </div>
-            {results && results.radarData ? (
-              <div className="h-64 flex items-center justify-center bg-slate-800/30 rounded-lg">
-                {/* Radar chart from results.radarData */}
-              </div>
-            ) : (
-              <div className="h-64 flex items-center justify-center">
-                <span className="text-xs text-slate-400">No data yet.</span>
-              </div>
-            )}
-            <div className="text-xs text-center mt-4 flex justify-around">
-              {results && results.radarData ? (
-                <span className="text-purple-400">K+N</span>
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-          <div className="oracle-card p-5">
-            <div className="flex items-center mb-4">
-              <i className="fas fa-map-marked-alt text-lg text-rose-400 mr-2"></i>
-              <h3 className="font-semibold">Optimal Route Map</h3>
-            </div>
-            {results && results.routeMap ? (
-              <div className="map-container h-64">
-                {/* Render map from results.routeMap */}
-              </div>
-            ) : (
-              <div className="h-64 flex items-center justify-center">
-                <span className="text-xs text-slate-400">No data yet.</span>
-              </div>
-            )}
-            {results && results.routeMapDesc && (
-              <div className="text-xs text-center mt-3 text-slate-400">{results.routeMapDesc}</div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
