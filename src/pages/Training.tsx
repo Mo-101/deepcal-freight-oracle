@@ -9,6 +9,8 @@ import { TrainingTabs } from '@/components/training/TrainingTabs';
 import { EngineConfigTab } from '@/components/training/EngineConfigTab';
 import { WeightsConfigTab } from '@/components/training/WeightsConfigTab';
 import { AdvancedConfigTab } from '@/components/training/AdvancedConfigTab';
+import { LiveMetricsPanel } from '@/components/training/LiveMetricsPanel';
+import { TrainingLogsPanel } from '@/components/training/TrainingLogsPanel';
 
 export interface WeightVector {
   cost: number;
@@ -180,56 +182,67 @@ export default function TrainingPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
       <DeepCALHeader />
       
-      <div className="container max-w-7xl mx-auto py-10 px-4">
+      <div className="container max-w-full mx-auto py-6 px-6">
         <TrainingHeader 
           isTraining={isTraining}
           onSaveConfiguration={saveConfiguration}
           onToggleTraining={triggerTraining}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <SystemStatusSidebar 
-            systemStatus={systemStatus}
-            trainingMetrics={trainingMetrics}
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          <div className="xl:col-span-1">
+            <SystemStatusSidebar 
+              systemStatus={systemStatus}
+              trainingMetrics={trainingMetrics}
+            />
+          </div>
 
-          <div className="lg:col-span-3 space-y-6">
+          <div className="xl:col-span-4 space-y-6">
             <TrainingTabs 
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />
 
-            {activeTab === 'engine' && (
-              <EngineConfigTab 
-                modelConfig={modelConfig}
-                setModelConfig={setModelConfig}
-                trainingMetrics={trainingMetrics}
-                isTraining={isTraining}
-                trainingActivities={trainingActivities}
-              />
-            )}
+            <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
+              <div className="2xl:col-span-2">
+                {activeTab === 'engine' && (
+                  <EngineConfigTab 
+                    modelConfig={modelConfig}
+                    setModelConfig={setModelConfig}
+                    trainingMetrics={trainingMetrics}
+                    isTraining={isTraining}
+                    trainingActivities={trainingActivities}
+                  />
+                )}
 
-            {activeTab === 'weights' && (
-              <WeightsConfigTab 
-                weights={weights}
-                setWeights={setWeights}
-              />
-            )}
+                {activeTab === 'weights' && (
+                  <WeightsConfigTab 
+                    weights={weights}
+                    setWeights={setWeights}
+                  />
+                )}
 
-            {activeTab === 'synthetic' && (
-              <SyntheticDataManager 
-                onDataGenerated={() => {
-                  toast({ 
-                    title: 'Synthetic Data Ready', 
-                    description: 'New synthetic training data is available for model retraining' 
-                  });
-                }}
-              />
-            )}
+                {activeTab === 'synthetic' && (
+                  <SyntheticDataManager 
+                    onDataGenerated={() => {
+                      toast({ 
+                        title: 'Synthetic Data Ready', 
+                        description: 'New synthetic training data is available for model retraining' 
+                      });
+                    }}
+                  />
+                )}
 
-            {activeTab === 'advanced' && (
-              <AdvancedConfigTab />
-            )}
+                {activeTab === 'advanced' && (
+                  <AdvancedConfigTab />
+                )}
+              </div>
+
+              <div className="2xl:col-span-1 space-y-6">
+                <LiveMetricsPanel isTraining={isTraining} />
+                <TrainingLogsPanel isTraining={isTraining} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
