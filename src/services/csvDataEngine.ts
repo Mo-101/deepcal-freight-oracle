@@ -136,7 +136,7 @@ export class CSVDataEngine {
         }
     }
 
-    public async listShipments(): Promise<ShipmentRecord[]> {
+    public listShipments(): ShipmentRecord[] {
         if (!this.dataLoaded) {
             console.warn('Data not loaded, returning empty array.');
             return [];
@@ -162,8 +162,8 @@ export class CSVDataEngine {
             return acc;
         }, {} as Record<string, number>);
 
-        const totalWeight = routeShipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
-        const totalCost = routeShipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0);
+        const totalWeight = routeShipments.reduce((sum, s) => sum + (Number(s.weight_kg) || 0), 0);
+        const totalCost = routeShipments.reduce((sum, s) => sum + (Number(s['carrier+cost']) || 0), 0);
 
         return {
             totalShipments: routeShipments.length,
@@ -225,8 +225,8 @@ export class CSVDataEngine {
             uniqueCountries: countries.size,
             uniqueRoutes: routes.size,
             uniqueForwarders: forwarders.size,
-            totalWeight: this.shipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0),
-            totalValue: this.shipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0)
+            totalWeight: this.shipments.reduce((sum, s) => sum + (Number(s.weight_kg) || 0), 0),
+            totalValue: this.shipments.reduce((sum, s) => sum + (Number(s['carrier+cost']) || 0), 0)
         };
     }
 }

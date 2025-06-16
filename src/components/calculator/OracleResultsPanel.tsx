@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -16,7 +16,7 @@ import {
   Database
 } from 'lucide-react';
 import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
-import { csvDataEngine } from '@/services/csvDataEngine';
+import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
 
 interface OracleResultsPanelProps {
   showOutput: boolean;
@@ -27,6 +27,24 @@ interface OracleResultsPanelProps {
   inputs: CalculatorInputs;
 }
 
+interface HistoricalStats {
+  totalShipments: number;
+  routeShipments: number;
+  destinationShipments: number;
+  originShipments: number;
+  countriesFromOrigin: number;
+  routeForwarders: number;
+  routeTotalWeight: number;
+  routeTotalCost: number;
+  avgCostPerKg: number;
+  mostUsedForwarder: string;
+  deliverySuccessRate: number;
+  selectedRoute: string;
+  selectedCategory: string;
+  selectedWeight: number;
+  selectedVolume: number;
+}
+
 const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
   showOutput,
   outputAnimation,
@@ -35,79 +53,83 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
   anomalyMap,
   inputs
 }) => {
+  const [historicalStats, setHistoricalStats] = useState<HistoricalStats | null>(null);
+
   // Calculate historical statistics based on the selected shipment and current data
-  const getHistoricalStats = () => {
-    if (!selectedShipment) return null;
+  useEffect(() => {
+    const getHistoricalStats = async () => {
+      if (!selectedShipment) return null;
 
-    const allShipments = csvDataEngine.listShipments();
-    
-    // Get shipments for the same origin-destination route
-    const routeShipments = allShipments.filter(s => 
-      s.origin_country === selectedShipment.origin_country &&
-      s.destination_country === selectedShipment.destination_country
-    );
+      const allShipments = await csvDataEngine.listShipments();
+      
+      // Get shipments for the same origin-destination route
+      const routeShipments = allShipments.filter(s => 
+        s.origin_country === selectedShipment.origin_country &&
+        s.destination_country === selectedShipment.destination_country
+      );
 
-    // Get all shipments to the destination country
-    const destinationShipments = allShipments.filter(s => 
-      s.destination_country === selectedShipment.destination_country
-    );
+      // Get all shipments to the destination country
+      const destinationShipments = allShipments.filter(s => 
+        s.destination_country === selectedShipment.destination_country
+      );
 
-    // Get shipments from the origin country
-    const originShipments = allShipments.filter(s => 
-      s.origin_country === selectedShipment.origin_country
-    );
+      // Get shipments from the origin country
+      const originShipments = allShipments.filter(s => 
+        s.origin_country === selectedShipment.origin_country
+      );
 
-    // Get unique countries served from origin
-    const countriesFromOrigin = new Set(
-      originShipments.map(s => s.destination_country).filter(Boolean)
-    );
+      // Get unique countries served from origin
+      const countriesFromOrigin = new Set(
+        originShipments.map(s => s.destination_country).filter(Boolean)
+      );
 
-    // Get unique forwarders used for this route
-    const routeForwarders = new Set(
-      routeShipments.map(s => s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded).filter(Boolean)
-    );
+      // Get unique forwarders used for this route
+      const routeForwarders = new Set(
+        routeShipments.map(s => s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded).filter(Boolean)
+      );
 
-    // Calculate route performance metrics
-    const routeTotalWeight = routeShipments.reduce((sum, s) => sum + (parseFloat(s.weight_kg as string) || 0), 0);
-    const routeTotalCost = routeShipments.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] as string) || 0), 0);
-    const avgCostPerKg = routeTotalWeight > 0 ? routeTotalCost / routeTotalWeight : 0;
+      // Calculate route performance metrics
+      const routeTotalWeight = routeShipments.reduce((sum, s) => sum + (Number(s.weight_kg) || 0), 0);
+      const routeTotalCost = routeShipments.reduce((sum, s) => sum + (Number(s['carrier+cost']) || 0), 0);
+      const avgCostPerKg = routeTotalWeight > 0 ? routeTotalCost / routeTotalWeight : 0;
 
-    // Get most used forwarder for this route
-    const forwarderUsage = routeShipments.reduce((acc, s) => {
-      const forwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
-      if (forwarder) {
-        acc[forwarder] = (acc[forwarder] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+      // Get most used forwarder for this route
+      const forwarderUsage = routeShipments.reduce((acc, s) => {
+        const forwarder = s.final_quote_awarded_freight_forwader_carrier || s.initial_quote_awarded;
+        if (forwarder) {
+          acc[forwarder] = (acc[forwarder] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
 
-    const mostUsedForwarder = Object.entries(forwarderUsage)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
+      const mostUsedForwarder = Object.entries(forwarderUsage)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A';
 
-    // Calculate delivery success rate
-    const deliveredShipments = routeShipments.filter(s => s.delivery_status === 'Delivered').length;
-    const deliverySuccessRate = routeShipments.length > 0 ? (deliveredShipments / routeShipments.length) * 100 : 0;
+      // Calculate delivery success rate
+      const deliveredShipments = routeShipments.filter(s => s.delivery_status === 'Delivered').length;
+      const deliverySuccessRate = routeShipments.length > 0 ? (deliveredShipments / routeShipments.length) * 100 : 0;
 
-    return {
-      totalShipments: allShipments.length,
-      routeShipments: routeShipments.length,
-      destinationShipments: destinationShipments.length,
-      originShipments: originShipments.length,
-      countriesFromOrigin: countriesFromOrigin.size,
-      routeForwarders: routeForwarders.size,
-      routeTotalWeight,
-      routeTotalCost,
-      avgCostPerKg,
-      mostUsedForwarder,
-      deliverySuccessRate,
-      selectedRoute: `${selectedShipment.origin_country} → ${selectedShipment.destination_country}`,
-      selectedCategory: selectedShipment.item_category || 'Unknown',
-      selectedWeight: parseFloat(selectedShipment.weight_kg as string) || 0,
-      selectedVolume: parseFloat(selectedShipment.volume_cbm as string) || 0
+      return {
+        totalShipments: allShipments.length,
+        routeShipments: routeShipments.length,
+        destinationShipments: destinationShipments.length,
+        originShipments: originShipments.length,
+        countriesFromOrigin: countriesFromOrigin.size,
+        routeForwarders: routeForwarders.size,
+        routeTotalWeight,
+        routeTotalCost,
+        avgCostPerKg,
+        mostUsedForwarder,
+        deliverySuccessRate,
+        selectedRoute: `${selectedShipment.origin_country} → ${selectedShipment.destination_country}`,
+        selectedCategory: selectedShipment.item_category || 'Unknown',
+        selectedWeight: Number(selectedShipment.weight_kg) || 0,
+        selectedVolume: Number(selectedShipment.volume_cbm) || 0
+      };
     };
-  };
 
-  const historicalStats = getHistoricalStats();
+    getHistoricalStats().then(setHistoricalStats);
+  }, [selectedShipment]);
 
   if (!showOutput) {
     return (
