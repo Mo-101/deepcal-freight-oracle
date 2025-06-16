@@ -1,6 +1,7 @@
 
 import { useRef, useEffect } from "react"
 
+// DEPRECATED: Use useEnhancedSpeech instead for better voice quality
 export function useSpeechSynthesis() {
   const synthRef = useRef<SpeechSynthesis | null>(null)
 
@@ -35,7 +36,7 @@ export function useSpeechSynthesis() {
 
     if (preferredVoice) utterance.voice = preferredVoice
     
-    console.log("DeepCAL speaking with voice:", preferredVoice?.name || "default")
+    console.log("DeepCAL speaking with fallback voice:", preferredVoice?.name || "default")
     synthRef.current.speak(utterance)
   }
 

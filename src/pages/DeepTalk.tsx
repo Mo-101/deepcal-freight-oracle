@@ -1,4 +1,3 @@
-
 "use client"
 
 import type React from "react"
@@ -6,10 +5,13 @@ import { useState } from "react"
 import DeepCALHeader from "@/components/DeepCALHeader"
 import ChatInterface from "@/components/deeptalk/ChatInterface"
 import SidePanel from "@/components/deeptalk/SidePanel"
-import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis"
+import VoiceConfig from "@/components/deeptalk/VoiceConfig"
+import { useEnhancedSpeech } from "@/hooks/useEnhancedSpeech"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import { classifyIntent } from "@/utils/intentClassifier"
-import { generateResponse } from "@/utils/responseGenerator"
+import { generateEnhancedResponse } from "@/utils/enhancedResponseGenerator"
+import { Button } from "@/components/ui/button"
+import { Settings } from "lucide-react"
 
 interface Message {
   id: string
@@ -39,15 +41,17 @@ const DeepTalk = () => {
       id: "1",
       type: "assistant",
       content:
-        "🚚 Welcome to DeepTalk! I'm your AI logistics coordinator with a PhD in getting stuff from A to B without losing my mind. Ask me anything about shipments, routes, or why Nairobi traffic is still a mystery to science!",
+        "Welcome to DeepTalk! I'm your AI logistics coordinator with a PhD in getting stuff from A to B without losing my mind. Ask me anything about shipments, routes, or why Nairobi traffic is still a mystery to science!",
       timestamp: new Date(),
     },
   ])
   const [input, setInput] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [context, setContext] = useState<any>({})
+  const [showVoiceConfig, setShowVoiceConfig] = useState(false)
+  const [elevenLabsConfig, setElevenLabsConfig] = useState<any>(null)
 
-  const { speakText } = useSpeechSynthesis()
+  const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
   const { isListening, startListening } = useSpeechRecognition()
 
   // Sample data for the analytics engine
@@ -90,8 +94,17 @@ const DeepTalk = () => {
     },
   ]
 
+  // Load ElevenLabs config on mount
+  useState(() => {
+    const savedConfig = localStorage.getItem("elevenlabs-config")
+    if (savedConfig) {
+      setElevenLabsConfig(JSON.parse(savedConfig))
+    }
+  })
+
   const processQuery = async (query: string) => {
     setIsProcessing(true)
+    if (isSpeaking) stopSpeaking()
 
     // Add user message
     const userMessage: Message = {
@@ -106,9 +119,9 @@ const DeepTalk = () => {
     // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    // Classify intent and generate response
+    // Classify intent and generate enhanced response
     const { intent, confidence, params } = classifyIntent(query)
-    const response = generateResponse(intent, params, query, routeDatabase, context, setContext)
+    const response = generateEnhancedResponse(intent, params, query, routeDatabase, context, setContext)
 
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
@@ -122,10 +135,9 @@ const DeepTalk = () => {
     setMessages((prev) => [...prev, assistantMessage])
     setIsProcessing(false)
 
-    // Speak the response with male voice - DeepCAL speaks!
-    const cleanResponse = response.replace(/[🚚🚀💰🥊⏰🛡️🤔🎯📦🌍🤖👑]/gu, "")
-    console.log("DeepCAL is speaking:", cleanResponse)
-    speakText(cleanResponse)
+    // Enhanced speech with ElevenLabs or fallback
+    console.log("DeepCAL speaking with enhanced voice system")
+    speakText(response, elevenLabsConfig)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -146,6 +158,10 @@ const DeepTalk = () => {
     processQuery(query)
   }
 
+  const handleVoiceConfigSave = (config: any) => {
+    setElevenLabsConfig(config)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
       fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'"
@@ -153,6 +169,19 @@ const DeepTalk = () => {
       <DeepCALHeader />
 
       <main className="flex-1 container mx-auto py-8 px-2 sm:px-6 flex flex-col lg:flex-row gap-6">
+        <div className="flex justify-between items-center w-full lg:hidden mb-4">
+          <h1 className="text-2xl font-bold text-white">DeepTalk AI</h1>
+          <Button
+            onClick={() => setShowVoiceConfig(true)}
+            variant="outline"
+            size="sm"
+            className="border-white/30 text-white hover:bg-white/10"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Voice Settings
+          </Button>
+        </div>
+
         <ChatInterface
           messages={messages}
           input={input}
@@ -163,12 +192,32 @@ const DeepTalk = () => {
           onStartListening={handleStartListening}
         />
 
-        <SidePanel
-          routeDatabase={routeDatabase}
-          isProcessing={isProcessing}
-          onQuickQuery={handleQuickQuery}
-        />
+        <div className="space-y-4">
+          <div className="hidden lg:flex justify-end">
+            <Button
+              onClick={() => setShowVoiceConfig(true)}
+              variant="outline"
+              size="sm"
+              className="border-white/30 text-white hover:bg-white/10"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Voice Settings
+            </Button>
+          </div>
+          
+          <SidePanel
+            routeDatabase={routeDatabase}
+            isProcessing={isProcessing}
+            onQuickQuery={handleQuickQuery}
+          />
+        </div>
       </main>
+
+      <VoiceConfig
+        isOpen={showVoiceConfig}
+        onClose={() => setShowVoiceConfig(false)}
+        onConfigSave={handleVoiceConfigSave}
+      />
 
       <style>
         {`
