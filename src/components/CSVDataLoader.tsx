@@ -17,7 +17,7 @@ const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateDataLoadedState = async () => {
-    const shipments = await csvDataEngine.listShipments();
+    const shipments = csvDataEngine.listShipments();
     setDataLoaded(Array.isArray(shipments) && shipments.length > 0);
     if (shipments.length > 0) {
       const lineageMeta = csvDataEngine.getLineageMeta?.();
@@ -48,7 +48,15 @@ const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
 
     try {
       const text = await file.text();
-      await csvDataEngine.loadCSVData(text, 'uploaded');
+      // Create a blob URL for the file content to use with loadCSVData
+      const blob = new Blob([text], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      
+      await csvDataEngine.loadCSVData(url);
+      
+      // Clean up the blob URL
+      URL.revokeObjectURL(url);
+      
       await updateDataLoadedState();
       onDataLoaded?.();
       humorToast("✅ Data Engine Online", `Successfully loaded shipment records!`, 3000);
