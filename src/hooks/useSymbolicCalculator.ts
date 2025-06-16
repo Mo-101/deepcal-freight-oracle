@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { mapShipmentToInputs } from '@/utils/shipmentMapper';
@@ -43,7 +44,7 @@ export const useSymbolicCalculator = () => {
     showOutput,
     outputAnimation,
     anomalyMap,
-    awakenOracle,
+    awakenOracle: baseAwakenOracle,
     resetOutput,
     generateHistoricalResults,
     displayResults
@@ -115,7 +116,7 @@ export const useSymbolicCalculator = () => {
   }, []);
 
   // Enhanced awaken oracle function with live scoring
-  const awakenOracle = async () => {
+  const awakenOracleWithScoring = async () => {
     if (!inputs.weight || !inputs.volume) return;
     
     try {
@@ -149,9 +150,8 @@ export const useSymbolicCalculator = () => {
 
       // Update results with live score
       const enhancedResults = generateHistoricalResults(selectedShipment, inputs);
-      if (enhancedResults && enhancedResults.length > 0) {
-        enhancedResults[0].score = scoreResult.finalScore;
-        enhancedResults[0].confidence = scoreResult.finalScore * 0.9; // Adjust confidence based on score
+      if (enhancedResults && enhancedResults.forwarderComparison && enhancedResults.forwarderComparison.length > 0) {
+        enhancedResults.forwarderComparison[0].topsisScore = scoreResult.finalScore;
       }
 
       displayResults(enhancedResults);
@@ -182,7 +182,7 @@ export const useSymbolicCalculator = () => {
     handlePrioritiesChange,
     handleForwarderToggle,
     handleRFQChange,
-    awakenOracle,
+    awakenOracle: awakenOracleWithScoring,
     handleRefreshData
   };
 };
