@@ -6,12 +6,14 @@ import DeepCALHeader from "@/components/DeepCALHeader"
 import ChatInterface from "@/components/deeptalk/ChatInterface"
 import SidePanel from "@/components/deeptalk/SidePanel"
 import VoiceConfig from "@/components/deeptalk/VoiceConfig"
+import GroqConfig from "@/components/deeptalk/GroqConfig"
 import { useEnhancedSpeech } from "@/hooks/useEnhancedSpeech"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import { classifyIntent } from "@/utils/intentClassifier"
-import { generateEnhancedResponse } from "@/utils/enhancedResponseGenerator"
+import { generateDynamicResponse } from "@/utils/dynamicResponseGenerator"
+import { deepTalkGroqService } from "@/services/deepTalkGroqService"
 import { Button } from "@/components/ui/button"
-import { Settings } from "lucide-react"
+import { Settings, Brain } from "lucide-react"
 
 interface Message {
   id: string
@@ -49,6 +51,8 @@ const DeepTalk = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [context, setContext] = useState<any>({})
   const [showVoiceConfig, setShowVoiceConfig] = useState(false)
+  const [showGroqConfig, setShowGroqConfig] = useState(false)
+  const [groqConfigured, setGroqConfigured] = useState(deepTalkGroqService.isConfigured())
   const [elevenLabsConfig, setElevenLabsConfig] = useState<any>(null)
 
   const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
@@ -116,28 +120,55 @@ const DeepTalk = () => {
 
     setMessages((prev) => [...prev, userMessage])
 
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    // Simulate processing delay for dramatic effect
+    await new Promise((resolve) => setTimeout(resolve, 1200))
 
-    // Classify intent and generate enhanced response
-    const { intent, confidence, params } = classifyIntent(query)
-    const response = generateEnhancedResponse(intent, params, query, routeDatabase, context, setContext)
+    try {
+      // Classify intent and generate dynamic response with Groq
+      const { intent, confidence, params } = classifyIntent(query)
+      
+      const dynamicContext = {
+        intent,
+        params,
+        query,
+        routeDatabase,
+        conversationHistory: messages,
+        userPreferences: { elevenLabsConfig },
+        currentShipment: null,
+        setContext
+      }
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: "assistant",
-      content: response,
-      timestamp: new Date(),
-      intent,
-      data: { confidence, params },
+      const response = await generateDynamicResponse(dynamicContext)
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: response,
+        timestamp: new Date(),
+        intent,
+        data: { confidence, params, groqPowered: groqConfigured },
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+      setIsProcessing(false)
+
+      // Enhanced speech with ElevenLabs or fallback
+      console.log('🎤 DeepCAL speaking with enhanced voice system')
+      speakText(response, elevenLabsConfig)
+    } catch (error) {
+      console.error('Error processing query:', error)
+      setIsProcessing(false)
+      
+      // Error fallback message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "assistant",
+        content: "🔥 The Oracle experiences temporary interference... The data spirits are restless. Please try again in a moment.",
+        timestamp: new Date(),
+        intent: "error",
+      }
+      setMessages((prev) => [...prev, errorMessage])
     }
-
-    setMessages((prev) => [...prev, assistantMessage])
-    setIsProcessing(false)
-
-    // Enhanced speech with ElevenLabs or fallback
-    console.log("DeepCAL speaking with enhanced voice system")
-    speakText(response, elevenLabsConfig)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -162,6 +193,11 @@ const DeepTalk = () => {
     setElevenLabsConfig(config)
   }
 
+  const handleGroqConfigSave = (apiKey: string) => {
+    deepTalkGroqService.setApiKey(apiKey)
+    setGroqConfigured(true)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
       fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'"
@@ -171,15 +207,26 @@ const DeepTalk = () => {
       <main className="flex-1 container mx-auto py-8 px-2 sm:px-6 flex flex-col lg:flex-row gap-6">
         <div className="flex justify-between items-center w-full lg:hidden mb-4">
           <h1 className="text-2xl font-bold text-white">DeepTalk AI</h1>
-          <Button
-            onClick={() => setShowVoiceConfig(true)}
-            variant="outline"
-            size="sm"
-            className="border-white/30 text-white hover:bg-white/10"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Voice Settings
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowGroqConfig(true)}
+              variant="outline"
+              size="sm"
+              className={`border-white/30 text-white hover:bg-white/10 ${groqConfigured ? 'border-purple-400/50 bg-purple-900/20' : ''}`}
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              {groqConfigured ? 'AI Brain' : 'Enable AI'}
+            </Button>
+            <Button
+              onClick={() => setShowVoiceConfig(true)}
+              variant="outline"
+              size="sm"
+              className="border-white/30 text-white hover:bg-white/10"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Voice
+            </Button>
+          </div>
         </div>
 
         <ChatInterface
@@ -193,7 +240,16 @@ const DeepTalk = () => {
         />
 
         <div className="space-y-4">
-          <div className="hidden lg:flex justify-end">
+          <div className="hidden lg:flex justify-end gap-2">
+            <Button
+              onClick={() => setShowGroqConfig(true)}
+              variant="outline"
+              size="sm"
+              className={`border-white/30 text-white hover:bg-white/10 ${groqConfigured ? 'border-purple-400/50 bg-purple-900/20' : ''}`}
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              {groqConfigured ? 'AI Brain Active' : 'Enable AI Brain'}
+            </Button>
             <Button
               onClick={() => setShowVoiceConfig(true)}
               variant="outline"
@@ -217,6 +273,12 @@ const DeepTalk = () => {
         isOpen={showVoiceConfig}
         onClose={() => setShowVoiceConfig(false)}
         onConfigSave={handleVoiceConfigSave}
+      />
+
+      <GroqConfig
+        isOpen={showGroqConfig}
+        onClose={() => setShowGroqConfig(false)}
+        onConfigSave={handleGroqConfigSave}
       />
 
       <style>

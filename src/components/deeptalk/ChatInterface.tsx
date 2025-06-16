@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Bot, User, MessageSquare } from "lucide-react"
+import { Bot, User, MessageSquare, Brain, Zap } from "lucide-react"
 import ChatInput from "./ChatInput"
 
 interface Message {
@@ -48,8 +48,8 @@ export default function ChatInterface({
             DeepTalk AI Conversation
           </h2>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-indigo-200">AI is online</span>
-            <div className="w-2 h-2 bg-lime-400 rounded-full" />
+            <span className="text-sm text-indigo-200">DeepCAL Oracle</span>
+            <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
           </div>
         </div>
 
@@ -80,12 +80,20 @@ export default function ChatInterface({
                         : "bg-slate-800/80 text-white border border-white/20 backdrop-filter backdrop-blur-8px"
                     }`}
                   >
-                    <p className="text-sm">{message.content}</p>
-                    {message.intent && (
-                      <Badge className="mt-2 text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
-                        Intent: {message.intent}
-                      </Badge>
-                    )}
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {message.intent && (
+                        <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
+                          Intent: {message.intent}
+                        </Badge>
+                      )}
+                      {message.data?.groqPowered && (
+                        <Badge className="text-xs bg-purple-400/20 text-purple-300 border-purple-400/30">
+                          <Brain className="w-3 h-3 mr-1" />
+                          AI Enhanced
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -99,7 +107,8 @@ export default function ChatInterface({
                 <div className="bg-slate-800/80 text-white rounded-lg p-3 border border-white/20">
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-400"></div>
-                    <span className="text-sm">DeepTalk is thinking...</span>
+                    <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
+                    <span className="text-sm">DeepCAL Oracle is channeling wisdom...</span>
                   </div>
                 </div>
               </div>
