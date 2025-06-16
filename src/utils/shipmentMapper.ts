@@ -122,14 +122,17 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
   console.log('Generating forwarder comparison for shipment:', shipment.request_reference);
   
   // Extract real forwarder cost data from shipment
-  const forwarderData = [
+  const forwarderData: ForwarderComparison[] = [
     {
       name: 'Kuehne + Nagel',
       costPerKg: shipment.kuehne_nagel || shipment['kuehne+nagel'] || 0,
       avgTransitDays: shipment.frieght_in_time || shipment.transit_days || 0,
       onTimeRate: 0.92, // Historical performance metric
       topsisScore: 0,
-      rank: 1
+      rank: 1,
+      normalizedCost: 0,
+      normalizedTime: 0,
+      normalizedReliability: 0
     },
     {
       name: 'DHL Global Forwarding',
@@ -137,7 +140,10 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
       avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.88,
       topsisScore: 0,
-      rank: 2
+      rank: 2,
+      normalizedCost: 0,
+      normalizedTime: 0,
+      normalizedReliability: 0
     },
     {
       name: 'Scan Global Logistics',
@@ -145,7 +151,10 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
       avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.85,
       topsisScore: 0,
-      rank: 3
+      rank: 3,
+      normalizedCost: 0,
+      normalizedTime: 0,
+      normalizedReliability: 0
     },
     {
       name: 'Siginon Logistics',
@@ -153,7 +162,10 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
       avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.82,
       topsisScore: 0,
-      rank: 4
+      rank: 4,
+      normalizedCost: 0,
+      normalizedTime: 0,
+      normalizedReliability: 0
     },
     {
       name: 'Agility Logistics',
@@ -161,7 +173,10 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
       avgTransitDays: (shipment.frieght_in_time || shipment.transit_days || 0),
       onTimeRate: 0.80,
       topsisScore: 0,
-      rank: 5
+      rank: 5,
+      normalizedCost: 0,
+      normalizedTime: 0,
+      normalizedReliability: 0
     }
   ];
 
@@ -207,9 +222,9 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
   });
 
   // Step 3: Determine Positive Ideal Solution (PIS) and Negative Ideal Solution (NIS)
-  const allNormalizedCosts = validForwarders.map(f => f.normalizedCost);
-  const allNormalizedTimes = validForwarders.map(f => f.normalizedTime);
-  const allNormalizedReliability = validForwarders.map(f => f.normalizedReliability);
+  const allNormalizedCosts = validForwarders.map(f => f.normalizedCost!);
+  const allNormalizedTimes = validForwarders.map(f => f.normalizedTime!);
+  const allNormalizedReliability = validForwarders.map(f => f.normalizedReliability!);
 
   // For cost and time: lower is better (min for PIS, max for NIS)
   // For reliability: higher is better (max for PIS, min for NIS)
@@ -232,16 +247,16 @@ export const generateForwarderComparison = (shipment: ShipmentData): ForwarderCo
   validForwarders.forEach((forwarder) => {
     // Distance to PIS
     const distanceToPIS = Math.sqrt(
-      Math.pow(forwarder.normalizedCost - PIS.cost, 2) +
-      Math.pow(forwarder.normalizedTime - PIS.time, 2) +
-      Math.pow(forwarder.normalizedReliability - PIS.reliability, 2)
+      Math.pow(forwarder.normalizedCost! - PIS.cost, 2) +
+      Math.pow(forwarder.normalizedTime! - PIS.time, 2) +
+      Math.pow(forwarder.normalizedReliability! - PIS.reliability, 2)
     );
 
     // Distance to NIS
     const distanceToNIS = Math.sqrt(
-      Math.pow(forwarder.normalizedCost - NIS.cost, 2) +
-      Math.pow(forwarder.normalizedTime - NIS.time, 2) +
-      Math.pow(forwarder.normalizedReliability - NIS.reliability, 2)
+      Math.pow(forwarder.normalizedCost! - NIS.cost, 2) +
+      Math.pow(forwarder.normalizedTime! - NIS.time, 2) +
+      Math.pow(forwarder.normalizedReliability! - PIS.reliability, 2)
     );
 
     // TOPSIS Score (Relative Closeness to Ideal Solution)
