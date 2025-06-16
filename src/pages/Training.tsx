@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,8 @@ import {
   AlertCircle,
   XCircle,
   Save,
-  Play
+  Play,
+  Database
 } from 'lucide-react';
 
 export interface WeightVector {
@@ -135,7 +135,7 @@ export default function TrainingPage() {
                   DeepCAL++ Neural Training
                 </h1>
                 <p className="text-indigo-200 mt-1">
-                  Advanced multi-criteria optimization engine configuration
+                  Advanced multi-criteria optimization with MOSTLY AI synthetic data
                 </p>
               </div>
             </div>
@@ -252,6 +252,7 @@ export default function TrainingPage() {
               {[
                 { id: 'engine', label: 'Engine Configuration', icon: Brain },
                 { id: 'weights', label: 'Criteria Weights', icon: Sliders },
+                { id: 'synthetic', label: 'Synthetic Data', icon: Database },
                 { id: 'advanced', label: 'Advanced', icon: Settings }
               ].map(tab => (
                 <button
@@ -457,6 +458,17 @@ export default function TrainingPage() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {activeTab === 'synthetic' && (
+              <SyntheticDataManager 
+                onDataGenerated={() => {
+                  toast({ 
+                    title: 'Synthetic Data Ready', 
+                    description: 'New synthetic training data is available for model retraining' 
+                  });
+                }}
+              />
             )}
 
             {activeTab === 'advanced' && (
