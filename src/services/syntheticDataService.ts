@@ -1,3 +1,4 @@
+
 import axios from 'axios';
 import { set, get } from 'idb-keyval';
 
@@ -42,9 +43,9 @@ class SyntheticDataService {
   private cache: Map<string, SyntheticDataset> = new Map();
 
   private constructor() {
-    // In production, this would be your backend service URL
+    // Connect to FastAPI backend
     this.baseURL = process.env.NODE_ENV === 'production' 
-      ? 'https://your-backend-service.com/api' 
+      ? 'https://your-backend-domain.com/api' 
       : 'http://localhost:8000/api';
   }
 
@@ -200,14 +201,18 @@ class SyntheticDataService {
    * Generate scenario-based synthetic data
    */
   async generateScenario(scenario: 'peak_season' | 'supply_disruption' | 'economic_downturn'): Promise<GenerationJob> {
-    const config: SyntheticDataConfig = {
-      baseDatasetSize: 1000,
-      syntheticRatio: 3.0,
-      privacyLevel: 'high',
-      scenarioType: 'stress_test'
-    };
-
-    return this.startGeneration(config);
+    try {
+      const response = await axios.post(`${this.baseURL}/scenarios/${scenario}`);
+      const job: GenerationJob = response.data;
+      
+      // Store job in IndexedDB
+      await set(`generation-job-${job.id}`, job);
+      
+      return job;
+    } catch (error) {
+      console.error('Failed to generate scenario:', error);
+      throw error;
+    }
   }
 
   /**

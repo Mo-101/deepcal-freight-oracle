@@ -56,8 +56,9 @@ class TrainingService {
   private currentWeights: WeightMatrix | null = null;
 
   private constructor() {
+    // Connect to FastAPI backend
     this.baseURL = process.env.NODE_ENV === 'production' 
-      ? 'https://your-backend-service.com/api' 
+      ? 'https://your-backend-domain.com/api' 
       : 'http://localhost:8000/api';
   }
 
@@ -78,15 +79,12 @@ class TrainingService {
   }): Promise<TrainingJob> {
     try {
       const trainingConfig = {
+        datasetId: 'latest', // Use latest available dataset
+        weights: this.currentWeights?.weights || { cost: 0.35, time: 0.35, reliability: 0.2, risk: 0.1 },
+        modelType: 'neutrosophic',
         includeSynthetic: config?.includeSynthetic ?? true,
         syntheticRatio: config?.syntheticRatio ?? 2.0,
-        validationSplit: config?.validationSplit ?? 0.2,
-        hyperparameters: {
-          learningRate: 0.001,
-          batchSize: 32,
-          epochs: 100,
-          earlyStoppingPatience: 10
-        }
+        validationSplit: config?.validationSplit ?? 0.2
       };
 
       const response = await axios.post(`${this.baseURL}/training/start`, trainingConfig);
@@ -170,13 +168,37 @@ class TrainingService {
   }
 
   /**
-   * Schedule periodic retraining
+   * Optimize weights using Groq AI
    */
-  async schedulePeriodicTraining(schedule: 'daily' | 'weekly' | 'monthly'): Promise<void> {
+  async optimizeWeightsWithGroq(historicalData: any[], optimizationGoal: string = 'balanced'): Promise<WeightMatrix> {
     try {
-      await axios.post(`${this.baseURL}/training/schedule`, { schedule });
+      const currentWeights = await this.getLatestWeights();
+      
+      const request = {
+        currentWeights: currentWeights.weights,
+        historicalData: historicalData.slice(0, 10), // Send sample of historical data
+        optimizationGoal
+      };
+
+      const response = await axios.post(`${this.baseURL}/groq/optimize-weights`, request);
+      const optimizedWeights = response.data;
+
+      // Create new weight matrix with optimized values
+      const newMatrix: WeightMatrix = {
+        ...currentWeights,
+        id: crypto.randomUUID(),
+        version: `${parseFloat(currentWeights.version) + 0.1}`,
+        weights: optimizedWeights,
+        createdAt: new Date().toISOString()
+      };
+
+      // Cache the new weights
+      this.currentWeights = newMatrix;
+      await set('latest-weight-matrix', newMatrix);
+
+      return newMatrix;
     } catch (error) {
-      console.error('Failed to schedule training:', error);
+      console.error('Failed to optimize weights with Groq:', error);
       throw error;
     }
   }
@@ -195,20 +217,25 @@ class TrainingService {
   }
 
   /**
-   * Validate current model performance
+   * Get training statistics
    */
-  async validateModel(): Promise<{
-    accuracy: number;
-    crossValidationScore: number;
-    confusionMatrix: number[][];
-    featureImportance: Record<string, number>;
+  async getTrainingStats(): Promise<{
+    totalJobs: number;
+    completedJobs: number;
+    avgAccuracy: number;
+    lastTraining: string;
   }> {
     try {
-      const response = await axios.post(`${this.baseURL}/training/validate`);
+      const response = await axios.get(`${this.baseURL}/training/stats`);
       return response.data;
     } catch (error) {
-      console.error('Failed to validate model:', error);
-      throw error;
+      console.error('Failed to get training stats:', error);
+      return {
+        totalJobs: 0,
+        completedJobs: 0,
+        avgAccuracy: 0,
+        lastTraining: 'Never'
+      };
     }
   }
 
