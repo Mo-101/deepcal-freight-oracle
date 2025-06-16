@@ -1,3 +1,4 @@
+
 import { ShipmentData } from '@/types/shipment';
 import { parse } from 'papaparse';
 
@@ -41,7 +42,7 @@ export class CSVDataEngine {
         return this.lineageMeta;
     }
 
-    private async loadCSVData(csvFilePath: string): Promise<ShipmentRecord[]> {
+    public async loadCSVData(csvFilePath: string): Promise<ShipmentRecord[]> {
         try {
             const response = await fetch(csvFilePath);
             const csvText = await response.text();
@@ -74,8 +75,11 @@ export class CSVDataEngine {
 
     private async autoDetectEmbeddedData(): Promise<ShipmentRecord[]> {
         try {
-            const embeddedData = await import('../data/shipment_data.csv?raw');
-            const result = parse<ShipmentRecord>(embeddedData.default, {
+            // Use the correct path to the embedded CSV file
+            const response = await fetch('/embedded_shipments.csv');
+            const csvText = await response.text();
+            
+            const result = parse<ShipmentRecord>(csvText, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
@@ -90,7 +94,7 @@ export class CSVDataEngine {
 
             // Calculate SHA-256 hash
             const textEncoder = new TextEncoder();
-            const data = textEncoder.encode(embeddedData.default);
+            const data = textEncoder.encode(csvText);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
