@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import DeepCALHeader from '@/components/DeepCALHeader';
 import { 
   Brain, 
   Cpu, 
@@ -119,6 +120,8 @@ export default function TrainingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
+      <DeepCALHeader />
+      
       <div className="container max-w-7xl mx-auto py-10 px-4">
         {/* Header */}
         <header className="mb-10">
