@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { mapShipmentToInputs } from '@/utils/shipmentMapper';
@@ -6,6 +5,8 @@ import { useCalculatorInputs } from './useCalculatorInputs';
 import { useShipmentData } from './useShipmentData';
 import { useForwarderRFQ } from './useForwarderRFQ';
 import { useOracleResults } from './useOracleResults';
+import { useScore } from './useScore';
+import { loadAllMoScripts } from '@/moscripts/registry';
 
 export const useSymbolicCalculator = () => {
   const {
@@ -47,6 +48,8 @@ export const useSymbolicCalculator = () => {
     generateHistoricalResults,
     displayResults
   } = useOracleResults();
+
+  const { loading: isScoring, score: callScore } = useScore();
 
   const handleRefreshData = async () => {
     await baseHandleRefreshData();
@@ -106,6 +109,60 @@ export const useSymbolicCalculator = () => {
     }
   }, []);
 
+  // Load MoScripts on mount
+  useEffect(() => {
+    loadAllMoScripts();
+  }, []);
+
+  // Enhanced awaken oracle function with live scoring
+  const awakenOracle = async () => {
+    if (!inputs.weight || !inputs.volume) return;
+    
+    try {
+      // Prepare shipment payload for scoring API
+      const shipmentPayload = {
+        id: crypto.randomUUID(),
+        origin: inputs.origin,
+        destination: inputs.destination,
+        weight_kg: inputs.weight,
+        volume_cbm: inputs.volume,
+        category: inputs.cargoType,
+        forwarderId: inputs.selectedForwarders[0] || 'default',
+        weights: {
+          time: inputs.priorities.time / 100,
+          cost: inputs.priorities.cost / 100,
+          risk: inputs.priorities.risk / 100,
+        },
+      };
+
+      // Call the live scoring API
+      const scoreResult = await callScore(shipmentPayload);
+
+      // Dispatch MoScript event with voiceline
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('onScoreReturned', { 
+            detail: scoreResult.voiceline 
+          })
+        );
+      }
+
+      // Update results with live score
+      const enhancedResults = generateHistoricalResults(selectedShipment, inputs);
+      if (enhancedResults && enhancedResults.length > 0) {
+        enhancedResults[0].score = scoreResult.finalScore;
+        enhancedResults[0].confidence = scoreResult.finalScore * 0.9; // Adjust confidence based on score
+      }
+
+      displayResults(enhancedResults);
+    } catch (error) {
+      console.error('Live scoring failed, falling back to local calculation:', error);
+      // Fall back to existing local oracle logic
+      const historicalResults = generateHistoricalResults(selectedShipment, inputs);
+      displayResults(historicalResults);
+    }
+  };
+
   return {
     inputs,
     setInputs,
@@ -115,7 +172,7 @@ export const useSymbolicCalculator = () => {
     selectedShipment,
     forwarderRFQ,
     results,
-    isAwakening,
+    isAwakening: isAwakening || isScoring,
     showOutput,
     outputAnimation,
     anomalyMap,

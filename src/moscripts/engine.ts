@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 
 /**
@@ -53,4 +52,11 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
  */
 export function listMoScripts() {
   return [...MOS_REGISTRY];
+}
+
+// MoScript host listener for score events
+if (typeof window !== 'undefined') {
+  window.addEventListener('onScoreReturned', (e: any) => {
+    fire('onScoreReturned', { voiceline: e.detail });
+  });
 }
