@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,15 +80,15 @@ export default function TrainingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-symbolic-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
       <div className="container max-w-5xl mx-auto py-10 px-4">
         {/* Professional Dashboard/Section Header */}
         <header className="mb-10">
-          <h1 className="section-title flex items-center gap-3">
-            <span className="block w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-lg font-bold shadow-glass">T</span>
+          <h1 className="section-title flex items-center gap-3 text-white">
+            <span className="block w-7 h-7 rounded-full bg-lime-400 flex items-center justify-center text-slate-900 text-lg font-bold shadow-glass">T</span>
             DeepCAL++ Symbolic Training
           </h1>
-          <p className="subtle-text mt-2 font-medium">
+          <p className="subtle-text mt-2 font-medium text-indigo-200">
             Upload real-world shipment data, fine-tune analytic model criteria, and generate human-readable explanations — with full integrity.
           </p>
         </header>
@@ -95,17 +96,17 @@ export default function TrainingPage() {
           {/* CSV loader */}
           <Card className="glass-card shadow-glass border border-glassBorder">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-primary tracking-tight">Training Dataset</CardTitle>
+              <CardTitle className="text-xl font-semibold text-lime-400 tracking-tight">Training Dataset</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="csv-upload" className="input-label block mb-2">Upload .csv file</Label>
+                <Label htmlFor="csv-upload" className="input-label block mb-2 text-indigo-300">Upload .csv file</Label>
                 <Input id="csv-upload" type="file" accept=".csv" className="elegant-input" onChange={handleCsvUpload} />
               </div>
               {fileName && (
                 <div className="text-sm flex flex-col gap-1">
-                  <span className="font-mono text-accent">{fileName}</span>
-                  <span className="text-muted-foreground">{rowCount} valid rows</span>
+                  <span className="font-mono text-lime-400">{fileName}</span>
+                  <span className="text-indigo-300">{rowCount} valid rows</span>
                 </div>
               )}
             </CardContent>
@@ -114,15 +115,15 @@ export default function TrainingPage() {
           {/* Criteria Weights */}
           <Card className="glass-card shadow-glass border border-glassBorder">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-primary tracking-tight">Criteria Weights</CardTitle>
+              <CardTitle className="text-xl font-semibold text-lime-400 tracking-tight">Criteria Weights</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="text-sm text-muted-foreground mb-2">
-                All weights must total <span className="font-mono text-accent">100%</span>.
+              <div className="text-sm text-indigo-300 mb-2">
+                All weights must total <span className="font-mono text-lime-400">100%</span>.
               </div>
               {(['cost', 'time', 'reliability', 'risk'] as (keyof WeightVector)[]).map((k) => (
                 <div key={k} className="space-y-1">
-                  <Label htmlFor={k} className="input-label">{k.charAt(0).toUpperCase() + k.slice(1)}</Label>
+                  <Label htmlFor={k} className="input-label text-indigo-300">{k.charAt(0).toUpperCase() + k.slice(1)}</Label>
                   <input
                     id={k}
                     type="range"
@@ -130,14 +131,14 @@ export default function TrainingPage() {
                     max={100}
                     value={weights[k] * 100}
                     onChange={(e) => handleSlider(k, Number(e.target.value))}
-                    className="w-full accent-primary rounded-lg"
+                    className="w-full accent-lime-400 rounded-lg"
                   />
-                  <span className="text-xs text-muted-foreground ml-2">{(weights[k] * 100).toFixed(0)}%</span>
+                  <span className="text-xs text-indigo-300 ml-2">{(weights[k] * 100).toFixed(0)}%</span>
                 </div>
               ))}
             </CardContent>
             <CardFooter>
-              <Button onClick={computeSentence} className="bg-accent px-6 py-2 text-base font-semibold">
+              <Button onClick={computeSentence} className="bg-lime-400 hover:bg-lime-500 text-slate-900 px-6 py-2 text-base font-semibold">
                 Explain AHP Pair
               </Button>
             </CardFooter>
@@ -146,15 +147,15 @@ export default function TrainingPage() {
         {/* Explanation */}
         <Card className="glass-card shadow-glass border border-glassBorder mt-10">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-primary tracking-tight">
+            <CardTitle className="text-xl font-semibold text-lime-400 tracking-tight">
               Natural-language Explanation
             </CardTitle>
           </CardHeader>
           <CardContent>
             {matrixSentence ? (
-              <p className="text-base font-medium">{matrixSentence}</p>
+              <p className="text-base font-medium text-white">{matrixSentence}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">Click <span className="font-semibold">“Explain AHP Pair”</span> to generate an example sentence.</p>
+              <p className="text-sm text-indigo-300">Click <span className="font-semibold text-lime-400">"Explain AHP Pair"</span> to generate an example sentence.</p>
             )}
           </CardContent>
         </Card>

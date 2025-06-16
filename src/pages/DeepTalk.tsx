@@ -1,3 +1,4 @@
+
 import React, { useRef } from "react";
 import DeepCALHeader from "@/components/DeepCALHeader";
 
@@ -6,9 +7,9 @@ const INITIAL_MESSAGES = [
     from: "bot",
     text: (
       <>
-        <span className="font-medium">Welcome to DeepTalk <span className="text-indigo-600">AI</span>!</span>
-        <span className="block mt-1 text-indigo-900">
-          Ask anything on logistics strategy, route scores, or how the engine thinks. (AI Tone: <span className="italic text-yellow-700">Smart. Tactical. Mildly Sarcastic.</span>)
+        <span className="font-medium">Welcome to DeepTalk <span className="text-lime-400">AI</span>!</span>
+        <span className="block mt-1 text-indigo-200">
+          Ask anything on logistics strategy, route scores, or how the engine thinks. (AI Tone: <span className="italic text-yellow-300">Smart. Tactical. Mildly Sarcastic.</span>)
         </span>
       </>
     ),
@@ -23,7 +24,7 @@ const INITIAL_MESSAGES = [
       <>
         <span>
           According to my scientifically verifiable data (and my deep, burning desire to be accurate),
-          <span className="font-bold text-indigo-600"> 'Alpha Carrier'</span> is the lowest cost.
+          <span className="font-bold text-lime-400"> 'Alpha Carrier'</span> is the lowest cost.
         </span>
         <span className="block">
           Their rate is so low it's either a bargain or a typo.
@@ -60,9 +61,8 @@ const DeepTalkChat = () => {
   const chatRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{
-      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
-      backgroundColor: "#F3F4F6"
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
+      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'"
     }}>
       {/* Top nav - unified */}
       <DeepCALHeader />
@@ -70,35 +70,35 @@ const DeepTalkChat = () => {
       {/* Main area */}
       <main className="flex-1 container mx-auto py-8 px-2 sm:px-6 flex flex-col md:flex-row gap-6">
         {/* Chat Card */}
-        <div className="flex-1 bg-white rounded-xl shadow-md overflow-hidden flex flex-col oracle-card">
+        <div className="flex-1 bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col oracle-card border border-white/20">
           {/* Chat Title */}
-          <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-800">
+          <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white">
               Logistics Decision Chat
             </h2>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">AI is online</span>
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="text-sm text-indigo-200">AI is online</span>
+              <div className="w-2 h-2 bg-lime-400 rounded-full" />
             </div>
           </div>
           {/* Chat Conversation */}
           <div ref={chatRef} className="flex-1 p-6 overflow-y-auto flex flex-col" id="chatContainer">
             {/* Welcome and initial messages */}
             <div className="chat-bubble bot-bubble flex items-start space-x-3 mb-2">
-              <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">
+              <div className="w-8 h-8 bg-lime-400 rounded-full flex items-center justify-center text-slate-900 font-bold text-sm">
                 DT
               </div>
               <div>
-                <div className="font-medium">Welcome to DeepTalk <span className="text-indigo-600">AI</span>!</div>
-                <div className="mt-1 text-indigo-900">
+                <div className="font-medium text-white">Welcome to DeepTalk <span className="text-lime-400">AI</span>!</div>
+                <div className="mt-1 text-indigo-200">
                   Ask about engine math, outliers, or why a route won or lost. <br />
-                  <span className="italic text-slate-400">Example questions:</span>
+                  <span className="italic text-slate-300">Example questions:</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {QUICK_PROMPTS.map((prompt, idx) => (
                     <button
                       key={prompt}
-                      className="quick-prompt bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded-full text-sm"
+                      className="quick-prompt bg-lime-400/20 hover:bg-lime-400/30 text-lime-300 px-3 py-1 rounded-full text-sm border border-lime-400/30"
                       type="button"
                       tabIndex={-1}
                       disabled
@@ -115,31 +115,31 @@ const DeepTalkChat = () => {
                 msg.from === "user" ? (
                   <div key={idx} className="chat-bubble user-bubble ml-auto flex flex-row-reverse gap-3">
                     <div />
-                    <span>{msg.text}</span>
+                    <span className="text-white">{msg.text}</span>
                   </div>
                 ) : (
                   <div key={idx} className="chat-bubble bot-bubble flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">
+                    <div className="w-8 h-8 bg-lime-400 rounded-full flex items-center justify-center text-slate-900 font-bold text-sm">
                       DT
                     </div>
-                    <div>{msg.text}</div>
+                    <div className="text-white">{msg.text}</div>
                   </div>
                 )
               )}
             </div>
           </div>
           {/* Input area - disabled for now */}
-          <div className="border-t p-4 bg-gray-50">
+          <div className="border-t border-white/20 p-4 bg-slate-800/30">
             <div className="relative">
               <textarea
                 rows={2}
-                className="w-full px-4 py-3 pr-16 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none bg-slate-50"
+                className="w-full px-4 py-3 pr-16 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-transparent resize-none bg-slate-800/50 text-white placeholder-indigo-300"
                 placeholder="AI is read-only for now. Try a sample question above!"
                 disabled
               />
               <div className="absolute right-3 bottom-3 flex space-x-2">
                 <button
-                  className="voice-btn bg-indigo-100 text-indigo-700 p-2 rounded-full"
+                  className="voice-btn bg-lime-400/20 text-lime-400 p-2 rounded-full border border-lime-400/30"
                   type="button"
                   aria-label="Voice input"
                   tabIndex={-1}
@@ -150,7 +150,7 @@ const DeepTalkChat = () => {
                   </svg>
                 </button>
                 <button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full"
+                  className="bg-lime-400 hover:bg-lime-500 text-slate-900 p-2 rounded-full"
                   type="button"
                   aria-label="Send"
                   disabled
@@ -164,11 +164,11 @@ const DeepTalkChat = () => {
           </div>
         </div>
         {/* Analytics panel placeholder (right column) */}
-        <aside className="w-full md:w-96 bg-white rounded-xl shadow-md overflow-hidden flex flex-col" style={{ minHeight: "585px" }}>
-          <div className="bg-gray-50 px-6 py-4 border-b">
-            <span className="font-semibold text-gray-700">Panel (Coming soon): Score formulas, route analytics, explainers…</span>
+        <aside className="w-full md:w-96 bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col border border-white/20" style={{ minHeight: "585px" }}>
+          <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20">
+            <span className="font-semibold text-white">Panel (Coming soon): Score formulas, route analytics, explainers…</span>
           </div>
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 px-6">
+          <div className="flex-1 flex flex-col items-center justify-center text-indigo-200 px-6">
             <span>Deep analysis tied to your real shipments—coming soon.</span>
           </div>
         </aside>
@@ -190,14 +190,15 @@ const DeepTalkChat = () => {
           border-bottom-right-radius: 0.5rem;
         }
         .bot-bubble {
-          background-color: white;
-          color: #1F2937;
+          background-color: rgba(30, 41, 59, 0.8);
+          color: #ffffff;
           align-self: flex-start;
           border-bottom-left-radius: 0.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(8px);
         }
         .oracle-card {
-          background: linear-gradient(145deg, rgba(30, 41, 59, 0.07) 0%, rgba(15, 23, 42, 0.09) 100%);
+          background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
         }
         .voice-btn {
           transition: all 0.2s;

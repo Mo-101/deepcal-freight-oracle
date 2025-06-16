@@ -33,58 +33,60 @@ const SymbolicCalculator = () => {
   } = useSymbolicCalculator();
 
   return (
-    <CalculatorLayout>
-      <DataStalenessWarning 
-        dataStale={dataStale}
-        refreshingData={refreshingData}
-        onRefresh={handleRefreshData}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
+      <CalculatorLayout>
+        <DataStalenessWarning 
+          dataStale={dataStale}
+          refreshingData={refreshingData}
+          onRefresh={handleRefreshData}
+        />
 
-      <ReferenceShipmentSelector
-        selectedReference={selectedReference}
-        oldShipments={shipments}
-        refreshingData={refreshingData}
-        dataStale={dataStale}
-        onReferenceChange={setSelectedReference}
-        onRefresh={handleRefreshData}
-      />
+        <ReferenceShipmentSelector
+          selectedReference={selectedReference}
+          oldShipments={shipments}
+          refreshingData={refreshingData}
+          dataStale={dataStale}
+          onReferenceChange={setSelectedReference}
+          onRefresh={handleRefreshData}
+        />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <ShipmentConfigurationPanel
-            inputs={inputs}
-            validation={validation}
-            forwarderRFQ={forwarderRFQ}
-            isAwakening={isAwakening}
-            shipments={shipments}
-            onInputsChange={setInputs}
-            onPrioritiesChange={handlePrioritiesChange}
-            onForwarderToggle={handleForwarderToggle}
-            onRFQChange={handleRFQChange}
-            onAwakenOracle={awakenOracle}
-          />
-        </div>
-        
-        <div className={`lg:col-span-2 space-y-6`}>
-          {/* Oracle Results Panel with integrated flight intelligence */}
-          <div className="relative min-h-[300px] flex items-center justify-center">
-            <OracleResultsPanel
-              showOutput={showOutput}
-              outputAnimation={outputAnimation}
-              results={results}
-              selectedShipment={selectedShipment}
-              anomalyMap={anomalyMap}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
+            <ShipmentConfigurationPanel
               inputs={inputs}
-            />
-            
-            <MagicalOverlay 
-              showOutput={showOutput}
-              outputAnimation={outputAnimation}
+              validation={validation}
+              forwarderRFQ={forwarderRFQ}
+              isAwakening={isAwakening}
+              shipments={shipments}
+              onInputsChange={setInputs}
+              onPrioritiesChange={handlePrioritiesChange}
+              onForwarderToggle={handleForwarderToggle}
+              onRFQChange={handleRFQChange}
+              onAwakenOracle={awakenOracle}
             />
           </div>
+          
+          <div className={`lg:col-span-2 space-y-6`}>
+            {/* Oracle Results Panel with integrated flight intelligence */}
+            <div className="relative min-h-[300px] flex items-center justify-center">
+              <OracleResultsPanel
+                showOutput={showOutput}
+                outputAnimation={outputAnimation}
+                results={results}
+                selectedShipment={selectedShipment}
+                anomalyMap={anomalyMap}
+                inputs={inputs}
+              />
+              
+              <MagicalOverlay 
+                showOutput={showOutput}
+                outputAnimation={outputAnimation}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </CalculatorLayout>
+      </CalculatorLayout>
+    </div>
   );
 };
 
