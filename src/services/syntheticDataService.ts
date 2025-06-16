@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { set, get } from 'idb-keyval';
 
@@ -57,11 +56,51 @@ class SyntheticDataService {
   }
 
   /**
+   * Get stored MOSTLY AI API key from localStorage
+   */
+  private getApiKey(): string | null {
+    return localStorage.getItem('mostlyai-api-key');
+  }
+
+  /**
+   * Store MOSTLY AI API key in localStorage
+   */
+  setApiKey(apiKey: string): void {
+    localStorage.setItem('mostlyai-api-key', apiKey);
+  }
+
+  /**
+   * Check if API key is configured
+   */
+  isApiKeyConfigured(): boolean {
+    return !!this.getApiKey();
+  }
+
+  /**
+   * Get headers with API key for backend requests
+   */
+  private getHeaders() {
+    const apiKey = this.getApiKey();
+    return {
+      'Content-Type': 'application/json',
+      ...(apiKey && { 'X-MostlyAI-Key': apiKey })
+    };
+  }
+
+  /**
    * Start synthetic data generation job
    */
   async startGeneration(config: SyntheticDataConfig): Promise<GenerationJob> {
+    if (!this.isApiKeyConfigured()) {
+      throw new Error('MOSTLY AI API key not configured. Please set your API key first.');
+    }
+
     try {
-      const response = await axios.post(`${this.baseURL}/synthetic/generate`, config);
+      const response = await axios.post(
+        `${this.baseURL}/synthetic/generate`, 
+        config,
+        { headers: this.getHeaders() }
+      );
       const job: GenerationJob = response.data;
       
       // Store job in IndexedDB for offline access
@@ -70,7 +109,7 @@ class SyntheticDataService {
       return job;
     } catch (error) {
       console.error('Failed to start synthetic data generation:', error);
-      throw new Error('Failed to start generation. Check backend service.');
+      throw new Error('Failed to start generation. Check backend service and API key.');
     }
   }
 

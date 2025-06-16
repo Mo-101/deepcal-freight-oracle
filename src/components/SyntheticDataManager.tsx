@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ import { syntheticDataService, GenerationJob, SyntheticDataConfig } from '@/serv
 import { trainingService, TrainingJob } from '@/services/trainingService';
 import { syntheticDataEngine } from '@/services/syntheticDataEngine';
 import { humorToast } from './HumorToast';
+import { ApiKeyConfig } from './ApiKeyConfig';
 
 interface SyntheticDataManagerProps {
   onDataGenerated?: () => void;
@@ -41,10 +41,14 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
     privacyLevel: 'high',
     scenarioType: 'historical'
   });
+  const [isApiKeyConfigured, setIsApiKeyConfigured] = useState(syntheticDataService.isApiKeyConfigured());
 
   useEffect(() => {
     loadStats();
-    const interval = setInterval(loadStats, 5000); // Update every 5 seconds
+    const interval = setInterval(() => {
+      loadStats();
+      setIsApiKeyConfigured(syntheticDataService.isApiKeyConfigured());
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -146,6 +150,9 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
 
   return (
     <div className="space-y-6">
+      {/* API Key Configuration */}
+      <ApiKeyConfig />
+
       {/* Generation Controls */}
       <Card className="glass-card shadow-glass border border-glassBorder">
         <CardHeader>
@@ -158,6 +165,15 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!isApiKeyConfigured && (
+            <div className="p-3 bg-yellow-900/20 border border-yellow-400/20 rounded-lg">
+              <p className="text-yellow-400 text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Configure your MOSTLY AI API key above to enable synthetic data generation
+              </p>
+            </div>
+          )}
+
           {/* Configuration */}
           <div className="grid grid-cols-2 gap-4">
             <div>
