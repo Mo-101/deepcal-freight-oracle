@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import DeepCALHeader from "@/components/DeepCALHeader";
 import DataLoaderPanel from "@/components/DataLoaderPanel";
@@ -35,7 +36,7 @@ const Dashboard: React.FC = () => {
   }, [dataStatus.loaded]);
 
   return (
-    <div className="bg-gradient-to-br min-h-screen from-background to-indigo-100">
+    <div className="bg-gradient-to-br min-h-screen from-slate-900 via-slate-800 to-indigo-900">
       <DeepCALHeader />
       <main className="container max-w-5xl mx-auto">
         <div className="pt-4 pb-8">
@@ -45,23 +46,23 @@ const Dashboard: React.FC = () => {
         {/* Main Result area—locked unless data loaded */}
         <section>
           {dataStatus.loaded ? (
-            <div className="border border-border rounded-xl bg-white/70 p-8 shadow-xl fade-in w-full max-w-3xl mx-auto space-y-4">
-              <h2 className="text-2xl font-bold mb-2 text-blue-900 flex gap-2 items-center">
+            <div className="border border-border rounded-xl bg-white/10 backdrop-blur-lg p-8 shadow-xl fade-in w-full max-w-3xl mx-auto space-y-4">
+              <h2 className="text-2xl font-bold mb-2 text-white flex gap-2 items-center">
                 <span>Decision Recommendations</span>
                 <span role="img" aria-label="spark">✨</span>
               </h2>
               <div className="w-full">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-indigo-50">
-                      <th className="text-left py-2 px-2">Alternative</th>
-                      <th className="text-left py-2 px-2">Score</th>
-                      <th className="text-left py-2 px-2">Winner?</th>
+                    <tr className="bg-indigo-900/50">
+                      <th className="text-left py-2 px-2 text-white">Alternative</th>
+                      <th className="text-left py-2 px-2 text-white">Score</th>
+                      <th className="text-left py-2 px-2 text-white">Winner?</th>
                     </tr>
                   </thead>
                   <tbody>
                     {fakeResults.map(r => (
-                      <tr key={r.alt} className={r.winner ? "bg-green-50 font-semibold" : ""}>
+                      <tr key={r.alt} className={r.winner ? "bg-green-900/30 font-semibold text-white" : "text-white"}>
                         <td className="py-2 px-2">{r.alt}</td>
                         <td className="py-2 px-2">{r.score}</td>
                         <td className="py-2 px-2">{r.winner ? "🏆" : ""}</td>
@@ -69,8 +70,8 @@ const Dashboard: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                <div className="mt-3 text-xs text-muted-foreground">
-                  “Grounded in actual data. Results are scientifically valid, marginally entertaining.”
+                <div className="mt-3 text-xs text-indigo-200">
+                  "Grounded in actual data. Results are scientifically valid, marginally entertaining."
                 </div>
               </div>
             </div>
@@ -79,7 +80,7 @@ const Dashboard: React.FC = () => {
               <div className="font-mono text-4xl select-none text-indigo-300">
                 <span role="img" aria-label="lock">🔒</span>
               </div>
-              <span className="mt-2 text-lg text-muted-foreground">The only thing moving here is your mouse.<br />Please upload a file.</span>
+              <span className="mt-2 text-lg text-indigo-200">The only thing moving here is your mouse.<br />Please upload a file.</span>
             </div>
           )}
         </section>
