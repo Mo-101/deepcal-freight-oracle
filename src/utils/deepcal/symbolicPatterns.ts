@@ -1,3 +1,4 @@
+import { DEEPCAL_WISDOM } from './wisdomDatabase'
 
 // Enhanced symbolic reasoning patterns
 export const SYMBOLIC_PATTERNS = {
