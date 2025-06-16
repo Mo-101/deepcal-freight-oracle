@@ -1,3 +1,4 @@
+
 export interface CalculatorInputs {
   origin: string;
   destination: string;
@@ -54,7 +55,7 @@ export interface ForwarderComparison {
   onTimeRate: number;
   topsisScore: number;
   rank: number;
-  // TOPSIS calculation fields
+  // TOPSIS calculation fields - now properly defined as optional since they're assigned during calculation
   normalizedCost?: number;
   normalizedTime?: number;
   normalizedReliability?: number;
