@@ -20,11 +20,6 @@ export const ApiKeyConfig: React.FC = () => {
       return;
     }
 
-    if (!apiKey.startsWith('mostly-')) {
-      humorToast("❌ Invalid Format", "API key should start with 'mostly-'", 3000);
-      return;
-    }
-
     syntheticDataService.setApiKey(apiKey.trim());
     setIsConfigured(true);
     setApiKey('');
@@ -63,7 +58,7 @@ export const ApiKeyConfig: React.FC = () => {
                   type={showKey ? "text" : "password"}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="mostly-xxxxxxxxxxxxxxxxxxxx"
+                  placeholder="Enter your MOSTLY AI API key"
                   className="pr-10"
                 />
                 <button
@@ -86,7 +81,7 @@ export const ApiKeyConfig: React.FC = () => {
             <div className="text-xs text-indigo-300 space-y-1">
               <p>• API key is stored locally in your browser</p>
               <p>• Get your key from: <span className="text-lime-400">https://app.mostly.ai</span></p>
-              <p>• Key format: mostly-xxxxxxxxxxxxxxxxxxxxxxxx</p>
+              <p>• Enter your complete API key as provided by MOSTLY AI</p>
             </div>
           </>
         ) : (
