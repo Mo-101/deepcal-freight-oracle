@@ -29,6 +29,7 @@ export interface ShipmentData {
   cargo_type?: string;
   item_description?: string;
   date_of_collection?: string;
+  date_of_arrival_destination?: string;
   shipment_date?: string;
   delivery_status?: string;
   mode_of_shipment?: string;
@@ -46,6 +47,9 @@ export interface ShipmentData {
   agility?: number;
   frieght_in_time?: number;
   transit_days?: number;
+  'carrier+cost'?: number;
+  carrier_cost?: number;
+  'emergency grade'?: string;
 }
 
 export interface ForwarderComparison {
