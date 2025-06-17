@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { mapShipmentToInputs } from '@/utils/shipmentMapper';
@@ -44,9 +43,10 @@ export const useSymbolicCalculator = () => {
     showOutput,
     outputAnimation,
     anomalyMap,
+    isCalculating,
     awakenOracle: baseAwakenOracle,
     resetOutput,
-    generateHistoricalResults,
+    generateAndShowResults,
     displayResults
   } = useOracleResults();
 
@@ -65,7 +65,7 @@ export const useSymbolicCalculator = () => {
     setValidation(val);
   }, [inputs.weight, inputs.volume, setValidation]);
 
-  // Reference shipment selection effect - this is where Oracle results should be generated
+  // Reference shipment selection effect - NOW with real-time calculation
   useEffect(() => {
     if (!selectedReference) {
       resetOutput();
@@ -90,11 +90,10 @@ export const useSymbolicCalculator = () => {
         selectedForwarders: usedForwarders
       }));
 
-      // Generate and display Oracle results immediately
-      const historicalResults = generateHistoricalResults(selectedShipment, mappedInputs);
-      displayResults(historicalResults);
+      // CHANGED: Now use the real-time calculation instead of instant display
+      generateAndShowResults(selectedShipment, mappedInputs);
     }
-  }, [selectedReference, selectedShipment, setInputs, resetOutput, resetForwarderRFQ, resetInputs, populateRFQFromShipment, generateHistoricalResults, displayResults]);
+  }, [selectedReference, selectedShipment, setInputs, resetOutput, resetForwarderRFQ, resetInputs, populateRFQFromShipment, generateAndShowResults]);
 
   // Load data effect
   useEffect(() => {
@@ -117,9 +116,12 @@ export const useSymbolicCalculator = () => {
 
   // Enhanced awaken oracle function with live scoring
   const awakenOracleWithScoring = async () => {
-    if (!inputs.weight || !inputs.volume) return;
+    if (!inputs.weight || !inputs.volume || !selectedShipment) return;
     
     try {
+      // Start the real-time calculation process
+      await generateAndShowResults(selectedShipment, inputs);
+      
       // Prepare shipment payload for scoring API
       const shipmentPayload = {
         id: crypto.randomUUID(),
@@ -136,7 +138,7 @@ export const useSymbolicCalculator = () => {
         },
       };
 
-      // Call the live scoring API
+      // Call the live scoring API (optional enhancement)
       const scoreResult = await callScore(shipmentPayload);
 
       // Dispatch MoScript event with voiceline
@@ -147,19 +149,8 @@ export const useSymbolicCalculator = () => {
           })
         );
       }
-
-      // Update results with live score
-      const enhancedResults = generateHistoricalResults(selectedShipment, inputs);
-      if (enhancedResults && enhancedResults.forwarderComparison && enhancedResults.forwarderComparison.length > 0) {
-        enhancedResults.forwarderComparison[0].topsisScore = scoreResult.finalScore;
-      }
-
-      displayResults(enhancedResults);
     } catch (error) {
-      console.error('Live scoring failed, falling back to local calculation:', error);
-      // Fall back to existing local oracle logic
-      const historicalResults = generateHistoricalResults(selectedShipment, inputs);
-      displayResults(historicalResults);
+      console.error('Live scoring failed, but calculation completed:', error);
     }
   };
 
@@ -176,6 +167,7 @@ export const useSymbolicCalculator = () => {
     showOutput,
     outputAnimation,
     anomalyMap,
+    isCalculating,
     dataStale,
     refreshingData,
     validation,

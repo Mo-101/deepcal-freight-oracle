@@ -138,15 +138,16 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
       {/* Live Intelligence Banner - Always visible */}
       <LiveIntelligenceBanner />
 
-      {/* Oracle Typing Display */}
+      {/* Oracle Typing Display - NOW with real calculation timing */}
       <OracleTypingDisplay
         isActive={showOutput}
+        isCalculating={showOutput && !results} // Show calculating while waiting for results
         shipmentCount={historicalStats?.totalShipments}
         bestForwarder={results?.bestForwarder}
         routeScore={results?.routeScore}
       />
 
-      {/* Enhanced Results Display */}
+      {/* Enhanced Results Display - Only show when results are actually ready */}
       {showOutput && results && (
         <div className={`space-y-6 transition-all duration-500 ${outputAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           {/* Historical Statistics Panel */}
