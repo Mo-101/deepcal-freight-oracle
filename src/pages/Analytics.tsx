@@ -1,6 +1,6 @@
 
 import DeepCALHeader from "@/components/DeepCALHeader";
-import RealAnalytics from "@/components/RealAnalytics";
+import { TabsAnalytics } from "@/components/analytics/TabsAnalytics";
 import { AnalyticsExtendedPanel } from "@/components/analytics/AnalyticsExtendedPanel";
 import { BarChart } from "lucide-react";
 
@@ -10,12 +10,12 @@ const Analytics = () => (
     <main className="container max-w-full mx-auto pt-5 px-6">
       <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
         <BarChart className="w-7 h-7 text-lime-400" />
-        Analytics & KPIs
+        DeepCAL++ Mission Control
       </h2>
       
       <div className="grid grid-cols-1 2xl:grid-cols-4 gap-6">
         <div className="2xl:col-span-3">
-          <RealAnalytics />
+          <TabsAnalytics />
         </div>
         <div className="2xl:col-span-1">
           <AnalyticsExtendedPanel />
