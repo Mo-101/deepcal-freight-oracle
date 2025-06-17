@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +16,9 @@ import {
 } from 'lucide-react';
 import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
 import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
+import OracleTypingDisplay from '@/components/oracle/OracleTypingDisplay';
+import ConfidenceMeter from '@/components/oracle/ConfidenceMeter';
+import LiveIntelligenceBanner from '@/components/oracle/LiveIntelligenceBanner';
 
 interface OracleResultsPanelProps {
   showOutput: boolean;
@@ -131,126 +133,132 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
     getHistoricalStats().then(setHistoricalStats);
   }, [selectedShipment]);
 
-  if (!showOutput) {
-    return (
-      <Card className="p-8 bg-slate-800/50 border-slate-700 text-center">
-        <div className="space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full mx-auto flex items-center justify-center">
-            <TrendingUp className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-xl font-semibold text-slate-200">Oracle Analysis Ready</h3>
-          <p className="text-slate-400">Select a reference shipment to view historical analysis and recommendations</p>
-        </div>
-      </Card>
-    );
-  }
-
   return (
-    <div className={`space-y-6 transition-all duration-500 ${outputAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      {/* Historical Statistics Panel */}
-      {historicalStats && (
-        <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
-              <Database className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-amber-400">Historical Data Intelligence</h3>
-            <Badge variant="outline" className="ml-auto border-amber-500 text-amber-400">
-              Live Analysis
-            </Badge>
-          </div>
+    <div className="space-y-6">
+      {/* Live Intelligence Banner - Always visible */}
+      <LiveIntelligenceBanner />
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-cyan-400">{historicalStats.totalShipments}</div>
-              <div className="text-xs text-slate-400">Total Shipments</div>
-            </div>
-            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">{historicalStats.routeShipments}</div>
-              <div className="text-xs text-slate-400">Same Route</div>
-            </div>
-            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">{historicalStats.destinationShipments}</div>
-              <div className="text-xs text-slate-400">To Destination</div>
-            </div>
-            <div className="bg-slate-700/50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-orange-400">{historicalStats.countriesFromOrigin}</div>
-              <div className="text-xs text-slate-400">Countries Served</div>
-            </div>
-          </div>
+      {/* Oracle Typing Display */}
+      <OracleTypingDisplay
+        isActive={showOutput}
+        shipmentCount={historicalStats?.totalShipments}
+        bestForwarder={results?.bestForwarder}
+        routeScore={results?.routeScore}
+      />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-slate-400" />
-                <span className="text-sm text-slate-300">Selected Route</span>
-              </div>
-              <div className="text-sm font-medium text-white">{historicalStats.selectedRoute}</div>
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-slate-400" />
-                <span className="text-xs text-slate-400">{historicalStats.selectedCategory}</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-slate-400" />
-                <span className="text-sm text-slate-300">Route Performance</span>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-400">Delivery Success</span>
-                  <span className="text-green-400">{historicalStats.deliverySuccessRate.toFixed(1)}%</span>
+      {/* Enhanced Results Display */}
+      {showOutput && results && (
+        <div className={`space-y-6 transition-all duration-500 ${outputAnimation ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+          {/* Historical Statistics Panel */}
+          {historicalStats && (
+            <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                  <Database className="w-5 h-5 text-white" />
                 </div>
-                <Progress value={historicalStats.deliverySuccessRate} className="h-2" />
+                <h3 className="text-lg font-semibold text-amber-400">Historical Data Intelligence</h3>
+                <Badge variant="outline" className="ml-auto border-amber-500 text-amber-400">
+                  Live Analysis
+                </Badge>
               </div>
-              <div className="text-xs text-slate-400">
-                {historicalStats.routeForwarders} forwarders used
-              </div>
-            </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-slate-400" />
-                <span className="text-sm text-slate-300">Cost Intelligence</span>
-              </div>
-              <div className="space-y-1">
-                <div className="text-lg font-bold text-green-400">
-                  ${historicalStats.avgCostPerKg.toFixed(2)}/kg
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-cyan-400">{historicalStats.totalShipments}</div>
+                  <div className="text-xs text-slate-400">Total Shipments</div>
                 </div>
-                <div className="text-xs text-slate-400">Average route cost</div>
-                <div className="text-xs text-amber-400">
-                  Preferred: {historicalStats.mostUsedForwarder}
+                <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-400">{historicalStats.routeShipments}</div>
+                  <div className="text-xs text-slate-400">Same Route</div>
+                </div>
+                <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-400">{historicalStats.destinationShipments}</div>
+                  <div className="text-xs text-slate-400">To Destination</div>
+                </div>
+                <div className="bg-slate-700/50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-400">{historicalStats.countriesFromOrigin}</div>
+                  <div className="text-xs text-slate-400">Countries Served</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </Card>
-      )}
 
-      {/* Main Results Display */}
-      {results && (
-        <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-purple-400">🏆 Best Forwarder</h3>
-            <Badge variant="outline" className="ml-auto border-purple-500 text-purple-400">
-              {results.seal}
-            </Badge>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-slate-300">Selected Route</span>
+                  </div>
+                  <div className="text-sm font-medium text-white">{historicalStats.selectedRoute}</div>
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs text-slate-400">{historicalStats.selectedCategory}</span>
+                  </div>
+                </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">{results.bestForwarder}</h2>
-              <div className="text-right">
-                <div className="text-sm text-slate-400">Route Score</div>
-                <div className="text-xl font-bold text-cyan-400">{results.routeScore}</div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-slate-300">Route Performance</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400">Delivery Success</span>
+                      <span className="text-green-400">{historicalStats.deliverySuccessRate.toFixed(1)}%</span>
+                    </div>
+                    <Progress value={historicalStats.deliverySuccessRate} className="h-2" />
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {historicalStats.routeForwarders} forwarders used
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm text-slate-300">Cost Intelligence</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-lg font-bold text-green-400">
+                      ${historicalStats.avgCostPerKg.toFixed(2)}/kg
+                    </div>
+                    <div className="text-xs text-slate-400">Average route cost</div>
+                    <div className="text-xs text-amber-400">
+                      Preferred: {historicalStats.mostUsedForwarder}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Enhanced Main Results Display */}
+          <Card className="p-6 bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-600 shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-purple-400">🏆 Best Forwarder</h3>
+              <Badge variant="outline" className="ml-auto border-purple-500 text-purple-400">
+                {results.seal}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div className="lg:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">{results.bestForwarder}</h2>
+                </div>
+              </div>
+              
+              <div className="lg:col-span-1">
+                <ConfidenceMeter 
+                  score={results.routeScore} 
+                  label="Route Optimization Score"
+                  showDetails={true}
+                />
               </div>
             </div>
 
-            <Separator className="bg-slate-600" />
+            <Separator className="bg-slate-600 mb-6" />
 
             <div className="space-y-4">
               <div>
@@ -333,8 +341,8 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
                 {results.blessing}
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       )}
     </div>
   );
