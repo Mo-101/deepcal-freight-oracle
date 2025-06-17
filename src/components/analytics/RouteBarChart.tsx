@@ -3,14 +3,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Trophy, Award, Medal } from 'lucide-react';
+import type { ShipmentData } from '@/types/shipment';
 
-const routeData = [
-  { route: 'SIN → LAX', score: 94, cost: 2400, delay: 5 },
-  { route: 'FRA → JFK', score: 91, cost: 1800, delay: 8 },
-  { route: 'NRT → SFO', score: 89, cost: 2100, delay: 12 },
-  { route: 'LHR → ORD', score: 87, cost: 1500, delay: 15 },
-  { route: 'DXB → LAX', score: 85, cost: 2200, delay: 18 },
-];
+interface RouteBarChartProps {
+  shipmentData: ShipmentData[];
+}
 
 const getRankIcon = (index: number) => {
   switch (index) {
@@ -21,7 +18,73 @@ const getRankIcon = (index: number) => {
   }
 };
 
-export const RouteBarChart: React.FC = () => {
+export const RouteBarChart: React.FC<RouteBarChartProps> = ({ shipmentData }) => {
+  // Calculate real route performance from shipment data
+  const calculateRouteData = () => {
+    if (!shipmentData || shipmentData.length === 0) return [];
+
+    const routeStats: Record<string, {
+      count: number;
+      totalCost: number;
+      totalWeight: number;
+      deliveredCount: number;
+    }> = {};
+
+    shipmentData.forEach(shipment => {
+      const origin = shipment.origin_country || 'Unknown';
+      const destination = shipment.destination_country || 'Unknown';
+      const route = `${origin} → ${destination}`;
+      
+      if (!routeStats[route]) {
+        routeStats[route] = {
+          count: 0,
+          totalCost: 0,
+          totalWeight: 0,
+          deliveredCount: 0
+        };
+      }
+      
+      routeStats[route].count++;
+      routeStats[route].totalCost += parseFloat(shipment['carrier+cost'] || '0');
+      routeStats[route].totalWeight += parseFloat(shipment.weight_kg || '0');
+      if (shipment.delivery_status === 'Delivered') {
+        routeStats[route].deliveredCount++;
+      }
+    });
+
+    // Convert to chart format and calculate performance score
+    return Object.entries(routeStats)
+      .map(([route, stats]) => ({
+        route: route.length > 15 ? route.substring(0, 15) + '...' : route,
+        fullRoute: route,
+        score: Math.round((stats.deliveredCount / stats.count) * 100),
+        cost: Math.round(stats.totalCost / stats.count),
+        shipments: stats.count,
+        avgWeight: Math.round(stats.totalWeight / stats.count)
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5); // Top 5 routes
+  };
+
+  const routeData = calculateRouteData();
+
+  if (!routeData.length) {
+    return (
+      <Card className="glass-card shadow-glass border border-glassBorder">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
+            🛣️ Top Route Performance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-indigo-300">
+            No route data available
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="glass-card shadow-glass border border-glassBorder">
       <CardHeader>
@@ -44,8 +107,9 @@ export const RouteBarChart: React.FC = () => {
                 }}
                 formatter={(value, name) => [
                   name === 'score' ? `${value}%` : value,
-                  name === 'score' ? 'Performance Score' : name
+                  name === 'score' ? 'Delivery Rate' : name
                 ]}
+                labelFormatter={(label) => routeData.find(r => r.route === label)?.fullRoute || label}
               />
               <Bar dataKey="score" fill="url(#gradient)" radius={[0, 4, 4, 0]} />
               <defs>
@@ -59,13 +123,15 @@ export const RouteBarChart: React.FC = () => {
         </div>
         <div className="mt-4 space-y-2">
           {routeData.slice(0, 3).map((route, index) => (
-            <div key={route.route} className="flex items-center justify-between p-2 bg-slate-800/30 rounded-lg">
+            <div key={route.fullRoute} className="flex items-center justify-between p-2 bg-slate-800/30 rounded-lg">
               <div className="flex items-center gap-2">
                 {getRankIcon(index)}
-                <span className="text-white font-medium">{route.route}</span>
+                <span className="text-white font-medium" title={route.fullRoute}>
+                  {route.route}
+                </span>
               </div>
               <div className="text-sm text-indigo-300">
-                Cost: ${route.cost} | Delay: {route.delay}%
+                {route.shipments} shipments | Avg: ${route.cost}
               </div>
             </div>
           ))}
