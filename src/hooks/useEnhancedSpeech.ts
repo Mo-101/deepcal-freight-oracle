@@ -2,7 +2,6 @@
 import { useState, useCallback } from "react"
 import { preprocessText } from '@/utils/textPreprocessor'
 import { elevenLabsService, type ElevenLabsConfig } from '@/services/elevenLabsService'
-import { systemTTSService } from '@/services/systemTTSService'
 
 export function useEnhancedSpeech() {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -34,17 +33,8 @@ export function useEnhancedSpeech() {
     } catch (error) {
       console.error("ElevenLabs speech error:", error)
       setIsSpeaking(false)
-      // Fallback to browser TTS
-      fallbackToSystemTTS(processedText)
+      // No fallback - voice synthesis requires proper API key
     }
-  }
-
-  const fallbackToSystemTTS = (text: string) => {
-    systemTTSService.speak(
-      text,
-      () => setIsSpeaking(false),
-      () => setIsSpeaking(false)
-    )
   }
 
   const stopSpeaking = () => {
@@ -53,16 +43,14 @@ export function useEnhancedSpeech() {
       audioElement.currentTime = 0
       setAudioElement(null)
     }
-    systemTTSService.stop()
     setIsSpeaking(false)
   }
 
   const speakText = useCallback((text: string, elevenLabsConfig?: ElevenLabsConfig) => {
-    if (elevenLabsConfig) {
+    if (elevenLabsConfig && elevenLabsConfig.apiKey) {
       speakWithElevenLabs(text, elevenLabsConfig)
     } else {
-      const processedText = preprocessText(text)
-      fallbackToSystemTTS(processedText)
+      console.log("Voice synthesis requires ElevenLabs API key configuration")
     }
   }, [audioElement, isSpeaking])
 

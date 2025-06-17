@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -152,9 +153,13 @@ const DeepTalk = () => {
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // Enhanced speech with ElevenLabs or fallback
-      console.log('🎤 DeepCAL speaking with enhanced voice system')
-      speakText(response, elevenLabsConfig)
+      // Only use voice synthesis if ElevenLabs is properly configured
+      if (elevenLabsConfig && elevenLabsConfig.apiKey) {
+        console.log('🎤 DeepCAL speaking with ElevenLabs voice synthesis')
+        speakText(response, elevenLabsConfig)
+      } else {
+        console.log('Voice synthesis requires ElevenLabs API key configuration')
+      }
     } catch (error) {
       console.error('Error processing query:', error)
       setIsProcessing(false)
