@@ -1,12 +1,12 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, Calculator } from "lucide-react";
 
 const navLinks = [
-  { label: "Dashboard", to: "/" },
-  // { label: "Calculator", to: "/calculator", icon: Calculator }, // removed
-  // { label: "Ranking", to: "/ranking" }, // removed
+  { label: "Home", to: "/" },
+  { label: "Calculator", to: "/calculator", icon: Calculator },
+  { label: "Dashboard", to: "/dashboard" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
@@ -18,14 +18,14 @@ const DeepCALSymbolicHeader: React.FC = () => {
     <header className="sticky top-0 z-50">
       <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple py-4 px-6 symbolic-border">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center space-x-3 fade-in">
+          <Link to="/" className="flex items-center space-x-3 fade-in hover:opacity-80 transition-opacity">
             <div className="w-12 h-12 bg-deepcal-purple rounded-full flex items-center justify-center glowing-border">
               <i className="fas fa-infinity text-white text-xl"></i>
             </div>
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">
               DeepCAL++ vΩ
             </h1>
-          </div>
+          </Link>
           <nav className="mt-4 md:mt-0 flex gap-2 md:space-x-2 items-center">
             {navLinks.map(link => (
               <Link

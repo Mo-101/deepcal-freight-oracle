@@ -3,12 +3,14 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Dumbbell } from "lucide-react";
+import { BrainCog, Dumbbell, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // All main app pages
 const navLinks = [
-  { label: "Dashboard", to: "/" },
+  { label: "Home", to: "/" },
+  { label: "Calculator", to: "/calculator", icon: Calculator },
+  { label: "Dashboard", to: "/dashboard" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
@@ -19,14 +21,14 @@ const DeepCALHeader: React.FC = () => {
   return (
     <header className="w-full flex flex-col border-b border-border bg-gradient-to-r from-blue-900 to-indigo-800 shadow-lg mb-6">
       <div className="flex items-center justify-between max-w-screen-2xl mx-auto px-6 py-4">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="p-2 bg-white/10 rounded-lg">
             <BrainCog className="w-9 h-9 text-lime-400" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2" title="DeepCAL">
             DeepCAL
           </h1>
-        </div>
+        </Link>
         <nav className="flex gap-2">
           {navLinks.map(link => (
             <Link
