@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -38,8 +39,8 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
       }
       
       monthlyStats[monthKey].count++;
-      const cost = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) || 0 : Number(cost) || 0;
+      const costValue = shipment['carrier+cost'] || shipment.carrier_cost || 0;
+      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
       monthlyStats[monthKey].totalCost += costNum;
 
       // Calculate delivery days if both dates are available

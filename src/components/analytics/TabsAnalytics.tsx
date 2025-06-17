@@ -43,8 +43,8 @@ export const TabsAnalytics: React.FC = () => {
 
     const totalShipments = shipmentData.length;
     const totalCost = shipmentData.reduce((sum, s) => {
-      const cost = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) || 0 : Number(cost) || 0;
+      const costValue = s['carrier+cost'] || s.carrier_cost || 0;
+      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
       return sum + costNum;
     }, 0);
     const avgCost = totalCost / totalShipments;
@@ -52,8 +52,8 @@ export const TabsAnalytics: React.FC = () => {
     const totalValue = shipmentData.reduce((sum, s) => {
       // Calculate estimated value based on weight and cost since there's no direct value field
       const weight = parseFloat(String(s.weight_kg || '0')) || 0;
-      const cost = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) || 0 : Number(cost) || 0;
+      const costValue = s['carrier+cost'] || s.carrier_cost || 0;
+      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
       return sum + (weight * costNum * 0.1); // Estimated value multiplier
     }, 0);
     const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_carrier).filter(Boolean)).size;
