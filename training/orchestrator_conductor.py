@@ -19,8 +19,7 @@ LOG_FILE = 'orchestrator_log.txt'
 def log(msg):
     print(msg)
     with open(LOG_FILE, 'a') as f:
-        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}
-")
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
 
 # --- RESOURCE CHECK ---
 def resources_ok():
