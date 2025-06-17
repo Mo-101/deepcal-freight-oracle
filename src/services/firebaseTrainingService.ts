@@ -1,13 +1,13 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { trainingService } from './trainingService';
 
-// Firebase configuration (replace with your actual config)
+// Firebase configuration - replace with your actual config from Firebase Console
 const firebaseConfig = {
-  apiKey: "your-api-key",
+  apiKey: "your-api-key-here",
   authDomain: "tokyo-scholar-356213.firebaseapp.com",
   projectId: "tokyo-scholar-356213",
   storageBucket: "tokyo-scholar-356213.appspot.com",
