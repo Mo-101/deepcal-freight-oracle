@@ -42,7 +42,7 @@ const FreightCalculatorPage = () => {
               <h1 className="text-4xl font-bold mb-4 text-white">DeepCAL Freight Calculator</h1>
               <p className="text-xl text-indigo-200 max-w-2xl mx-auto">
                 Revolutionary freight optimization using AHP-TOPSIS multi-criteria decision analysis.
-                {isAutoLoading ? "Auto-loading embedded dataset..." : "Load your data to unlock the full power of DeepCAL."}
+                {isAutoLoading ? " Auto-loading embedded dataset..." : " Load your data to unlock the full power of DeepCAL."}
               </p>
             </div>
             {isAutoLoading ? (

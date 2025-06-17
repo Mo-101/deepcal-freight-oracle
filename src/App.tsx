@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { loadAllMoScripts } from "@/moscripts/registry";
-import SymbolicCalculator from "./pages/SymbolicCalculator";
+import FreightCalculatorPage from "./pages/FreightCalculatorPage";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
@@ -27,7 +27,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<SymbolicCalculator />} />
+            <Route path="/" element={<FreightCalculatorPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/deeptalk" element={<DeepTalk />} />

@@ -36,11 +36,15 @@ export const ApiKeyConfig: React.FC = () => {
   return (
     <Card className="glass-card shadow-glass border border-glassBorder">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lime-400">
-          <Key className="w-5 h-5" />
-          MOSTLY AI Configuration
-          {isConfigured && <Badge className="bg-green-900 text-green-300">Configured</Badge>}
-          {!isConfigured && <Badge variant="outline" className="border-yellow-400 text-yellow-400">Not Configured</Badge>}
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lime-400">
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5" />
+            MOSTLY AI Configuration
+          </div>
+          <div className="flex gap-2">
+            {isConfigured && <Badge className="bg-green-900 text-green-300">Configured</Badge>}
+            {!isConfigured && <Badge variant="outline" className="border-yellow-400 text-yellow-400">Not Configured</Badge>}
+          </div>
         </CardTitle>
         <p className="text-indigo-300 text-sm">
           Configure your MOSTLY AI API key to enable synthetic data generation
@@ -59,7 +63,7 @@ export const ApiKeyConfig: React.FC = () => {
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="Enter your MOSTLY AI API key"
-                  className="pr-10"
+                  className="pr-10 bg-slate-800/50 border-slate-600 text-white"
                 />
                 <button
                   type="button"
