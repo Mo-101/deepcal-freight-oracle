@@ -21,6 +21,27 @@ const CargoSpecificationsSection: React.FC<CargoSpecificationsSectionProps> = ({
     cargoType: "What type of cargo is being shipped?"
   };
 
+  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Weight input changed:', e.target.value);
+    const value = parseFloat(e.target.value) || 0;
+    console.log('Parsed weight value:', value);
+    onInputsChange({...inputs, weight: value});
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Volume input changed:', e.target.value);
+    const value = parseFloat(e.target.value) || 0;
+    console.log('Parsed volume value:', value);
+    onInputsChange({...inputs, volume: value});
+  };
+
+  const handleCargoTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    console.log('Cargo type changed:', e.target.value);
+    onInputsChange({...inputs, cargoType: e.target.value});
+  };
+
+  console.log('Current inputs:', inputs);
+
   return (
     <div>
       <h3 className="font-medium mb-2 flex items-center text-yellow-300">
@@ -37,9 +58,9 @@ const CargoSpecificationsSection: React.FC<CargoSpecificationsSectionProps> = ({
           </label>
           <input 
             type="number" 
-            value={inputs.weight || ''}
-            placeholder="0"
-            onChange={(e) => onInputsChange({...inputs, weight: parseFloat(e.target.value) || 0})}
+            value={inputs.weight === 0 ? '' : inputs.weight}
+            placeholder="Enter weight"
+            onChange={handleWeightChange}
             className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white`}
             aria-describedby="weight-help"
           />
@@ -56,9 +77,9 @@ const CargoSpecificationsSection: React.FC<CargoSpecificationsSectionProps> = ({
           </label>
           <input 
             type="number" 
-            value={inputs.volume || ''}
-            placeholder="0"
-            onChange={(e) => onInputsChange({...inputs, volume: parseFloat(e.target.value) || 0})}
+            value={inputs.volume === 0 ? '' : inputs.volume}
+            placeholder="Enter volume"
+            onChange={handleVolumeChange}
             className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white`}
             aria-describedby="volume-help"
           />
@@ -77,8 +98,9 @@ const CargoSpecificationsSection: React.FC<CargoSpecificationsSectionProps> = ({
         <select 
           className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white"
           value={inputs.cargoType}
-          onChange={(e) => onInputsChange({...inputs, cargoType: e.target.value})}
+          onChange={handleCargoTypeChange}
         >
+          <option value="">Select cargo type</option>
           {CARGO_TYPE_OPTIONS.map(option => (
             <option key={option} value={option}>{option}</option>
           ))}
