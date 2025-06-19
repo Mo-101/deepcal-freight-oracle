@@ -1,32 +1,13 @@
 
 import { configService } from './configService';
-
-interface GroqResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
-
-interface GroqChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-interface GroqContextualResponse {
-  response: string;
-  confidence: number;
-  context: GroqContext;
-}
-
-interface GroqContext {
-  intent?: string;
-  routeDatabase?: any[];
-  userPreferences?: any;
-  conversationHistory?: any[];
-  currentShipment?: any;
-}
+import { GroqPromptBuilder } from './groq/promptBuilder';
+import { GroqStreamParser } from './groq/streamParser';
+import { GroqApiClient } from './groq/apiClient';
+import type { 
+  GroqChatMessage, 
+  GroqContext, 
+  GroqContextualResponse 
+} from '@/types/groq';
 
 /**
  * DeepTalkGroqService - AI-powered logistics assistant service
@@ -34,7 +15,6 @@ interface GroqContext {
  */
 class DeepTalkGroqService {
   private static instance: DeepTalkGroqService;
-  private baseURL = 'https://api.groq.com/openai/v1';
 
   private constructor() {}
 
@@ -53,41 +33,11 @@ class DeepTalkGroqService {
   }
 
   /**
-   * Gets the default system prompt for DeepCAL AI
-   */
-  private getSystemPrompt(): string {
-    return 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization. Be conversational but authoritative.';
-  }
-
-  /**
-   * Builds a context-aware system prompt based on available data
-   */
-  private buildSystemPrompt(context: GroqContext): string {
-    const { intent, routeDatabase, userPreferences } = context;
-    
-    let prompt = this.getSystemPrompt();
-    
-    if (routeDatabase && routeDatabase.length > 0) {
-      prompt += `\n\nAvailable routes: ${JSON.stringify(routeDatabase.slice(0, 3))}`;
-    }
-    
-    if (intent) {
-      prompt += `\n\nUser intent: ${intent}`;
-    }
-    
-    if (userPreferences) {
-      prompt += `\n\nUser preferences: ${JSON.stringify(userPreferences)}`;
-    }
-    
-    return prompt;
-  }
-
-  /**
    * Generates a contextual response using Groq AI
    */
   async generateResponse(query: string, context: GroqContext): Promise<GroqContextualResponse> {
     try {
-      const systemPrompt = this.buildSystemPrompt(context);
+      const systemPrompt = GroqPromptBuilder.buildContextualSystemPrompt(context);
       const response = await this.sendMessage(query, [], 'llama3-8b-8192', systemPrompt);
       
       return {
@@ -108,48 +58,21 @@ class DeepTalkGroqService {
     message: string,
     conversationHistory: GroqChatMessage[] = [],
     model: string = 'llama3-8b-8192',
-    systemPrompt: string = this.getSystemPrompt()
+    systemPrompt: string = GroqPromptBuilder.getDefaultSystemPrompt()
   ): Promise<string> {
     try {
-      const apiKey = configService.getGroqKey();
-      
-      if (!apiKey) {
-        throw new Error('Groq API key not configured');
-      }
-      
-      const messages: GroqChatMessage[] = [
-        {
-          role: 'system',
-          content: systemPrompt
-        },
-        ...conversationHistory,
-        {
-          role: 'user',
-          content: message
-        }
-      ];
+      const messages = GroqApiClient.buildMessages(message, conversationHistory, systemPrompt);
 
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: 0.7,
-          max_tokens: 1024,
-          top_p: 1,
-          stream: false
-        }),
-      });
+      const config = {
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+        top_p: 1,
+        stream: false as const
+      };
 
-      if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data: GroqResponse = await response.json();
+      const data = await GroqApiClient.makeCompletionRequest(config);
       return data.choices[0]?.message?.content || 'No response generated';
     } catch (error) {
       console.error('DeepTalk Groq service error:', error);
@@ -165,78 +88,22 @@ class DeepTalkGroqService {
     conversationHistory: GroqChatMessage[] = [],
     onChunk: (chunk: string) => void,
     model: string = 'llama3-8b-8192',
-    systemPrompt: string = this.getSystemPrompt()
+    systemPrompt: string = GroqPromptBuilder.getDefaultSystemPrompt()
   ): Promise<void> {
     try {
-      const apiKey = configService.getGroqKey();
-      
-      if (!apiKey) {
-        throw new Error('Groq API key not configured');
-      }
-      
-      const messages: GroqChatMessage[] = [
-        {
-          role: 'system',
-          content: systemPrompt
-        },
-        ...conversationHistory,
-        {
-          role: 'user',
-          content: message
-        }
-      ];
+      const messages = GroqApiClient.buildMessages(message, conversationHistory, systemPrompt);
 
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: 0.7,
-          max_tokens: 1024,
-          top_p: 1,
-          stream: true
-        }),
-      });
+      const config = {
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 1024,
+        top_p: 1,
+        stream: true as const
+      };
 
-      if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
-            try {
-              const jsonStr = trimmed.slice(6);
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                onChunk(content);
-              }
-            } catch (e) {
-              // Skip invalid JSON lines - this is normal with streaming
-              console.debug('Skipped invalid streaming JSON:', trimmed);
-            }
-          }
-        }
-      }
+      const response = await GroqApiClient.makeStreamingRequest(config);
+      await GroqStreamParser.parseStream(response, onChunk);
     } catch (error) {
       console.error('DeepTalk Groq stream error:', error);
       throw new Error(`Failed to stream response: ${error instanceof Error ? error.message : 'Unknown error'}`);
