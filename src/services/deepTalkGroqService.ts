@@ -14,6 +14,12 @@ interface GroqChatMessage {
   content: string;
 }
 
+interface GroqContextualResponse {
+  response: string;
+  confidence: number;
+  context: any;
+}
+
 class DeepTalkGroqService {
   private static instance: DeepTalkGroqService;
   private baseURL = 'https://api.groq.com/openai/v1';
@@ -25,6 +31,44 @@ class DeepTalkGroqService {
       DeepTalkGroqService.instance = new DeepTalkGroqService();
     }
     return DeepTalkGroqService.instance;
+  }
+
+  setApiKey(apiKey: string): void {
+    configService.updateKeys(undefined, apiKey);
+  }
+
+  async generateResponse(query: string, context: any): Promise<GroqContextualResponse> {
+    try {
+      const systemPrompt = this.buildSystemPrompt(context);
+      const response = await this.sendMessage(query, [], 'llama3-8b-8192');
+      
+      return {
+        response,
+        confidence: 0.9,
+        context: context
+      };
+    } catch (error) {
+      console.error('Generate response error:', error);
+      throw error;
+    }
+  }
+
+  private buildSystemPrompt(context: any): string {
+    const { intent, routeDatabase, userPreferences } = context;
+    
+    let prompt = 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics.';
+    
+    if (routeDatabase && routeDatabase.length > 0) {
+      prompt += `\n\nAvailable routes: ${JSON.stringify(routeDatabase.slice(0, 3))}`;
+    }
+    
+    if (intent) {
+      prompt += `\n\nUser intent: ${intent}`;
+    }
+    
+    prompt += '\n\nProvide intelligent, data-driven responses about logistics, shipping, and supply chain optimization. Be conversational but authoritative.';
+    
+    return prompt;
   }
 
   async sendMessage(
