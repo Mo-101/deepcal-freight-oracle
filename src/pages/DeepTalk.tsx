@@ -205,14 +205,12 @@ const DeepTalk = () => {
   }
 
   return (
-    <div className="min-h-screen max-h-screen overflow-hidden flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
-      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'"
-    }}>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 overflow-hidden">
       <DeepCALHeader />
 
-      <main className="flex-1 container mx-auto py-4 px-4 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col px-6 py-4 min-h-0">
         {/* Header Controls */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <h1 className="text-2xl font-bold text-white">DeepTalk AI</h1>
           <div className="flex gap-2">
             <Button
@@ -236,110 +234,107 @@ const DeepTalk = () => {
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-          {/* Chat Interface - Takes most of the space */}
-          <div className="flex-1 min-h-0">
-            <ChatInterface
-              messages={messages}
-              input={input}
-              setInput={setInput}
-              isProcessing={isProcessing}
-              isListening={isListening}
-              onSubmit={handleSubmit}
-              onStartListening={handleStartListening}
-            />
-          </div>
+        {/* Main Chat Container */}
+        <div className="flex-1 min-h-0 mb-4">
+          <ChatInterface
+            messages={messages}
+            input={input}
+            setInput={setInput}
+            isProcessing={isProcessing}
+            isListening={isListening}
+            onSubmit={handleSubmit}
+            onStartListening={handleStartListening}
+          />
+        </div>
 
-          {/* Live Stats Cards - Fixed height at bottom */}
-          <div className="h-48 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Quick Actions Card */}
-              <Card className="glass-card shadow-glass border border-glassBorder">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <Button
-                    onClick={() => handleQuickQuery("What are the best routes to South Sudan?")}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs border-white/20 text-white hover:bg-white/10"
-                  >
-                    Best Routes
-                  </Button>
-                  <Button
-                    onClick={() => handleQuickQuery("Compare costs for all carriers")}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs border-white/20 text-white hover:bg-white/10"
-                  >
-                    Cost Analysis
-                  </Button>
-                  <Button
-                    onClick={() => handleQuickQuery("Show reliability metrics")}
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs border-white/20 text-white hover:bg-white/10"
-                  >
-                    Reliability
-                  </Button>
-                </CardContent>
-              </Card>
+        {/* Live Stats Cards - Fixed height at bottom */}
+        <div className="flex-shrink-0 h-40">
+          <div className="grid grid-cols-3 gap-4 h-full">
+            {/* Quick Actions Card */}
+            <Card className="glass-card border border-white/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Quick Actions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button
+                  onClick={() => handleQuickQuery("What are the best routes to South Sudan?")}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                >
+                  Best Routes
+                </Button>
+                <Button
+                  onClick={() => handleQuickQuery("Compare costs for all carriers")}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                >
+                  Cost Analysis
+                </Button>
+                <Button
+                  onClick={() => handleQuickQuery("Show reliability metrics")}
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                >
+                  Reliability
+                </Button>
+              </CardContent>
+            </Card>
 
-              {/* Route Performance Card */}
-              <Card className="glass-card shadow-glass border border-glassBorder">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    Top Routes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {routeDatabase.slice(0, 3).map((route) => (
-                    <div key={route.id} className="flex justify-between items-center text-xs">
-                      <span className="text-white truncate">{route.route}</span>
-                      <Badge className="text-xs bg-lime-400/20 text-lime-300">
-                        {(route.overallScore * 100).toFixed(0)}%
-                      </Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* System Status Card */}
-              <Card className="glass-card shadow-glass border border-glassBorder">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                    <Activity className="w-4 h-4" />
-                    System Status
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-indigo-300">AI Brain</span>
-                    <Badge className={groqConfigured ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}>
-                      {groqConfigured ? "Active" : "Offline"}
+            {/* Route Performance Card */}
+            <Card className="glass-card border border-white/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Top Routes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {routeDatabase.slice(0, 3).map((route) => (
+                  <div key={route.id} className="flex justify-between items-center text-xs">
+                    <span className="text-white truncate mr-2">{route.route}</span>
+                    <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
+                      {(route.overallScore * 100).toFixed(0)}%
                     </Badge>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-indigo-300">Voice</span>
-                    <Badge className={elevenLabsConfig ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"}>
-                      {elevenLabsConfig ? "Ready" : "Config"}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-indigo-300">Routes</span>
-                    <Badge className="bg-blue-900 text-blue-300">
-                      {routeDatabase.length} Active
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* System Status Card */}
+            <Card className="glass-card border border-white/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
+                  <Activity className="w-4 h-4" />
+                  System Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-indigo-300">AI Brain</span>
+                  <Badge className={groqConfigured ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}>
+                    {groqConfigured ? "Active" : "Offline"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-indigo-300">Voice</span>
+                  <Badge className={elevenLabsConfig ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"}>
+                    {elevenLabsConfig ? "Ready" : "Config"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-indigo-300">Routes</span>
+                  <Badge className="bg-blue-900 text-blue-300">
+                    {routeDatabase.length} Active
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
@@ -355,14 +350,6 @@ const DeepTalk = () => {
         onClose={() => setShowGroqConfig(false)}
         onConfigSave={handleGroqConfigSave}
       />
-
-      <style>
-        {`
-        .oracle-card {
-          background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-        }
-        `}
-      </style>
     </div>
   )
 }
