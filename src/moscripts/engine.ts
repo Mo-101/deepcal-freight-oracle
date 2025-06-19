@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 
 /**
@@ -18,6 +19,10 @@ type Registry = MoScript[];
 // Internal registry for scripts
 const MOS_REGISTRY: Registry = [];
 
+// Prevent duplicate toast spam
+const toastCooldowns = new Map<string, number>();
+const TOAST_COOLDOWN = 2000;
+
 /**
  * Register a MoScript with the engine.
  */
@@ -37,11 +42,18 @@ export function fire(trigger: string, inputs: Record<string, any>): any[] {
     .map(m => {
       const result = m.logic(inputs);
       if (m.voiceLine) {
-        // Use shadcn toast directly
-        toast({
-          title: m.voiceLine(result),
-          variant: m.sass ? "default" : "destructive", // Type fix: use only "default" | "destructive"
-        });
+        const voiceText = m.voiceLine(result);
+        const now = Date.now();
+        const lastToast = toastCooldowns.get(voiceText) || 0;
+        
+        // Only show toast if enough time has passed
+        if (now - lastToast > TOAST_COOLDOWN) {
+          toast({
+            title: voiceText,
+            variant: m.sass ? "default" : "default",
+          });
+          toastCooldowns.set(voiceText, now);
+        }
       }
       return result;
     });
@@ -54,9 +66,11 @@ export function listMoScripts() {
   return [...MOS_REGISTRY];
 }
 
-// MoScript host listener for score events
-if (typeof window !== 'undefined') {
+// MoScript host listener for score events - prevent multiple listeners
+let listenerAttached = false;
+if (typeof window !== 'undefined' && !listenerAttached) {
   window.addEventListener('onScoreReturned', (e: any) => {
     fire('onScoreReturned', { voiceline: e.detail });
   });
+  listenerAttached = true;
 }
