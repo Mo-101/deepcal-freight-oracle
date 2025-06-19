@@ -86,11 +86,11 @@ const FreightCalculator = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-8 page-transition font-elegant">
       <div className="text-center mb-3">
-        <h1 className="section-title flex items-center justify-center gap-3 mb-2">
+        <h1 className="section-title flex items-center justify-center gap-3 mb-2 text-white">
           <Calculator className="w-8 h-8 text-primary" />
           DeepCAL™ Advanced Freight Calculator
         </h1>
-        <p className="subtle-text">
+        <p className="subtle-text text-white">
           Neutrosophic AHP-TOPSIS Decision Framework for multi-carrier optimization powered by real data.
         </p>
         {lineageMeta && (
@@ -102,17 +102,17 @@ const FreightCalculator = () => {
       </div>
 
       {/* OLD SHIPMENT SELECTION - DASHBOARD STYLE */}
-      <Card className="glass-card border border-border bg-white/85 shadow-lg mb-6">
+      <Card className="glass-card border-2 border-white/30 bg-white/10 shadow-lg mb-6">
         <CardHeader className="flex flex-row items-center gap-3 pb-1">
           <Package className="w-6 h-6 text-accent" />
-          <CardTitle className="text-lg font-semibold tracking-tight">
+          <CardTitle className="text-lg font-semibold tracking-tight text-white">
             Select an Existing Shipment (Reference)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
             <div className="w-full md:w-96">
-              <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-blue-900">
+              <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-white">
                 Load by Request Reference
               </Label>
               <Select
@@ -122,35 +122,35 @@ const FreightCalculator = () => {
               >
                 <SelectTrigger
                   id="old-shipment-select"
-                  className="border border-accent/50 rounded-lg px-4 py-2 text-base font-medium bg-white focus:ring-accent shadow transition-all"
+                  className="border-2 border-accent/50 rounded-lg px-4 py-2 text-base font-medium bg-white/20 text-white focus:ring-accent shadow transition-all"
                 >
                   <SelectValue placeholder="Select previous shipment..." />
                 </SelectTrigger>
-                <SelectContent className="bg-white shadow-2xl border border-accent/40 z-50">
+                <SelectContent className="bg-slate-800 shadow-2xl border border-accent/40 z-50">
                   {oldShipments.length > 0 ? (
                     oldShipments.map((s) => (
                       <SelectItem
                         value={s.request_reference}
                         key={s.request_reference}
-                        className="hover:bg-accent/10 text-black font-normal"
+                        className="hover:bg-accent/10 text-white font-normal"
                       >
                         <span className="font-mono font-medium text-primary">{s.request_reference}</span>
-                        <span className="ml-2 text-gray-600">
-                          {s.origin_country} → {s.destination_country} <span className="text-xs text-muted-foreground">({s.item_category})</span>
+                        <span className="ml-2 text-gray-300">
+                          {s.origin_country} → {s.destination_country} <span className="text-xs text-gray-400">({s.item_category})</span>
                         </span>
                       </SelectItem>
                     ))
                   ) : (
                     // Use a non-empty value; this item is disabled and will never be selected.
                     <SelectItem value="__no_shipments__" disabled>
-                      <span className="italic text-muted-foreground">No shipments available</span>
+                      <span className="italic text-gray-400">No shipments available</span>
                     </SelectItem>
                   )}
                 </SelectContent>
               </Select>
             </div>
             {selectedReference && (
-              <Button onClick={clearForm} variant="outline" className="border-primary px-3">
+              <Button onClick={clearForm} variant="outline" className="border-primary text-white px-3">
                 Clear Selection
               </Button>
             )}
@@ -159,9 +159,9 @@ const FreightCalculator = () => {
       </Card>
 
       {/* INPUT GRID */}
-      <Card className="glass-card shadow-glass">
+      <Card className="glass-card border-2 border-white/30 bg-white/10 shadow-glass">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
+          <CardTitle className="flex items-center gap-2 text-white">
             <MapPin className="w-5 h-5" />
             Shipment Details
           </CardTitle>
@@ -175,10 +175,10 @@ const FreightCalculator = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
               <div>
-                <Label htmlFor="origin" className="input-label">Origin Country</Label>
+                <Label htmlFor="origin" className="input-label text-white">Origin Country</Label>
                 <Input
                   id="origin"
-                  className="elegant-input mt-1"
+                  className="elegant-input mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   placeholder="e.g., Kenya"
                   value={inputs.origin}
                   onChange={(e) => setInputs({...inputs, origin: e.target.value})}
@@ -186,10 +186,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="destination" className="input-label">Destination Country</Label>
+                <Label htmlFor="destination" className="input-label text-white">Destination Country</Label>
                 <Input
                   id="destination"
-                  className="elegant-input mt-1"
+                  className="elegant-input mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   placeholder="e.g., Burundi"
                   value={inputs.destination}
                   onChange={(e) => setInputs({...inputs, destination: e.target.value})}
@@ -197,10 +197,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="cargoType" className="input-label">Item Category</Label>
+                <Label htmlFor="cargoType" className="input-label text-white">Item Category</Label>
                 <Input
                   id="cargoType"
-                  className="elegant-input mt-1"
+                  className="elegant-input mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   placeholder="e.g., Emergency Health Kits"
                   value={inputs.cargoType}
                   onChange={(e) => setInputs({...inputs, cargoType: e.target.value})}
@@ -208,10 +208,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="weight" className="input-label">Weight (kg)</Label>
+                <Label htmlFor="weight" className="input-label text-white">Weight (kg)</Label>
                 <Input
                   id="weight"
-                  className="elegant-input mt-1"
+                  className="elegant-input mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   type="number"
                   min="0"
                   step="any"
@@ -222,10 +222,10 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="volume" className="input-label">Volume (cbm)</Label>
+                <Label htmlFor="volume" className="input-label text-white">Volume (cbm)</Label>
                 <Input
                   id="volume"
-                  className="elegant-input mt-1"
+                  className="elegant-input mt-1 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                   type="number"
                   min="0"
                   step="0.01"
@@ -236,14 +236,14 @@ const FreightCalculator = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="urgency" className="input-label">Priority Level</Label>
+                <Label htmlFor="urgency" className="input-label text-white">Priority Level</Label>
                 <Select value={inputs.urgency} onValueChange={(value: 'medium' | 'high') => setInputs({...inputs, urgency: value})}>
-                  <SelectTrigger className="elegant-input mt-1">
+                  <SelectTrigger className="elegant-input mt-1 bg-white/20 border-white/30 text-white">
                     <SelectValue placeholder="Choose priority" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="medium">Standard</SelectItem>
-                    <SelectItem value="high">High - Speed priority</SelectItem>
+                  <SelectContent className="bg-slate-800 border-white/30">
+                    <SelectItem value="medium" className="text-white">Standard</SelectItem>
+                    <SelectItem value="high" className="text-white">High - Speed priority</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -253,12 +253,12 @@ const FreightCalculator = () => {
             <div className="flex flex-col sm:flex-row gap-3 mt-2 justify-end">
               <Button 
                 type="submit"
-                className="glass-button"
+                className="glass-button bg-primary/20 border-2 border-primary text-white hover:bg-primary/30"
                 disabled={calculating || !dataLoaded}
               >
                 {calculating ? "Calculating..." : "Calculate Best Route"}
               </Button>
-              <Button type="button" variant="outline" onClick={clearForm} className="border-primary/60">
+              <Button type="button" variant="outline" onClick={clearForm} className="border-primary/60 text-white hover:bg-white/10">
                 Clear
               </Button>
             </div>
@@ -268,15 +268,15 @@ const FreightCalculator = () => {
 
       {/* ENGINE OUTPUT - Results Section */}
       <div className="w-full">
-        <Card className="glass-card shadow-cosmic">
+        <Card className="glass-card border-2 border-white/30 bg-white/10 shadow-cosmic">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gradient-green">
+            <CardTitle className="flex items-center gap-2 text-white">
               <TrendingUp className="w-5 h-5" />
               DeepCAL™ Engine Output
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-white/70">
               <Calculator className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Enter shipment details and click Calculate to see recommendations</p>
               <p className="text-xs mt-2">All calculations use real data - no mock values!</p>
