@@ -11,6 +11,7 @@ import { AdvancedConfigTab } from '@/components/training/AdvancedConfigTab';
 import { LiveMetricsPanel } from '@/components/training/LiveMetricsPanel';
 import { TrainingLogsPanel } from '@/components/training/TrainingLogsPanel';
 import { SyntheticDataSync } from '@/components/training/SyntheticDataSync';
+import { ParquetDataPanel } from '@/components/training/ParquetDataPanel';
 
 export interface WeightVector {
   cost: number;
@@ -225,6 +226,7 @@ export default function TrainingPage() {
                 {activeTab === 'synthetic' && (
                   <div className="space-y-6">
                     <SyntheticDataSync />
+                    <ParquetDataPanel />
                     <SyntheticDataManager 
                       onDataGenerated={() => {
                         toast({ 
