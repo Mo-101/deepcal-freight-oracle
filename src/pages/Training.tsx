@@ -71,11 +71,11 @@ export default function TrainingPage() {
     realTimeProcessing: true
   });
 
-  const [systemStatus] = useState<SystemStatus>({
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     neutroEngine: 'connected',
     firestore: 'connected',
-    groqAPI: 'connected', // Now connected for real optimization
-    trainingPipeline: 'connected'
+    groqAPI: 'connected',
+    trainingPipeline: 'warning'
   });
 
   const [trainingMetrics, setTrainingMetrics] = useState({
@@ -125,11 +125,21 @@ export default function TrainingPage() {
     localStorage.setItem('deepcal-weights', JSON.stringify(weights));
   }, [weights]);
 
-  // Load real training metrics on mount
+  // Load training metrics with better error handling
   React.useEffect(() => {
-    const loadRealMetrics = async () => {
+    const loadTrainingMetrics = async () => {
       try {
+        console.log('Attempting to load training metrics...');
         const response = await fetch('/api/training/stats');
+        
+        // Check if response is actually JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.warn('Backend not available, using cached metrics');
+          setSystemStatus(prev => ({ ...prev, trainingPipeline: 'warning' }));
+          return;
+        }
+        
         if (response.ok) {
           const stats = await response.json();
           setTrainingMetrics({
@@ -138,13 +148,17 @@ export default function TrainingPage() {
             lastTraining: stats.lastTraining,
             modelVersion: '2.0.0'
           });
+          setSystemStatus(prev => ({ ...prev, trainingPipeline: 'connected' }));
+        } else {
+          throw new Error(`HTTP ${response.status}`);
         }
       } catch (error) {
-        console.error('Failed to load real training metrics:', error);
+        console.warn('Backend unavailable, using offline mode:', error);
+        setSystemStatus(prev => ({ ...prev, trainingPipeline: 'warning' }));
       }
     };
     
-    loadRealMetrics();
+    loadTrainingMetrics();
   }, []);
 
   // Simulate real-time training updates
@@ -178,14 +192,30 @@ export default function TrainingPage() {
   }, [isTraining]);
 
   const triggerTraining = async () => {
-    setIsTraining(!isTraining);
-    
     if (!isTraining) {
       try {
-        // Start real training instead of simulation
-        console.log('Starting real ML training...');
+        console.log('Starting training...');
         
-        // This would trigger actual training through the backend
+        // Check if backend is available first
+        if (systemStatus.trainingPipeline === 'warning') {
+          console.log('Backend unavailable, starting simulation mode...');
+          setIsTraining(true);
+          
+          setTrainingActivities(prev => prev.map((activity, index) => ({
+            ...activity,
+            progress: index === 0 ? 10 : 0,
+            status: index === 0 ? 'active' : 'pending',
+            timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
+          })));
+          
+          toast({ 
+            title: 'Training Started (Simulation)', 
+            description: 'Backend unavailable - running training simulation...' 
+          });
+          return;
+        }
+
+        // Try real training
         const trainingResponse = await fetch('/api/training/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -202,6 +232,7 @@ export default function TrainingPage() {
         if (trainingResponse.ok) {
           const job = await trainingResponse.json();
           console.log('Real training job started:', job);
+          setIsTraining(true);
           
           setTrainingActivities(prev => prev.map((activity, index) => ({
             ...activity,
@@ -215,43 +246,58 @@ export default function TrainingPage() {
             description: 'Neural network training with real ML algorithms in progress...' 
           });
         } else {
-          throw new Error('Failed to start training');
+          throw new Error(`HTTP ${trainingResponse.status}`);
         }
       } catch (error) {
-        console.error('Failed to start real training:', error);
+        console.warn('Real training failed, falling back to simulation:', error);
+        setIsTraining(true);
+        
+        setTrainingActivities(prev => prev.map((activity, index) => ({
+          ...activity,
+          progress: index === 0 ? 10 : 0,
+          status: index === 0 ? 'active' : 'pending',
+          timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
+        })));
+        
         toast({ 
-          title: 'Training Failed', 
-          description: 'Could not start real ML training. Check backend connection.',
-          variant: 'destructive'
+          title: 'Training Started (Fallback)', 
+          description: 'Backend unavailable - running training simulation...',
+          variant: 'default'
         });
-        setIsTraining(false);
       }
     } else {
+      setIsTraining(false);
       toast({ 
         title: 'Training Stopped', 
-        description: 'Real neural engine training halted' 
+        description: 'Training process halted' 
       });
     }
   };
 
   const saveConfiguration = async () => {
     try {
-      // Save configuration to backend
-      await fetch('/api/training/config', {
+      // Try to save to backend
+      const response = await fetch('/api/training/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelConfig, weights })
       });
       
-      toast({ 
-        title: 'Configuration Saved', 
-        description: 'Real model parameters updated and persisted' 
-      });
+      if (response.ok) {
+        toast({ 
+          title: 'Configuration Saved', 
+          description: 'Model parameters updated and persisted to backend' 
+        });
+      } else {
+        throw new Error('Backend unavailable');
+      }
     } catch (error) {
+      // Save locally as fallback
+      localStorage.setItem('deepcal-model-config', JSON.stringify(modelConfig));
       toast({ 
-        title: 'Save Failed', 
-        description: 'Could not save configuration to backend',
-        variant: 'destructive'
+        title: 'Configuration Saved Locally', 
+        description: 'Backend unavailable - configuration saved to browser storage',
+        variant: 'default'
       });
     }
   };
@@ -267,13 +313,30 @@ export default function TrainingPage() {
           onToggleTraining={triggerTraining}
         />
 
-        {/* Real Training Status Banner */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-400/50 rounded-lg">
+        {/* Training Status Banner */}
+        <div className={`mb-6 p-4 bg-gradient-to-r border rounded-lg ${
+          systemStatus.trainingPipeline === 'connected' 
+            ? 'from-green-900/30 to-blue-900/30 border-green-400/50'
+            : 'from-yellow-900/30 to-orange-900/30 border-yellow-400/50'
+        }`}>
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-green-400 font-semibold">Real Machine Learning Active</span>
+            <div className={`w-3 h-3 rounded-full ${
+              systemStatus.trainingPipeline === 'connected' 
+                ? 'bg-green-400 animate-pulse' 
+                : 'bg-yellow-400 animate-pulse'
+            }`}></div>
+            <span className={`font-semibold ${
+              systemStatus.trainingPipeline === 'connected' ? 'text-green-400' : 'text-yellow-400'
+            }`}>
+              {systemStatus.trainingPipeline === 'connected' ? 'Real Machine Learning Active' : 'Offline Mode Active'}
+            </span>
             <span className="text-indigo-300">•</span>
-            <span className="text-white">Neural networks, model persistence, and Groq optimization enabled</span>
+            <span className="text-white">
+              {systemStatus.trainingPipeline === 'connected' 
+                ? 'Neural networks, model persistence, and Groq optimization enabled'
+                : 'Backend unavailable - using simulation and local storage'
+              }
+            </span>
           </div>
         </div>
 
@@ -318,7 +381,7 @@ export default function TrainingPage() {
                       onDataGenerated={() => {
                         toast({ 
                           title: 'Synthetic Data Ready', 
-                          description: 'New synthetic training data available for real model retraining' 
+                          description: 'New synthetic training data available for model retraining' 
                         });
                       }}
                     />
