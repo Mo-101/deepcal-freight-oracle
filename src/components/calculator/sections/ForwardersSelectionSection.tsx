@@ -23,27 +23,29 @@ const ForwardersSelectionSection: React.FC<ForwardersSelectionSectionProps> = ({
   };
 
   return (
-    <div>
-      <h3 className="font-medium mb-2 flex items-center text-yellow-300">
+    <div className="space-y-3">
+      <h3 className="font-medium flex items-center text-yellow-300 text-sm sm:text-base">
         <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
         Freight Forwarders
         <span title={helpText.forwarder}>
           <Info className="text-yellow-400 w-3 h-3 ml-2" aria-label={helpText.forwarder} />
         </span>
       </h3>
+      
       <div className="space-y-2">
         {FORWARDER_OPTIONS.map(forwarder => (
-          <div key={forwarder} className="flex items-center bg-slate-800 p-3 rounded-lg border border-slate-700">
+          <div key={forwarder} className="flex items-center bg-slate-800 p-2 sm:p-3 rounded-lg border border-slate-700">
             <input 
               type="checkbox" 
               className="form-checkbox text-deepcal-light"
               checked={inputs.selectedForwarders.includes(forwarder)}
               onChange={() => onForwarderToggle(forwarder)}
             />
-            <span className="ml-3 text-white">{forwarder}</span>
+            <span className="ml-2 sm:ml-3 text-white text-sm sm:text-base">{forwarder}</span>
           </div>
         ))}
       </div>
+      
       <ForwarderRFQInputs
         selectedForwarders={inputs.selectedForwarders}
         rfqData={forwarderRFQ}

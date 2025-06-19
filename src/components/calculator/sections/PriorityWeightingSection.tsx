@@ -14,8 +14,8 @@ const PriorityWeightingSection: React.FC<PriorityWeightingSectionProps> = ({
   onPrioritiesChange
 }) => {
   return (
-    <div>
-      <h3 className="font-medium mb-2 flex items-center text-yellow-300">
+    <div className="space-y-3">
+      <h3 className="font-medium flex items-center text-yellow-300 text-sm sm:text-base">
         <i className="fas fa-balance-scale mr-2 text-purple-400"></i>
         Symbolic Priority Weighting
         <span title="Distribute 100% between these priorities to guide your result">

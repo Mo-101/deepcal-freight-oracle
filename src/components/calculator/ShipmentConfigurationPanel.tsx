@@ -46,13 +46,13 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
   onAwakenOracle
 }) => {
   return (
-    <div className="oracle-card p-6 h-full">
-      <h2 className="text-xl font-semibold mb-6 flex items-center text-yellow-300">
-        <i className="fas fa-shipping-fast mr-3 text-deepcal-light"></i>
+    <div className="oracle-card p-4 sm:p-6 h-full">
+      <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center text-yellow-300">
+        <i className="fas fa-shipping-fast mr-2 sm:mr-3 text-deepcal-light"></i>
         Shipment Configuration
       </h2>
       
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <RouteDetailsSection
           inputs={inputs}
           shipments={shipments}
