@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   Database, 
-  Sync, 
+  RefreshCw, 
   CheckCircle, 
-  AlertTriangle, 
-  RefreshCw,
+  AlertTriangle,
   TrendingUp,
   Shield
 } from 'lucide-react';
@@ -70,7 +68,7 @@ export function SyntheticDataSync() {
       case 'synced': return <CheckCircle className="w-4 h-4" />;
       case 'syncing': return <RefreshCw className="w-4 h-4 animate-spin" />;
       case 'error': return <AlertTriangle className="w-4 h-4" />;
-      default: return <Sync className="w-4 h-4" />;
+      default: return <RefreshCw className="w-4 h-4" />;
     }
   };
 
@@ -179,7 +177,7 @@ export function SyntheticDataSync() {
               </>
             ) : (
               <>
-                <Sync className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2" />
                 Sync to Training
               </>
             )}
