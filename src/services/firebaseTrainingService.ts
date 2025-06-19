@@ -5,14 +5,32 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { syntheticDataEngine } from './syntheticDataEngine';
 import { csvDataEngine } from './csvDataEngine';
 
-// Firebase config would be loaded from environment variables
+// Firebase config - only initialize if credentials are available
 const firebaseConfig = {
-  // Your Firebase config
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const functions = getFunctions(app);
+// Check if Firebase config is available
+const isFirebaseConfigured = firebaseConfig.projectId && firebaseConfig.apiKey;
+
+let app: any = null;
+let db: any = null;
+let functions: any = null;
+
+if (isFirebaseConfigured) {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    functions = getFunctions(app);
+  } catch (error) {
+    console.warn('Firebase initialization failed:', error);
+  }
+}
 
 export interface FirebaseTrainingJob {
   id: string;
@@ -71,6 +89,21 @@ class FirebaseTrainingService {
         }
       };
 
+      if (!isFirebaseConfigured || !functions) {
+        // Simulate Firebase training job for demo purposes
+        const mockJob: FirebaseTrainingJob = {
+          id: `job_${Date.now()}`,
+          status: 'pending',
+          progress: 0,
+          stage: 'Initializing',
+          startedAt: new Date().toISOString(),
+          dataConfig: trainingConfig.dataConfig
+        };
+        
+        console.log('Demo mode: Firebase training job created locally:', mockJob);
+        return mockJob;
+      }
+
       // Call Firebase Function to start training
       const startTraining = httpsCallable(functions, 'startTrainingJob');
       const result = await startTraining(trainingConfig);
@@ -83,6 +116,11 @@ class FirebaseTrainingService {
   }
 
   subscribeToTrainingJob(jobId: string, callback: (job: FirebaseTrainingJob) => void): () => void {
+    if (!isFirebaseConfigured || !db) {
+      console.warn('Firebase not configured, cannot subscribe to training job');
+      return () => {}; // Return empty unsubscribe function
+    }
+
     const unsubscribe = onSnapshot(
       doc(db, 'training_jobs', jobId),
       (doc) => {
@@ -100,13 +138,17 @@ class FirebaseTrainingService {
 
   async uploadTrainingData(file: File, filename: string): Promise<string> {
     try {
+      if (!isFirebaseConfigured) {
+        console.log('Demo mode: Simulating training data upload for:', filename);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return `demo://uploads/${filename}`;
+      }
+
       // This would upload to Firebase Storage and return the download URL
-      // For now, we'll simulate the upload
       const formData = new FormData();
       formData.append('file', file);
       formData.append('filename', filename);
       
-      // In a real implementation, this would upload to Firebase Storage
       console.log('Uploading training data:', filename);
       
       // Simulate upload delay
@@ -120,6 +162,11 @@ class FirebaseTrainingService {
   }
 
   async getTrainingHistory(): Promise<FirebaseTrainingJob[]> {
+    if (!isFirebaseConfigured || !db) {
+      console.log('Demo mode: Returning empty training history');
+      return [];
+    }
+    
     // This would fetch from Firestore
     return [];
   }
@@ -130,6 +177,16 @@ class FirebaseTrainingService {
       const combinedData = syntheticDataEngine.getCombinedShipments();
       const stats = syntheticDataEngine.getEnhancedStatistics();
       
+      if (!isFirebaseConfigured || !db) {
+        console.log('Demo mode: Synthetic data sync completed locally', {
+          realSamples: stats.realShipments,
+          syntheticSamples: stats.syntheticShipments,
+          totalSamples: combinedData.length,
+          syntheticRatio: stats.syntheticRatio
+        });
+        return;
+      }
+
       // Update training data collection in Firestore
       await addDoc(collection(db, 'training_datasets'), {
         type: 'combined',
