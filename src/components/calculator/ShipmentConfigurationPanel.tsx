@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Info } from "lucide-react";
 import { CalculatorInputs, ShipmentData } from '@/types/shipment';
@@ -73,7 +74,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
 
   return (
     <div className="oracle-card p-6 h-full">
-      <h2 className="text-xl font-semibold mb-6 flex items-center">
+      <h2 className="text-xl font-semibold mb-6 flex items-center text-yellow-300">
         <i className="fas fa-shipping-fast mr-3 text-deepcal-light"></i>
         Shipment Configuration
       </h2>
@@ -81,20 +82,20 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
       <div className="space-y-6">
         {/* Route Details */}
         <div>
-          <h3 className="font-medium mb-2 flex items-center">
+          <h3 className="font-medium mb-2 flex items-center text-yellow-300">
             <i className="fas fa-route mr-2 text-blue-400"></i>
             Route Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm mb-1 flex items-center gap-1">
+              <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
                 Origin
                 <span title={helpText.origin}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.origin} />
+                  <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.origin} />
                 </span>
               </label>
               <select 
-                className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white"
                 value={inputs.origin}
                 onChange={(e) => onInputsChange({...inputs, origin: e.target.value})}
               >
@@ -109,14 +110,14 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm mb-1 flex items-center gap-1">
+              <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
                 Destination
                 <span title={helpText.destination}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.destination} />
+                  <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.destination} />
                 </span>
               </label>
               <select 
-                className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+                className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white"
                 value={inputs.destination}
                 onChange={(e) => onInputsChange({...inputs, destination: e.target.value})}
               >
@@ -134,14 +135,14 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
           
           {/* Mode of Shipment */}
           <div className="mt-4">
-            <label className="block text-sm mb-1 flex items-center gap-1">
+            <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
               Mode of Shipment
               <span title={helpText.modeOfShipment}>
-                <Info className="text-purple-400 w-3 h-3" aria-label={helpText.modeOfShipment} />
+                <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.modeOfShipment} />
               </span>
             </label>
             <select 
-              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white"
               value={inputs.modeOfShipment}
               onChange={(e) => onInputsChange({...inputs, modeOfShipment: e.target.value as any})}
             >
@@ -154,16 +155,16 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
         
         {/* Cargo Specifications */}
         <div>
-          <h3 className="font-medium mb-2 flex items-center">
+          <h3 className="font-medium mb-2 flex items-center text-yellow-300">
             <i className="fas fa-box-open mr-2 text-yellow-400"></i>
             Cargo Specifications
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm mb-1 flex items-center gap-1">
+              <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
                 Weight (kg)
                 <span title={helpText.weight}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.weight} />
+                  <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.weight} />
                 </span>
               </label>
               <input 
@@ -171,18 +172,18 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.weight || ''}
                 placeholder="0"
                 onChange={(e) => onInputsChange({...inputs, weight: parseFloat(e.target.value) || 0})}
-                className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                className={`w-full bg-slate-800 border ${validation.weight ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white`}
                 aria-describedby="weight-help"
               />
-              <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-slate-400"}`}>
+              <div id="weight-help" className={`text-xs mt-1 ${validation.weight ? "text-rose-400" : "text-yellow-200"}`}>
                 {validation.weight || helpText.weight}
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1 flex items-center gap-1">
+              <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
                 Volume (CBM)
                 <span title={helpText.volume}>
-                  <Info className="text-purple-400 w-3 h-3" aria-label={helpText.volume} />
+                  <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.volume} />
                 </span>
               </label>
               <input 
@@ -190,23 +191,23 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                 value={inputs.volume || ''}
                 placeholder="0"
                 onChange={(e) => onInputsChange({...inputs, volume: parseFloat(e.target.value) || 0})}
-                className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light`}
+                className={`w-full bg-slate-800 border ${validation.volume ? "border-rose-500" : "border-slate-700"} rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white`}
                 aria-describedby="volume-help"
               />
-              <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-slate-400"}`}>
+              <div id="volume-help" className={`text-xs mt-1 ${validation.volume ? "text-rose-400" : "text-yellow-200"}`}>
                 {validation.volume || helpText.volume}
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm mb-1 flex items-center gap-1">
+            <label className="block text-sm mb-1 flex items-center gap-1 text-yellow-300">
               Cargo Type
               <span title={helpText.cargoType}>
-                <Info className="text-purple-400 w-3 h-3" aria-label={helpText.cargoType} />
+                <Info className="text-yellow-400 w-3 h-3" aria-label={helpText.cargoType} />
               </span>
             </label>
             <select 
-              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light"
+              className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-deepcal-light text-white"
               value={inputs.cargoType}
               onChange={(e) => onInputsChange({...inputs, cargoType: e.target.value})}
             >
@@ -227,11 +228,11 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
         
         {/* Priority Weighting */}
         <div>
-          <h3 className="font-medium mb-2 flex items-center">
+          <h3 className="font-medium mb-2 flex items-center text-yellow-300">
             <i className="fas fa-balance-scale mr-2 text-purple-400"></i>
             Symbolic Priority Weighting
             <span title="Distribute 100% between these priorities to guide your result">
-              <Info className="text-purple-400 w-3 h-3 ml-2" aria-label="Distribute 100% between these priorities to guide your result" />
+              <Info className="text-yellow-400 w-3 h-3 ml-2" aria-label="Distribute 100% between these priorities to guide your result" />
             </span>
           </h3>
           <InteractivePrioritySliders
@@ -242,11 +243,11 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
         
         {/* Forwarders Selection */}
         <div>
-          <h3 className="font-medium mb-2 flex items-center">
+          <h3 className="font-medium mb-2 flex items-center text-yellow-300">
             <i className="fas fa-truck-loading mr-2 text-amber-400"></i>
             Freight Forwarders
             <span title={helpText.forwarder}>
-              <Info className="text-purple-400 w-3 h-3 ml-2" aria-label={helpText.forwarder} />
+              <Info className="text-yellow-400 w-3 h-3 ml-2" aria-label={helpText.forwarder} />
             </span>
           </h3>
           <div className="space-y-2">
@@ -258,7 +259,7 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
                   checked={inputs.selectedForwarders.includes(forwarder)}
                   onChange={() => onForwarderToggle(forwarder)}
                 />
-                <span className="ml-3">{forwarder}</span>
+                <span className="ml-3 text-white">{forwarder}</span>
               </div>
             ))}
           </div>
