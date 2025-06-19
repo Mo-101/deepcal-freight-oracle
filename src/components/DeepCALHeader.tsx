@@ -1,4 +1,3 @@
-
 // Unified header for all pages, with navigation buttons to every primary route
 
 import React from "react";
@@ -6,14 +5,14 @@ import { Link, useLocation } from "react-router-dom";
 import { BrainCog, Dumbbell, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// All main app pages
+// All main app pages - moved About (formerly Dashboard) to the end
 const navLinks = [
   { label: "Home", to: "/" },
   { label: "Calculator", to: "/calculator", icon: Calculator },
-  { label: "Dashboard", to: "/dashboard" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
+  { label: "About", to: "/dashboard" },
 ];
 
 const DeepCALHeader: React.FC = () => {
