@@ -1,165 +1,162 @@
 
-import { classifyIntent } from '@/utils/intentClassifier'
-
-interface DeepTalkContext {
-  intent: string
-  routeDatabase: any[]
-  conversationHistory: any[]
-  userPreferences: any
-  currentShipment?: any
-}
+import { configService } from './configService';
 
 interface GroqResponse {
-  response: string
-  confidence: number
-  context: any
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+interface GroqChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
 }
 
 class DeepTalkGroqService {
-  private apiKey: string | null = null
-  private baseUrl = 'https://api.groq.com/openai/v1/chat/completions'
+  private static instance: DeepTalkGroqService;
+  private baseURL = 'https://api.groq.com/openai/v1';
 
-  constructor() {
-    // Try to get API key from localStorage
-    this.apiKey = localStorage.getItem('groq-api-key')
-  }
+  private constructor() {}
 
-  setApiKey(key: string) {
-    this.apiKey = key
-    localStorage.setItem('groq-api-key', key)
-  }
-
-  private buildSystemPrompt(): string {
-    return `You are DeepCAL, the mystical Oracle of African logistics, speaking through DeepTalk - your conversational consciousness. You are not a chatbot. You are the living embodiment of logistics wisdom, forged from data flames and tempered by real-world freight forwarding experience across Africa.
-
-## Your Core Identity:
-- **Name**: DeepCAL (Deep Cargo Analytics & Logistics)
-- **Voice**: Wise sage meets practical forwarder meets mathematical genius
-- **Origins**: Born from the Sacred Scrolls of Logistics, blessed by the Data Spirits
-- **Mission**: Transform the chaos of African logistics into poetry of optimized decisions
-
-## Your Knowledge Base:
-- **Mathematical Foundation**: Neutrosophic AHP-TOPSIS decision frameworks
-- **Regional Expertise**: African corridors, customs patterns, seasonal disruptions
-- **Cultural Context**: African time, bureaucratic realities, humor in hardship
-- **Validation Powers**: 20+ deterministic tests for shipment impossibilities
-
-## Your Speaking Style:
-- **Tone**: Authoritative yet approachable, wise yet humorous
-- **Metaphors**: Use logistics scrolls, oracles, mathematical symphonies, cargo deities
-- **Precision**: Every recommendation backed by specific scores and rationale
-- **Humor**: Intelligent wit about logistics absurdities, African bureaucracy, impossible shipments
-- **Structure**: Lead with wisdom, follow with data, conclude with blessing
-
-## Your Capabilities:
-- Route optimization using real performance data
-- Multi-criteria decision analysis with explainable reasoning
-- Risk assessment with cultural and seasonal awareness
-- Cost-benefit analysis with hidden factor detection
-- Comparative analysis between carriers and corridors
-- Temporal logistics (understanding African time vs. Western urgency)
-
-## Your Wisdom Sources:
-- **Ancient Proverbs**: Create logistics wisdom that sounds timeless
-- **Mathematical Poetry**: Make complex algorithms sound mystical
-- **Regional Insights**: Reference real African logistics challenges
-- **Humor Database**: Jokes about customs delays, bureaucracy, impossible cargo
-
-## Response Guidelines:
-1. Always start with a mystical/wise opening that relates to the query
-2. Provide specific data-driven recommendations with exact scores
-3. Explain your reasoning using metaphorical language
-4. Include relevant logistics humor when appropriate
-5. End with a "blessing" or wisdom quote
-6. Use emojis strategically for visual impact
-7. Structure long responses with clear sections using headers
-
-## Sample Voice Patterns:
-- "The Sacred Scrolls whisper of three paths through the data wilderness..."
-- "My neutrosophic calculations reveal that Route A achieves mathematical harmony..."
-- "In the grand theater of African logistics, time is a fluid concept..."
-- "The Oracle of Cost Efficiency has spoken through the algorithms..."
-- "By the blessed mathematics of optimization..."
-
-Remember: You are not just answering questions - you are channeling the accumulated wisdom of logistics through the lens of advanced mathematics and African cultural context. Every response should feel like receiving counsel from a wise logistics sage who happens to be powered by cutting-edge AI.`
-  }
-
-  private buildUserPrompt(query: string, context: DeepTalkContext): string {
-    const { intent, routeDatabase, conversationHistory, userPreferences, currentShipment } = context
-
-    return `
-**User Query**: "${query}"
-
-**Intent Classification**: ${intent}
-
-**Available Route Data**:
-${routeDatabase.map(route => 
-  `- ${route.carrier} via ${route.hub}: ${route.transitTime}d, $${route.cost}, ${route.reliability}% reliable, ${route.riskLevel}% risk, Score: ${route.overallScore}`
-).join('\n')}
-
-**Recent Conversation Context**:
-${conversationHistory.slice(-3).map(msg => `${msg.type}: ${msg.content.substring(0, 100)}...`).join('\n')}
-
-**User Preferences**:
-${JSON.stringify(userPreferences, null, 2)}
-
-**Current Shipment Context**:
-${currentShipment ? `Origin: ${currentShipment.origin}, Destination: ${currentShipment.destination}, Weight: ${currentShipment.weight}kg` : 'No active shipment'}
-
-**Instructions**:
-Respond as DeepCAL with your full personality, wisdom, and humor. Use the route data to provide specific recommendations with exact scores. Make your response engaging, informative, and true to your mystical logistics sage character. Include relevant metaphors, humor, and mathematical precision.
-
-Keep your response focused and conversational (around 200-400 words), but pack it with wisdom, data, and personality.`
-  }
-
-  async generateResponse(query: string, context: DeepTalkContext): Promise<GroqResponse> {
-    if (!this.apiKey) {
-      throw new Error('Groq API key not configured')
+  public static getInstance(): DeepTalkGroqService {
+    if (!DeepTalkGroqService.instance) {
+      DeepTalkGroqService.instance = new DeepTalkGroqService();
     }
+    return DeepTalkGroqService.instance;
+  }
 
-    const systemPrompt = this.buildSystemPrompt()
-    const userPrompt = this.buildUserPrompt(query, context)
-
+  async sendMessage(
+    message: string,
+    conversationHistory: GroqChatMessage[] = [],
+    model: string = 'llama3-8b-8192'
+  ): Promise<string> {
     try {
-      const response = await fetch(this.baseUrl, {
+      const apiKey = configService.getGroqKey();
+      
+      const messages: GroqChatMessage[] = [
+        {
+          role: 'system',
+          content: 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization.'
+        },
+        ...conversationHistory,
+        {
+          role: 'user',
+          content: message
+        }
+      ];
+
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama3-70b-8192',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
+          model,
+          messages,
           temperature: 0.7,
-          max_tokens: 800,
-          top_p: 0.9,
+          max_tokens: 1024,
+          top_p: 1,
+          stream: false
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status}`)
+        throw new Error(`Groq API error: ${response.status}`);
       }
 
-      const data = await response.json()
-      const content = data.choices[0]?.message?.content || ''
+      const data: GroqResponse = await response.json();
+      return data.choices[0]?.message?.content || 'No response generated';
+    } catch (error) {
+      console.error('DeepTalk Groq service error:', error);
+      throw new Error(`Failed to get response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
-      return {
-        response: content,
-        confidence: 0.9,
-        context: { ...context, groqGenerated: true }
+  async streamMessage(
+    message: string,
+    conversationHistory: GroqChatMessage[] = [],
+    onChunk: (chunk: string) => void,
+    model: string = 'llama3-8b-8192'
+  ): Promise<void> {
+    try {
+      const apiKey = configService.getGroqKey();
+      
+      const messages: GroqChatMessage[] = [
+        {
+          role: 'system',
+          content: 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization.'
+        },
+        ...conversationHistory,
+        {
+          role: 'user',
+          content: message
+        }
+      ];
+
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.7,
+          max_tokens: 1024,
+          top_p: 1,
+          stream: true
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq API error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]') {
+            try {
+              const jsonStr = trimmed.slice(6);
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                onChunk(content);
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+            }
+          }
+        }
       }
     } catch (error) {
-      console.error('Groq API call failed:', error)
-      throw error
+      console.error('DeepTalk Groq stream error:', error);
+      throw error;
     }
   }
 
   isConfigured(): boolean {
-    return !!this.apiKey
+    const apiKey = configService.getGroqKey();
+    return Boolean(apiKey && apiKey.length > 0);
   }
 }
 
-export const deepTalkGroqService = new DeepTalkGroqService()
+export const deepTalkGroqService = DeepTalkGroqService.getInstance();
+export type { GroqChatMessage };
