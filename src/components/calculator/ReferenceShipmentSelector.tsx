@@ -1,83 +1,85 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from '@/components/ui/select';
+import { Package } from 'lucide-react';
 
 interface ShipmentRecord {
   request_reference: string;
   origin_country?: string;
   destination_country?: string;
+  item_category?: string;
 }
 
 interface ReferenceShipmentSelectorProps {
   selectedReference: string | null;
   oldShipments: ShipmentRecord[];
-  refreshingData: boolean;
-  dataStale: boolean;
   onReferenceChange: (value: string) => void;
-  onRefresh: () => void;
+  onClear: () => void;
 }
 
-const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps> = ({
+export const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps> = ({
   selectedReference,
   oldShipments,
-  refreshingData,
-  dataStale,
   onReferenceChange,
-  onRefresh
+  onClear
 }) => {
-  const handleSelectionChange = (value: string) => {
-    if (value !== "__no_shipments__") {
-      onReferenceChange(value);
-    }
-  };
-
   return (
-    <Card className="mb-8 p-4 flex flex-col gap-2 bg-white/20 border border-deepcal-light rounded-xl shadow transition">
-      <div className="flex flex-col md:flex-row md:items-center gap-3">
-        <div className="font-semibold text-purple-300">
-          Reference Shipment:
+    <Card className="glass-card border-2 border-white/30 bg-white/10 shadow-lg mb-6">
+      <CardHeader className="flex flex-row items-center gap-3 pb-1">
+        <Package className="w-6 h-6 text-accent" />
+        <CardTitle className="text-lg font-semibold tracking-tight text-white">
+          Select an Existing Shipment (Reference)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+          <div className="w-full md:w-96">
+            <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-white">
+              Load by Request Reference
+            </Label>
+            <Select
+              value={selectedReference || ""}
+              onValueChange={onReferenceChange}
+              disabled={oldShipments.length === 0}
+            >
+              <SelectTrigger
+                id="old-shipment-select"
+                className="border-2 border-accent/50 rounded-lg px-4 py-2 text-base font-medium bg-white/20 text-white focus:ring-accent shadow transition-all"
+              >
+                <SelectValue placeholder="Select previous shipment..." />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 shadow-2xl border border-accent/40 z-50">
+                {oldShipments.length > 0 ? (
+                  oldShipments.map((s) => (
+                    <SelectItem
+                      value={s.request_reference}
+                      key={s.request_reference}
+                      className="hover:bg-accent/10 text-white font-normal"
+                    >
+                      <span className="font-mono font-medium text-primary">{s.request_reference}</span>
+                      <span className="ml-2 text-gray-300">
+                        {s.origin_country} → {s.destination_country} <span className="text-xs text-gray-400">({s.item_category})</span>
+                      </span>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="__no_shipments__" disabled>
+                    <span className="italic text-gray-400">No shipments available</span>
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedReference && (
+            <Button onClick={onClear} variant="outline" className="border-primary text-white px-3">
+              Clear Selection
+            </Button>
+          )}
         </div>
-        <Select
-          value={selectedReference || ""}
-          onValueChange={handleSelectionChange}
-          disabled={oldShipments.length === 0}
-        >
-          <SelectTrigger className="w-80 min-w-[240px] bg-slate-800/80 border-slate-600 text-slate-200">
-            <SelectValue placeholder="Select Shipment" />
-          </SelectTrigger>
-          <SelectContent className="bg-slate-800 border-slate-600">
-            {oldShipments.length > 0 ?
-              oldShipments.map(sh => (
-                <SelectItem 
-                  value={sh.request_reference}
-                  key={sh.request_reference}
-                  className="text-slate-200 hover:bg-slate-700 py-2"
-                >
-                  <span className="font-mono text-purple-400">{sh.request_reference}</span>
-                  <span className="ml-2 text-slate-400">{sh.origin_country || "?"}→{sh.destination_country || "?"}</span>
-                </SelectItem>
-              )) : (
-                <SelectItem value="__no_shipments__" disabled className="text-slate-500">
-                  No shipments available
-                </SelectItem>
-              )
-            }
-          </SelectContent>
-        </Select>
-        {!dataStale && (
-          <button
-            onClick={onRefresh}
-            disabled={refreshingData}
-            className="px-3 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 rounded border border-slate-600 transition-colors disabled:opacity-50"
-            title="Force refresh data from CSV"
-          >
-            {refreshingData ? '⟳' : '↻'} Refresh
-          </button>
-        )}
-      </div>
+      </CardContent>
     </Card>
   );
 };
-
-export default ReferenceShipmentSelector;
