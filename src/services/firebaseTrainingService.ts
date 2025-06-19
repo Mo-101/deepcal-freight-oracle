@@ -85,7 +85,7 @@ class RealFirebaseTrainingService {
           syntheticSamples: combinedStats.syntheticShipments,
           syntheticRatio: combinedStats.syntheticRatio,
           totalSamples: combinedData.length,
-          includedDatasets: Array.from(syntheticDataEngine['syntheticDatasets'].keys())
+          includedDatasets: ['base_shipments', 'synthetic_datasets']
         }
       };
 
@@ -204,8 +204,8 @@ class RealFirebaseTrainingService {
           size: `${(file.size / 1024).toFixed(1)} KB`
         });
         
-        // Add to synthetic data engine for training
-        syntheticDataEngine.addExternalDataset(filename, data);
+        // Store in local storage for training
+        localStorage.setItem(`training_data_${filename}`, JSON.stringify(data));
         
         return `local://training/${filename}`;
       }
