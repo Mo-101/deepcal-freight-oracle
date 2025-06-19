@@ -40,9 +40,9 @@ export default function ChatInterface({
   }, [messages])
 
   return (
-    <div className="flex-1 lg:max-w-3xl">
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col oracle-card border border-white/20 h-[600px]">
-        <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20 flex justify-between items-center">
+    <div className="h-full flex flex-col">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col oracle-card border border-white/20 h-full">
+        <div className="bg-slate-800/50 px-6 py-3 border-b border-white/20 flex justify-between items-center flex-shrink-0">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <MessageSquare className="text-blue-400" />
             DeepTalk AI Conversation
@@ -53,7 +53,7 @@ export default function ChatInterface({
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-y-auto flex flex-col" id="chatContainer">
+        <div className="flex-1 p-6 overflow-y-auto flex flex-col min-h-0" id="chatContainer">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -62,7 +62,7 @@ export default function ChatInterface({
               >
                 <div className={`flex gap-3 max-w-[80%] ${message.type === "user" ? "flex-row-reverse" : ""}`}>
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                       message.type === "user" ? "bg-blue-600" : "bg-lime-400"
                     }`}
                   >
@@ -117,14 +117,16 @@ export default function ChatInterface({
           <div ref={messagesEndRef} />
         </div>
 
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          onSubmit={onSubmit}
-          onStartListening={onStartListening}
-          isProcessing={isProcessing}
-          isListening={isListening}
-        />
+        <div className="flex-shrink-0">
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            onSubmit={onSubmit}
+            onStartListening={onStartListening}
+            isProcessing={isProcessing}
+            isListening={isListening}
+          />
+        </div>
       </div>
     </div>
   )
