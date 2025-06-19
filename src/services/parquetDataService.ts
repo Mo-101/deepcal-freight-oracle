@@ -149,10 +149,10 @@ class ParquetDataService {
       request_reference: `PQ${String(i + 1).padStart(4, '0')}`,
       origin_country: origins[Math.floor(Math.random() * origins.length)],
       destination_country: destinations[Math.floor(Math.random() * destinations.length)],
-      weight_kg: (Math.random() * 1000 + 100).toFixed(1),
-      volume_cbm: (Math.random() * 50 + 5).toFixed(2),
-      'carrier+cost': (Math.random() * 5000 + 1000).toFixed(2),
-      transit_time_days: Math.floor(Math.random() * 20 + 5).toString()
+      weight_kg: Number((Math.random() * 1000 + 100).toFixed(1)),
+      volume_cbm: Number((Math.random() * 50 + 5).toFixed(2)),
+      'carrier+cost': Number((Math.random() * 5000 + 1000).toFixed(2)),
+      transit_time_days: Math.floor(Math.random() * 20 + 5)
     }));
   }
 }
