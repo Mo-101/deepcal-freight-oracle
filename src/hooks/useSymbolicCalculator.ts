@@ -12,6 +12,8 @@ export const useSymbolicCalculator = () => {
   const {
     inputs,
     setInputs,
+    liveQuotes,
+    setLiveQuotes,
     validation,
     setValidation,
     resetInputs,
@@ -116,11 +118,16 @@ export const useSymbolicCalculator = () => {
 
   // Enhanced awaken oracle function with live scoring
   const awakenOracleWithScoring = async () => {
-    if (!inputs.weight || !inputs.volume || !selectedShipment) return;
+    if (!inputs.weight || !inputs.volume) return;
     
     try {
-      // Start the real-time calculation process
-      await generateAndShowResults(selectedShipment, inputs);
+      // If we have a selected shipment, use real-time calculation
+      if (selectedShipment) {
+        await generateAndShowResults(selectedShipment, inputs);
+      } else {
+        // For new shipments with live quotes, start fresh calculation
+        await baseAwakenOracle();
+      }
       
       // Prepare shipment payload for scoring API
       const shipmentPayload = {
@@ -136,6 +143,7 @@ export const useSymbolicCalculator = () => {
           cost: inputs.priorities.cost / 100,
           risk: inputs.priorities.risk / 100,
         },
+        liveQuotes: liveQuotes // Include live quotes in payload
       };
 
       // Call the live scoring API (optional enhancement)
@@ -157,6 +165,8 @@ export const useSymbolicCalculator = () => {
   return {
     inputs,
     setInputs,
+    liveQuotes,
+    setLiveQuotes,
     shipments,
     selectedReference,
     setSelectedReference,

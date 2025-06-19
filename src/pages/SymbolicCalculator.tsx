@@ -12,6 +12,8 @@ const SymbolicCalculator = () => {
   const {
     inputs,
     setInputs,
+    liveQuotes,
+    setLiveQuotes,
     shipments,
     selectedReference,
     setSelectedReference,
@@ -54,11 +56,13 @@ const SymbolicCalculator = () => {
           <div className="lg:col-span-1">
             <ShipmentConfigurationPanel
               inputs={inputs}
+              liveQuotes={liveQuotes}
               validation={validation}
               forwarderRFQ={forwarderRFQ}
               isAwakening={isAwakening}
               shipments={shipments}
               onInputsChange={setInputs}
+              onLiveQuotesChange={setLiveQuotes}
               onPrioritiesChange={handlePrioritiesChange}
               onForwarderToggle={handleForwarderToggle}
               onRFQChange={handleRFQChange}

@@ -1,52 +1,71 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { CalculatorInputs } from '@/types/shipment';
 
-const DEFAULT_INPUTS: CalculatorInputs = {
-  origin: '',
-  destination: '',
-  weight: 0,
-  volume: 0,
-  cargoType: 'Emergency Health Kits',
-  modeOfShipment: 'Air',
-  priorities: {
-    time: 33,
-    cost: 33,
-    risk: 34
-  },
-  selectedForwarders: []
-};
+interface LiveQuote {
+  forwarder: string;
+  cost: number;
+  transitDays: number;
+  notes?: string;
+}
 
 export const useCalculatorInputs = () => {
-  const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
-  const [validation, setValidation] = useState<{weight?: string; volume?: string}>({});
+  const [inputs, setInputs] = useState<CalculatorInputs>({
+    origin: '',
+    destination: '',
+    weight: 0,
+    volume: 0,
+    cargoType: '',
+    modeOfShipment: 'Air',
+    priorities: {
+      time: 40,
+      cost: 40,
+      risk: 20
+    },
+    selectedForwarders: []
+  });
 
-  const resetInputs = () => {
-    setInputs(DEFAULT_INPUTS);
-  };
+  const [liveQuotes, setLiveQuotes] = useState<LiveQuote[]>([]);
+  const [validation, setValidation] = useState<{ weight?: string; volume?: string }>({});
 
-  const handlePrioritiesChange = (priorities: CalculatorInputs["priorities"]) => {
-    setInputs((prev) => ({
-      ...prev,
-      priorities,
-    }));
-  };
+  const resetInputs = useCallback(() => {
+    setInputs({
+      origin: '',
+      destination: '',
+      weight: 0,
+      volume: 0,
+      cargoType: '',
+      modeOfShipment: 'Air',
+      priorities: {
+        time: 40,
+        cost: 40,
+        risk: 20
+      },
+      selectedForwarders: []
+    });
+    setLiveQuotes([]);
+  }, []);
 
-  const handleForwarderToggle = (forwarder: string) => {
+  const handlePrioritiesChange = useCallback((priorities: CalculatorInputs["priorities"]) => {
+    setInputs(prev => ({ ...prev, priorities }));
+  }, []);
+
+  const handleForwarderToggle = useCallback((forwarder: string) => {
     setInputs(prev => {
-      const selected = prev.selectedForwarders.includes(forwarder)
+      const isSelected = prev.selectedForwarders.includes(forwarder);
+      const selectedForwarders = isSelected
         ? prev.selectedForwarders.filter(f => f !== forwarder)
         : [...prev.selectedForwarders, forwarder];
-      return {
-        ...prev,
-        selectedForwarders: selected
-      };
+      
+      return { ...prev, selectedForwarders };
     });
-  };
+  }, []);
 
   return {
     inputs,
     setInputs,
+    liveQuotes,
+    setLiveQuotes,
     validation,
     setValidation,
     resetInputs,

@@ -1,18 +1,27 @@
-
 import React from 'react';
 import { Info } from "lucide-react";
 import { CalculatorInputs, ShipmentData } from '@/types/shipment';
 import { CARGO_TYPE_OPTIONS, FORWARDER_OPTIONS } from '@/utils/shipmentMapper';
 import InteractivePrioritySliders from "@/components/InteractivePrioritySliders";
 import ForwarderRFQInputs, { ForwarderRFQData } from "@/components/ForwarderRFQInputs";
+import LiveQuoteInputs from './LiveQuoteInputs';
+
+interface LiveQuote {
+  forwarder: string;
+  cost: number;
+  transitDays: number;
+  notes?: string;
+}
 
 interface ShipmentConfigurationPanelProps {
   inputs: CalculatorInputs;
+  liveQuotes: LiveQuote[];
   validation: { weight?: string; volume?: string };
   forwarderRFQ: Record<string, ForwarderRFQData>;
   isAwakening: boolean;
   shipments: ShipmentData[];
   onInputsChange: (inputs: CalculatorInputs) => void;
+  onLiveQuotesChange: (quotes: LiveQuote[]) => void;
   onPrioritiesChange: (priorities: CalculatorInputs["priorities"]) => void;
   onForwarderToggle: (forwarder: string) => void;
   onRFQChange: (forwarder: string, data: ForwarderRFQData) => void;
@@ -21,11 +30,13 @@ interface ShipmentConfigurationPanelProps {
 
 const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
   inputs,
+  liveQuotes,
   validation,
   forwarderRFQ,
   isAwakening,
   shipments,
   onInputsChange,
+  onLiveQuotesChange,
   onPrioritiesChange,
   onForwarderToggle,
   onRFQChange,
@@ -204,6 +215,14 @@ const ShipmentConfigurationPanel: React.FC<ShipmentConfigurationPanelProps> = ({
               ))}
             </select>
           </div>
+        </div>
+        
+        {/* Live Quote Inputs - NEW SECTION */}
+        <div>
+          <LiveQuoteInputs
+            quotes={liveQuotes}
+            onQuotesChange={onLiveQuotesChange}
+          />
         </div>
         
         {/* Priority Weighting */}

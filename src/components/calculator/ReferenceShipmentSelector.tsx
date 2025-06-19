@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectItem, SelectContent, SelectValue } from '@/components/ui/select';
-import { Package } from 'lucide-react';
+import { Package, RefreshCw } from 'lucide-react';
 
 interface ShipmentRecord {
   request_reference: string;
@@ -16,14 +16,20 @@ interface ShipmentRecord {
 interface ReferenceShipmentSelectorProps {
   selectedReference: string | null;
   oldShipments: ShipmentRecord[];
+  refreshingData?: boolean;
+  dataStale?: boolean;
   onReferenceChange: (value: string) => void;
-  onClear: () => void;
+  onRefresh?: () => Promise<void>;
+  onClear?: () => void;
 }
 
 export const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps> = ({
   selectedReference,
   oldShipments,
+  refreshingData = false,
+  dataStale = false,
   onReferenceChange,
+  onRefresh,
   onClear
 }) => {
   return (
@@ -33,8 +39,28 @@ export const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps>
         <CardTitle className="text-lg font-semibold tracking-tight text-white">
           Select an Existing Shipment (Reference)
         </CardTitle>
+        {onRefresh && (
+          <Button
+            onClick={onRefresh}
+            disabled={refreshingData}
+            variant="outline"
+            size="sm"
+            className="ml-auto border-accent text-white"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshingData ? 'animate-spin' : ''}`} />
+            {refreshingData ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
+        {dataStale && (
+          <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-500 rounded-lg">
+            <p className="text-yellow-400 text-sm">
+              ⚠️ Data may be outdated. Click refresh to load latest shipments.
+            </p>
+          </div>
+        )}
+        
         <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
           <div className="w-full md:w-96">
             <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-white">
@@ -43,7 +69,7 @@ export const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps>
             <Select
               value={selectedReference || ""}
               onValueChange={onReferenceChange}
-              disabled={oldShipments.length === 0}
+              disabled={oldShipments.length === 0 || refreshingData}
             >
               <SelectTrigger
                 id="old-shipment-select"
@@ -73,7 +99,7 @@ export const ReferenceShipmentSelector: React.FC<ReferenceShipmentSelectorProps>
               </SelectContent>
             </Select>
           </div>
-          {selectedReference && (
+          {selectedReference && onClear && (
             <Button onClick={onClear} variant="outline" className="border-primary text-white px-3">
               Clear Selection
             </Button>
