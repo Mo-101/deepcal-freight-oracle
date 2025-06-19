@@ -1,4 +1,3 @@
-
 import { csvDataEngine } from './csvDataEngine';
 import { syntheticDataService, SyntheticDataset } from './syntheticDataService';
 import { trainingService, WeightMatrix } from './trainingService';
@@ -15,6 +14,7 @@ class SyntheticDataEngine {
   private static instance: SyntheticDataEngine;
   private syntheticDatasets: Map<string, SyntheticDataset> = new Map();
   private currentWeights: WeightMatrix | null = null;
+  private trainingDataHash: string | null = null;
 
   private constructor() {}
 
@@ -109,6 +109,78 @@ class SyntheticDataEngine {
         averagePrivacyScore: this.calculateAveragePrivacyScore(filteredShipments),
         anonymityLevel: this.calculateAnonymityLevel(filteredShipments)
       }
+    };
+  }
+
+  /**
+   * Check if training data needs to be updated
+   */
+  isTrainingDataStale(): boolean {
+    const currentData = this.getCombinedShipments();
+    const currentHash = this.generateDataHash(currentData);
+    return this.trainingDataHash !== currentHash;
+  }
+
+  /**
+   * Generate hash for training data state
+   */
+  private generateDataHash(data: EnhancedShipmentRecord[]): string {
+    const dataString = JSON.stringify(data.map(record => ({
+      id: record.request_reference,
+      synthetic: record.synthetic,
+      timestamp: record.synthetic ? record.generationId : 'real'
+    })));
+    
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < dataString.length; i++) {
+      const char = dataString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString();
+  }
+
+  /**
+   * Mark training data as synced
+   */
+  markTrainingDataSynced(): void {
+    const currentData = this.getCombinedShipments();
+    this.trainingDataHash = this.generateDataHash(currentData);
+  }
+
+  /**
+   * Get training readiness status
+   */
+  getTrainingReadiness(): {
+    isReady: boolean;
+    dataStale: boolean;
+    totalSamples: number;
+    syntheticRatio: number;
+    recommendations: string[];
+  } {
+    const stats = this.getEnhancedStatistics();
+    const isStale = this.isTrainingDataStale();
+    const recommendations: string[] = [];
+
+    if (stats.totalShipments < 100) {
+      recommendations.push('Consider generating more synthetic data for better training');
+    }
+    
+    if (stats.syntheticRatio < 1.0) {
+      recommendations.push('Increase synthetic data ratio for better model generalization');
+    }
+    
+    if (stats.dataQuality.completeness < 0.8) {
+      recommendations.push('Improve data completeness before training');
+    }
+
+    return {
+      isReady: stats.totalShipments >= 50 && stats.dataQuality.completeness > 0.7,
+      dataStale: isStale,
+      totalSamples: stats.totalShipments,
+      syntheticRatio: stats.syntheticRatio,
+      recommendations
     };
   }
 

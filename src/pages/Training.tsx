@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DeepCALHeader from '@/components/DeepCALHeader';
@@ -11,6 +10,7 @@ import { WeightsConfigTab } from '@/components/training/WeightsConfigTab';
 import { AdvancedConfigTab } from '@/components/training/AdvancedConfigTab';
 import { LiveMetricsPanel } from '@/components/training/LiveMetricsPanel';
 import { TrainingLogsPanel } from '@/components/training/TrainingLogsPanel';
+import { SyntheticDataSync } from '@/components/training/SyntheticDataSync';
 
 export interface WeightVector {
   cost: number;
@@ -223,14 +223,17 @@ export default function TrainingPage() {
                 )}
 
                 {activeTab === 'synthetic' && (
-                  <SyntheticDataManager 
-                    onDataGenerated={() => {
-                      toast({ 
-                        title: 'Synthetic Data Ready', 
-                        description: 'New synthetic training data is available for model retraining' 
-                      });
-                    }}
-                  />
+                  <div className="space-y-6">
+                    <SyntheticDataSync />
+                    <SyntheticDataManager 
+                      onDataGenerated={() => {
+                        toast({ 
+                          title: 'Synthetic Data Ready', 
+                          description: 'New synthetic training data is available for model retraining' 
+                        });
+                      }}
+                    />
+                  </div>
                 )}
 
                 {activeTab === 'advanced' && (
