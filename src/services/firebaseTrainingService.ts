@@ -1,4 +1,5 @@
 
+import axios from 'axios';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -32,6 +33,21 @@ if (isFirebaseConfigured) {
   }
 }
 
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://your-backend-domain.com/api' 
+  : 'http://localhost:8000/api';
+
+export interface TrainingStatus {
+  jobId: string;
+  progress: number;
+  loss: number;
+  accuracy: number;
+  stage: string;
+  completed: boolean;
+  startedAt: string;
+  finishedAt?: string;
+}
+
 export interface FirebaseTrainingJob {
   id: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
@@ -54,18 +70,107 @@ export interface FirebaseTrainingJob {
   };
 }
 
-class RealFirebaseTrainingService {
-  private static instance: RealFirebaseTrainingService;
+type TrainingCallback = (status: TrainingStatus) => void;
+
+export class FirebaseTrainingService {
+  private static instance: FirebaseTrainingService;
 
   private constructor() {}
 
-  public static getInstance(): RealFirebaseTrainingService {
-    if (!RealFirebaseTrainingService.instance) {
-      RealFirebaseTrainingService.instance = new RealFirebaseTrainingService();
+  public static getInstance(): FirebaseTrainingService {
+    if (!FirebaseTrainingService.instance) {
+      FirebaseTrainingService.instance = new FirebaseTrainingService();
     }
-    return RealFirebaseTrainingService.instance;
+    return FirebaseTrainingService.instance;
   }
 
+  // Real training: start a training job on the backend
+  async startTraining(params: Record<string, any>): Promise<string> {
+    try {
+      console.log('Starting real backend training with params:', params);
+      const response = await axios.post(`${API_URL}/training/start`, params);
+      return response.data.id; // Backend returns job ID for tracking
+    } catch (error) {
+      console.error('Failed to start real training:', error);
+      throw error;
+    }
+  }
+
+  // Real-time training progress: use server-sent events or polling
+  async monitorTraining(jobId: string, onUpdate: TrainingCallback): Promise<() => void> {
+    let running = true;
+
+    async function poll() {
+      if (!running) return;
+      try {
+        const response = await axios.get(`${API_URL}/training/jobs/${jobId}`);
+        const job = response.data;
+        
+        const status: TrainingStatus = {
+          jobId: job.id,
+          progress: job.progress,
+          loss: job.metrics?.currentLoss || 0.25,
+          accuracy: job.accuracy || 0,
+          stage: job.stage || 'training',
+          completed: job.status === 'completed' || job.status === 'failed',
+          startedAt: job.startedAt,
+          finishedAt: job.completedAt
+        };
+        
+        onUpdate(status);
+        
+        if (!status.completed) {
+          setTimeout(poll, 2000); // Poll every 2s
+        }
+      } catch (e) {
+        console.error('Training monitor error:', e);
+        running = false;
+      }
+    }
+    
+    poll();
+    return () => { running = false; };
+  }
+
+  // Get list of all training jobs
+  async listTrainingJobs(): Promise<TrainingStatus[]> {
+    try {
+      const response = await axios.get(`${API_URL}/training/jobs`);
+      return response.data.jobs || response.data;
+    } catch (error) {
+      console.error('Failed to list training jobs:', error);
+      return [];
+    }
+  }
+
+  // Legacy/Simulated fallback for demo mode
+  async simulateTraining(duration = 10000, onUpdate: TrainingCallback): Promise<void> {
+    const start = Date.now();
+    let progress = 0;
+    let interval: NodeJS.Timeout;
+
+    function fakeStatus(): TrainingStatus {
+      progress = Math.min(100, ((Date.now() - start) / duration) * 100);
+      return {
+        jobId: 'SIMULATED',
+        progress,
+        loss: 0.2 - (progress / 100) * 0.1 + (Math.random() * 0.01),
+        accuracy: 90 + (progress / 100) * 5 + (Math.random() * 0.5),
+        stage: progress < 100 ? 'Training' : 'Completed',
+        completed: progress >= 100,
+        startedAt: new Date(start).toISOString(),
+        finishedAt: progress >= 100 ? new Date().toISOString() : undefined,
+      };
+    }
+
+    interval = setInterval(() => {
+      const status = fakeStatus();
+      onUpdate(status);
+      if (status.completed) clearInterval(interval);
+    }, 1000);
+  }
+
+  // Legacy method compatibility
   async startTrainingJob(config: {
     dataSource: string;
     modelType: string;
@@ -89,9 +194,9 @@ class RealFirebaseTrainingService {
         }
       };
 
-      console.log('Starting real Firebase training job with config:', trainingConfig);
+      console.log('Starting real training job with config:', trainingConfig);
 
-      if (!isFirebaseConfigured || !functions) {
+      if (!isFirebaseConfigured) {
         // Use backend training service as fallback
         console.log('Firebase not configured, using backend training service...');
         
@@ -304,4 +409,5 @@ class RealFirebaseTrainingService {
   }
 }
 
-export const firebaseTrainingService = RealFirebaseTrainingService.getInstance();
+// Singleton instance for app-wide use
+export const firebaseTrainingService = FirebaseTrainingService.getInstance();
