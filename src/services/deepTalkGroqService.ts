@@ -17,9 +17,21 @@ interface GroqChatMessage {
 interface GroqContextualResponse {
   response: string;
   confidence: number;
-  context: any;
+  context: GroqContext;
 }
 
+interface GroqContext {
+  intent?: string;
+  routeDatabase?: any[];
+  userPreferences?: any;
+  conversationHistory?: any[];
+  currentShipment?: any;
+}
+
+/**
+ * DeepTalkGroqService - AI-powered logistics assistant service
+ * Provides intelligent responses using Groq's API with OpenAI compatibility
+ */
 class DeepTalkGroqService {
   private static instance: DeepTalkGroqService;
   private baseURL = 'https://api.groq.com/openai/v1';
@@ -33,30 +45,27 @@ class DeepTalkGroqService {
     return DeepTalkGroqService.instance;
   }
 
+  /**
+   * Updates the Groq API key
+   */
   setApiKey(apiKey: string): void {
     configService.updateKeys(undefined, apiKey);
   }
 
-  async generateResponse(query: string, context: any): Promise<GroqContextualResponse> {
-    try {
-      const systemPrompt = this.buildSystemPrompt(context);
-      const response = await this.sendMessage(query, [], 'llama3-8b-8192');
-      
-      return {
-        response,
-        confidence: 0.9,
-        context: context
-      };
-    } catch (error) {
-      console.error('Generate response error:', error);
-      throw error;
-    }
+  /**
+   * Gets the default system prompt for DeepCAL AI
+   */
+  private getSystemPrompt(): string {
+    return 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization. Be conversational but authoritative.';
   }
 
-  private buildSystemPrompt(context: any): string {
+  /**
+   * Builds a context-aware system prompt based on available data
+   */
+  private buildSystemPrompt(context: GroqContext): string {
     const { intent, routeDatabase, userPreferences } = context;
     
-    let prompt = 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics.';
+    let prompt = this.getSystemPrompt();
     
     if (routeDatabase && routeDatabase.length > 0) {
       prompt += `\n\nAvailable routes: ${JSON.stringify(routeDatabase.slice(0, 3))}`;
@@ -66,23 +75,52 @@ class DeepTalkGroqService {
       prompt += `\n\nUser intent: ${intent}`;
     }
     
-    prompt += '\n\nProvide intelligent, data-driven responses about logistics, shipping, and supply chain optimization. Be conversational but authoritative.';
+    if (userPreferences) {
+      prompt += `\n\nUser preferences: ${JSON.stringify(userPreferences)}`;
+    }
     
     return prompt;
   }
 
+  /**
+   * Generates a contextual response using Groq AI
+   */
+  async generateResponse(query: string, context: GroqContext): Promise<GroqContextualResponse> {
+    try {
+      const systemPrompt = this.buildSystemPrompt(context);
+      const response = await this.sendMessage(query, [], 'llama3-8b-8192', systemPrompt);
+      
+      return {
+        response,
+        confidence: 0.9,
+        context: context
+      };
+    } catch (error) {
+      console.error('Generate response error:', error);
+      throw new Error(`Failed to generate response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Sends a message to Groq API and returns the response
+   */
   async sendMessage(
     message: string,
     conversationHistory: GroqChatMessage[] = [],
-    model: string = 'llama3-8b-8192'
+    model: string = 'llama3-8b-8192',
+    systemPrompt: string = this.getSystemPrompt()
   ): Promise<string> {
     try {
       const apiKey = configService.getGroqKey();
       
+      if (!apiKey) {
+        throw new Error('Groq API key not configured');
+      }
+      
       const messages: GroqChatMessage[] = [
         {
           role: 'system',
-          content: 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. You specialize in supply chain intelligence, route optimization, and freight analytics. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization.'
+          content: systemPrompt
         },
         ...conversationHistory,
         {
@@ -108,7 +146,7 @@ class DeepTalkGroqService {
       });
 
       if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status}`);
+        throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
       }
 
       const data: GroqResponse = await response.json();
@@ -119,19 +157,27 @@ class DeepTalkGroqService {
     }
   }
 
+  /**
+   * Streams a message response from Groq API
+   */
   async streamMessage(
     message: string,
     conversationHistory: GroqChatMessage[] = [],
     onChunk: (chunk: string) => void,
-    model: string = 'llama3-8b-8192'
+    model: string = 'llama3-8b-8192',
+    systemPrompt: string = this.getSystemPrompt()
   ): Promise<void> {
     try {
       const apiKey = configService.getGroqKey();
       
+      if (!apiKey) {
+        throw new Error('Groq API key not configured');
+      }
+      
       const messages: GroqChatMessage[] = [
         {
           role: 'system',
-          content: 'You are DeepCAL AI, an advanced logistics and freight optimization assistant. Provide intelligent, data-driven responses about logistics, shipping, and supply chain optimization.'
+          content: systemPrompt
         },
         ...conversationHistory,
         {
@@ -157,7 +203,7 @@ class DeepTalkGroqService {
       });
 
       if (!response.ok) {
-        throw new Error(`Groq API error: ${response.status}`);
+        throw new Error(`Groq API error: ${response.status} ${response.statusText}`);
       }
 
       const reader = response.body?.getReader();
@@ -185,17 +231,21 @@ class DeepTalkGroqService {
                 onChunk(content);
               }
             } catch (e) {
-              // Skip invalid JSON lines
+              // Skip invalid JSON lines - this is normal with streaming
+              console.debug('Skipped invalid streaming JSON:', trimmed);
             }
           }
         }
       }
     } catch (error) {
       console.error('DeepTalk Groq stream error:', error);
-      throw error;
+      throw new Error(`Failed to stream response: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
+  /**
+   * Checks if the service is properly configured with API key
+   */
   isConfigured(): boolean {
     const apiKey = configService.getGroqKey();
     return Boolean(apiKey && apiKey.length > 0);
@@ -203,4 +253,4 @@ class DeepTalkGroqService {
 }
 
 export const deepTalkGroqService = DeepTalkGroqService.getInstance();
-export type { GroqChatMessage };
+export type { GroqChatMessage, GroqContext, GroqContextualResponse };
