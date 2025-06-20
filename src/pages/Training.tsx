@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import DeepCALHeader from '@/components/DeepCALHeader';
@@ -243,7 +244,7 @@ export default function TrainingPage() {
             progress: index === 0 ? 10 : 0,
             status: index === 0 ? 'active' : 'pending',
             timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
-          }));
+          })));
           
           toast({ 
             title: 'Real Training Started', 
