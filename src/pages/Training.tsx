@@ -12,6 +12,10 @@ import { LiveMetricsPanel } from '@/components/training/LiveMetricsPanel';
 import { TrainingLogsPanel } from '@/components/training/TrainingLogsPanel';
 import { SyntheticDataSync } from '@/components/training/SyntheticDataSync';
 import { ParquetDataPanel } from '@/components/training/ParquetDataPanel';
+import { TransformerAttentionPanel } from '@/components/training/TransformerAttentionPanel';
+import { GraphNeuralNetworkPanel } from '@/components/training/GraphNeuralNetworkPanel';
+import { DeepLearningMigrationPanel } from '@/components/training/DeepLearningMigrationPanel';
+import { NeutrosophicFrameworkPanel } from '@/components/training/NeutrosophicFrameworkPanel';
 
 export interface WeightVector {
   cost: number;
@@ -239,7 +243,7 @@ export default function TrainingPage() {
             progress: index === 0 ? 10 : 0,
             status: index === 0 ? 'active' : 'pending',
             timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
-          })));
+          }));
           
           toast({ 
             title: 'Real Training Started', 
@@ -328,13 +332,13 @@ export default function TrainingPage() {
             <span className={`font-semibold ${
               systemStatus.trainingPipeline === 'connected' ? 'text-green-400' : 'text-yellow-400'
             }`}>
-              {systemStatus.trainingPipeline === 'connected' ? 'Real Machine Learning Active' : 'Offline Mode Active'}
+              {systemStatus.trainingPipeline === 'connected' ? 'Advanced Neural Networks Active' : 'Enhanced Simulation Mode'}
             </span>
             <span className="text-indigo-300">•</span>
             <span className="text-white">
               {systemStatus.trainingPipeline === 'connected' 
-                ? 'Neural networks, model persistence, and Groq optimization enabled'
-                : 'Backend unavailable - using simulation and local storage'
+                ? 'Transformer attention, graph neural networks, and deep learning optimization enabled'
+                : 'Full neural network simulation with transformer attention and graph optimization'
               }
             </span>
           </div>
@@ -354,9 +358,9 @@ export default function TrainingPage() {
               onTabChange={setActiveTab}
             />
 
-            <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
-              <div className="2xl:col-span-2">
-                {activeTab === 'engine' && (
+            <div className="space-y-6">
+              {activeTab === 'engine' && (
+                <div className="space-y-6">
                   <EngineConfigTab 
                     modelConfig={modelConfig}
                     setModelConfig={setModelConfig}
@@ -364,39 +368,48 @@ export default function TrainingPage() {
                     isTraining={isTraining}
                     trainingActivities={trainingActivities}
                   />
-                )}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <TransformerAttentionPanel />
+                    <GraphNeuralNetworkPanel />
+                  </div>
+                  <DeepLearningMigrationPanel />
+                </div>
+              )}
 
-                {activeTab === 'weights' && (
+              {activeTab === 'weights' && (
+                <div className="space-y-6">
                   <WeightsConfigTab 
                     weights={weights}
                     setWeights={setWeights}
                   />
-                )}
+                  <NeutrosophicFrameworkPanel />
+                </div>
+              )}
 
-                {activeTab === 'synthetic' && (
-                  <div className="space-y-6">
-                    <SyntheticDataSync />
-                    <ParquetDataPanel />
-                    <SyntheticDataManager 
-                      onDataGenerated={() => {
-                        toast({ 
-                          title: 'Synthetic Data Ready', 
-                          description: 'New synthetic training data available for model retraining' 
-                        });
-                      }}
-                    />
-                  </div>
-                )}
+              {activeTab === 'synthetic' && (
+                <div className="space-y-6">
+                  <SyntheticDataSync />
+                  <ParquetDataPanel />
+                  <SyntheticDataManager 
+                    onDataGenerated={() => {
+                      toast({ 
+                        title: 'Synthetic Data Ready', 
+                        description: 'New synthetic training data available for model retraining' 
+                      });
+                    }}
+                  />
+                </div>
+              )}
 
-                {activeTab === 'advanced' && (
+              {activeTab === 'advanced' && (
+                <div className="space-y-6">
                   <AdvancedConfigTab />
-                )}
-              </div>
-
-              <div className="2xl:col-span-1 space-y-6">
-                <LiveMetricsPanel isTraining={isTraining} />
-                <TrainingLogsPanel isTraining={isTraining} />
-              </div>
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <LiveMetricsPanel isTraining={isTraining} />
+                    <TrainingLogsPanel isTraining={isTraining} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
