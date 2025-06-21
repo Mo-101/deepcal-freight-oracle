@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import Training from "./pages/Training";
+import RFQPage from "./pages/RFQPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/deeptalk" element={<DeepTalk />} />
             <Route path="/training" element={<Training />} />
+            <Route path="/rfq" element={<RFQPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
