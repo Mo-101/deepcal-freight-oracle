@@ -30,12 +30,15 @@ export interface ShipmentData {
   item_description?: string;
   date_of_collection?: string;
   date_of_arrival_destination?: string;
+  pickup_date?: string;
+  delivery_date?: string;
   shipment_date?: string;
   delivery_status?: string;
   mode_of_shipment?: string;
   final_quote_awarded_freight_forwader_carrier?: string;
   initial_quote_awarded?: string;
   awarded_forwarder?: string;
+  carrier?: string;
   kuehne_nagel?: number;
   'kuehne+nagel'?: number;
   dhl_global?: number;
@@ -47,8 +50,8 @@ export interface ShipmentData {
   agility?: number;
   frieght_in_time?: number;
   transit_days?: number;
-  'carrier+cost'?: number;
-  carrier_cost?: number;
+  'carrier+cost'?: number | string;
+  carrier_cost?: number | string;
   'emergency grade'?: string;
 }
 

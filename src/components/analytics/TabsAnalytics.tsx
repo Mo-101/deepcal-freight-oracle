@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,11 +28,11 @@ export const TabsAnalytics: React.FC<TabsAnalyticsProps> = ({ shipmentData }) =>
     const carrierPerformance: Record<string, { count: number; avgCost: number; totalCost: number }> = {};
 
     shipmentData.forEach(shipment => {
-      const dateStr = shipment.pickup_date || shipment.delivery_date || '2024-01-01';
+      const dateStr = shipment.pickup_date || shipment.delivery_date || shipment.date_of_collection || '2024-01-01';
       const month = new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
       
       const costField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
+      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
       
       // Monthly costs
       monthlyCosts[month] = (monthlyCosts[month] || 0) + costNum;
@@ -45,13 +46,13 @@ export const TabsAnalytics: React.FC<TabsAnalyticsProps> = ({ shipmentData }) =>
       routePerformance[route].totalCost += costNum;
       
       // Carrier analysis
-      const carrier = shipment.carrier || 'Unknown';
+      const carrier = shipment.carrier || shipment.final_quote_awarded_freight_forwader_carrier || 'Unknown';
       if (!carrierPerformance[carrier]) {
         carrierPerformance[carrier] = { count: 0, avgCost: 0, totalCost: 0 };
       }
       carrierPerformance[carrier].count++;
       const carrierCostField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const carrierCostNum = typeof carrierCostField === 'string' ? parseFloat(carrierCostField.replace(/[^0-9.-]/g, '')) : Number(carrierCostField) || 0;
+      const carrierCostNum = typeof carrierCostField === 'string' ? parseFloat(carrierCostField.toString().replace(/[^0-9.-]/g, '')) : Number(carrierCostField) || 0;
       carrierPerformance[carrier].totalCost += carrierCostNum;
     });
 
@@ -74,7 +75,7 @@ export const TabsAnalytics: React.FC<TabsAnalyticsProps> = ({ shipmentData }) =>
     const timeAnalysis = costAnalysis.map(item => ({
       month: item.month,
       shipments: shipmentData.filter(s => {
-        const dateStr = s.pickup_date || s.delivery_date || '2024-01-01';
+        const dateStr = s.pickup_date || s.delivery_date || s.date_of_collection || '2024-01-01';
         return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) === item.month;
       }).length
     }));
@@ -108,7 +109,7 @@ export const TabsAnalytics: React.FC<TabsAnalyticsProps> = ({ shipmentData }) =>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultvalue="cost" className="w-full">
+        <Tabs defaultValue="cost" className="w-full">
           <TabsList>
             <TabsTrigger value="cost" className="text-indigo-300">
               <TrendingUp className="w-4 h-4 mr-2" />

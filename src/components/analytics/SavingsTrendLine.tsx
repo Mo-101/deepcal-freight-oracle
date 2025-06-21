@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
@@ -20,7 +21,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
     }> = {};
 
     shipmentData.forEach(shipment => {
-      const dateStr = shipment.pickup_date || shipment.delivery_date || '2024-01-01';
+      const dateStr = shipment.pickup_date || shipment.delivery_date || shipment.date_of_collection || '2024-01-01';
       const date = new Date(dateStr);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
@@ -33,7 +34,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
       }
       
       const costField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
+      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
       monthlyData[monthKey].totalCost += costNum;
       monthlyData[monthKey].shipmentCount++;
     });
@@ -85,7 +86,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={savingsData}>
               <XAxis dataKey="month" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value.toFixed(2)}`} />
+              <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${Number(value).toFixed(2)}`} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(30, 41, 59, 0.9)', 
@@ -93,7 +94,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
                   borderRadius: '8px',
                   color: 'white'
                 }}
-                formatter={(value) => [`$${value.toFixed(2)}`, 'Average Cost']}
+                formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Average Cost']}
                 labelFormatter={(label) => `Month: ${label}`}
               />
               <Line type="monotone" dataKey="avgCost" stroke="#82ca9d" strokeWidth={2} dot={false} />
