@@ -3,7 +3,7 @@ import React from "react";
 import DeepCALHeader from "@/components/DeepCALHeader";
 import { BrainCog, Target, Zap, Shield, Globe, TrendingUp } from "lucide-react";
 
-const Dashboard: React.FC = () => {
+const About: React.FC = () => {
   const features = [
     {
       icon: <BrainCog className="w-6 h-6 sm:w-8 sm:h-8 text-lime-400" />,
@@ -142,4 +142,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default About;

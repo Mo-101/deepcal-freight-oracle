@@ -17,8 +17,8 @@ const DeepCALHeader: React.FC = () => {
           <Link to="/calculator" className="text-white hover:text-deepcal-light transition-colors">
             Calculator
           </Link>
-          <Link to="/dashboard" className="text-white hover:text-deepcal-light transition-colors">
-            Dashboard
+          <Link to="/about" className="text-white hover:text-deepcal-light transition-colors">
+            About
           </Link>
           <Link to="/analytics" className="text-white hover:text-deepcal-light transition-colors">
             Analytics
@@ -29,6 +29,9 @@ const DeepCALHeader: React.FC = () => {
           <Link to="/training" className="text-white hover:text-deepcal-light transition-colors">
             Training
           </Link>
+            <Link to="/map" className="text-white hover:text-deepcal-light transition-colors">
+              Map
+            </Link>
           <Link to="/rfq" className="text-white hover:text-deepcal-light transition-colors">
             RFQ
           </Link>

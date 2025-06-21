@@ -71,3 +71,10 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Map Page
+
+The map uses Mapbox. Provide a `VITE_MAPBOX_TOKEN` to override the default token
+and style if desired. By default the page loads with style
+`mapbox://styles/akanimo1/cm8bw23rp00i501sbgbr258r0` and token
+`pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g`.

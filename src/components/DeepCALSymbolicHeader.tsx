@@ -6,10 +6,11 @@ import { Dumbbell, Calculator } from "lucide-react";
 const navLinks = [
   { label: "Home", to: "/" },
   { label: "Calculator", to: "/calculator", icon: Calculator },
-  { label: "Dashboard", to: "/dashboard" },
+  { label: "About", to: "/about" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
+  { label: "Map", to: "/map" },
 ];
 
 const DeepCALSymbolicHeader: React.FC = () => {
@@ -39,8 +40,8 @@ const DeepCALSymbolicHeader: React.FC = () => {
                     : ""
                 ].join(" ")}
               >
-                {link.icon && <link.icon className="w-4 h-4" />}
                 {link.label}
+                {link.icon && <link.icon className="w-4 h-4" />}
               </Link>
             ))}
           </nav>
