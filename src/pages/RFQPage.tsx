@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import DeepCALHeader from '@/components/DeepCALHeader';
+import React from 'react';
+import UnifiedGlassHeader from '@/components/UnifiedGlassHeader';
 import { RFQManager } from '@/components/rfq/RFQManager';
 import { CargoReadinessRFQForm } from '@/components/rfq/CargoReadinessRFQForm';
 import { NewShipmentForm } from '@/components/rfq/NewShipmentForm';
@@ -11,7 +10,7 @@ import { FileText, Package, ClipboardList } from 'lucide-react';
 export default function RFQPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-      <DeepCALHeader />
+      <UnifiedGlassHeader />
       
       <div className="container max-w-full mx-auto py-6 px-6">
         <Card className="bg-slate-800/30 border-slate-700 backdrop-blur-lg mb-6">

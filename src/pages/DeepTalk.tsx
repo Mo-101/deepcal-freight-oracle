@@ -1,9 +1,8 @@
-
 "use client"
 
 import type React from "react"
 import { useState } from "react"
-import DeepCALHeader from "@/components/DeepCALHeader"
+import UnifiedGlassHeader from "@/components/UnifiedGlassHeader"
 import ChatInterface from "@/components/deeptalk/ChatInterface"
 import VoiceConfig from "@/components/deeptalk/VoiceConfig"
 import GroqConfig from "@/components/deeptalk/GroqConfig"
@@ -205,9 +204,9 @@ const DeepTalk = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 overflow-hidden">
-      <DeepCALHeader />
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
+      <UnifiedGlassHeader />
+      
       <main className="flex-1 flex flex-col px-6 py-4 min-h-0">
         {/* Header Controls */}
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
