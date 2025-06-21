@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     hmr: {
       port: 8080,
+      host: 'localhost'
     },
   },
   plugins: [
@@ -24,5 +25,6 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     global: 'globalThis',
+    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || ''),
   },
 }));
