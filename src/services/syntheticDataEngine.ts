@@ -1,4 +1,3 @@
-
 import { csvDataEngine } from './csvDataEngine';
 import { syntheticDataService, SyntheticDataset } from './syntheticDataService';
 import { trainingService, WeightMatrix } from './trainingService';
@@ -155,6 +154,65 @@ class SyntheticDataEngine {
       console.error('Failed to generate stress test data:', error);
       throw error;
     }
+  }
+
+  /**
+   * Sync synthetic data to training pipeline
+   */
+  async syncSyntheticDataToTraining(): Promise<void> {
+    try {
+      const combinedData = this.getCombinedShipments();
+      const syntheticRecords = combinedData.filter(record => record.synthetic);
+      
+      if (syntheticRecords.length === 0) {
+        throw new Error('No synthetic data available to sync');
+      }
+
+      // Simulate syncing to training pipeline
+      console.log(`Syncing ${syntheticRecords.length} synthetic records to training pipeline`);
+      
+      // In a real implementation, this would:
+      // 1. Format the data for the training service
+      // 2. Upload to Firebase/training storage
+      // 3. Trigger retraining pipeline
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
+      
+      console.log('Synthetic data successfully synced to training pipeline');
+    } catch (error) {
+      console.error('Failed to sync synthetic data to training:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get training readiness status
+   */
+  getTrainingReadiness() {
+    const stats = this.getEnhancedStatistics();
+    const minSamples = 1000;
+    const maxSyntheticRatio = 5.0;
+    
+    const recommendations: string[] = [];
+    
+    if (stats.totalShipments < minSamples) {
+      recommendations.push(`Need at least ${minSamples} samples (currently ${stats.totalShipments})`);
+    }
+    
+    if (stats.syntheticRatio > maxSyntheticRatio) {
+      recommendations.push(`Synthetic ratio too high (${stats.syntheticRatio.toFixed(1)}x, max ${maxSyntheticRatio}x)`);
+    }
+    
+    if (stats.dataQuality.completeness < 0.8) {
+      recommendations.push('Improve data completeness (missing required fields)');
+    }
+
+    return {
+      isReady: recommendations.length === 0,
+      totalSamples: stats.totalShipments,
+      syntheticRatio: stats.syntheticRatio,
+      recommendations
+    };
   }
 
   // Helper methods for data quality calculations
