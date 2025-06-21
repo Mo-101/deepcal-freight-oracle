@@ -1,4 +1,3 @@
-
 "use client"
 
 import type React from "react"
@@ -16,6 +15,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Settings, Brain, TrendingUp, Zap, Activity } from "lucide-react"
+import { useSmartSpeech } from "@/hooks/useSmartSpeech"
+import SmartVoiceConfig from "@/components/voice/SmartVoiceConfig"
 
 interface Message {
   id: string
@@ -57,7 +58,7 @@ const DeepTalk = () => {
   const [groqConfigured, setGroqConfigured] = useState(deepTalkGroqService.isConfigured())
   const [elevenLabsConfig, setElevenLabsConfig] = useState<any>(null)
 
-  const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
+  const { speakText, isSpeaking, stopSpeaking, currentProvider } = useSmartSpeech()
   const { isListening, startListening } = useSpeechRecognition()
 
   // Sample data for the analytics engine
@@ -148,19 +149,16 @@ const DeepTalk = () => {
         content: response,
         timestamp: new Date(),
         intent,
-        data: { confidence, params, groqPowered: groqConfigured },
+        data: { confidence, params, groqPowered: groqConfigured, voiceProvider: currentProvider },
       }
 
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // Only use voice synthesis if ElevenLabs is properly configured
-      if (elevenLabsConfig && elevenLabsConfig.apiKey) {
-        console.log('🎤 DeepCAL speaking with ElevenLabs voice synthesis')
-        speakText(response, elevenLabsConfig)
-      } else {
-        console.log('Voice synthesis requires ElevenLabs API key configuration')
-      }
+      // Use the smart voice system
+      console.log('🎤 DeepCAL speaking with smart voice system')
+      await speakText(response)
+      
     } catch (error) {
       console.error('Error processing query:', error)
       setIsProcessing(false)
@@ -196,7 +194,8 @@ const DeepTalk = () => {
   }
 
   const handleVoiceConfigSave = (config: any) => {
-    setElevenLabsConfig(config)
+    console.log('Voice configuration saved:', config)
+    // The providers will handle their own configuration
   }
 
   const handleGroqConfigSave = (apiKey: string) => {
@@ -226,10 +225,10 @@ const DeepTalk = () => {
               onClick={() => setShowVoiceConfig(true)}
               variant="outline"
               size="sm"
-              className="border-white/30 text-white hover:bg-white/10"
+              className={`border-white/30 text-white hover:bg-white/10 ${currentProvider ? 'border-green-400/50 bg-green-900/20' : ''}`}
             >
               <Settings className="w-4 h-4 mr-2" />
-              Voice
+              {currentProvider ? `Voice: ${currentProvider}` : 'Voice'}
             </Button>
           </div>
         </div>
@@ -339,7 +338,7 @@ const DeepTalk = () => {
         </div>
       </main>
 
-      <VoiceConfig
+      <SmartVoiceConfig
         isOpen={showVoiceConfig}
         onClose={() => setShowVoiceConfig(false)}
         onConfigSave={handleVoiceConfigSave}
