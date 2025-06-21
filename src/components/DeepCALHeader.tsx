@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const DeepCALHeader: React.FC = () => {
   return (
@@ -10,37 +11,39 @@ const DeepCALHeader: React.FC = () => {
           DeepCAL
         </Link>
 
-        <nav className="flex space-x-6">
-          <Link to="/" className="text-white hover:text-deepcal-light transition-colors">
-            Home
-          </Link>
-          <Link to="/calculator" className="text-white hover:text-deepcal-light transition-colors">
-            Calculator
-          </Link>
-          <Link to="/about" className="text-white hover:text-deepcal-light transition-colors">
-            About
-          </Link>
-          <Link to="/analytics" className="text-white hover:text-deepcal-light transition-colors">
-            Analytics
-          </Link>
-          <Link to="/deeptalk" className="text-white hover:text-deepcal-light transition-colors">
-            DeepTalk
-          </Link>
-          <Link to="/training" className="text-white hover:text-deepcal-light transition-colors">
-            Training
-          </Link>
+        <div className="flex items-center gap-6">
+          <nav className="flex space-x-6">
+            <Link to="/" className="text-white hover:text-deepcal-light transition-colors">
+              Home
+            </Link>
+            <Link to="/calculator" className="text-white hover:text-deepcal-light transition-colors">
+              Calculator
+            </Link>
+            <Link to="/about" className="text-white hover:text-deepcal-light transition-colors">
+              About
+            </Link>
+            <Link to="/analytics" className="text-white hover:text-deepcal-light transition-colors">
+              Analytics
+            </Link>
+            <Link to="/deeptalk" className="text-white hover:text-deepcal-light transition-colors">
+              DeepTalk
+            </Link>
+            <Link to="/training" className="text-white hover:text-deepcal-light transition-colors">
+              Training
+            </Link>
             <Link to="/map" className="text-white hover:text-deepcal-light transition-colors">
               Map
             </Link>
-          <Link to="/rfq" className="text-white hover:text-deepcal-light transition-colors">
-            RFQ
-          </Link>
-        </nav>
+            <Link to="/rfq" className="text-white hover:text-deepcal-light transition-colors">
+              RFQ
+            </Link>
+          </nav>
 
-        <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
+          <Avatar className="border-2 border-deepcal-light/30 hover:border-deepcal-light transition-colors">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
+            <AvatarFallback className="bg-deepcal-light text-gray-900 font-semibold">U</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
     </header>
   );

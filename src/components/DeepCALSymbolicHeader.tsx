@@ -2,6 +2,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Dumbbell, Calculator } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -27,24 +28,32 @@ const DeepCALSymbolicHeader: React.FC = () => {
               DeepCAL++ vΩ
             </h1>
           </Link>
-          <nav className="mt-4 md:mt-0 flex gap-2 md:space-x-2 items-center">
-            {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={[
-                  "flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-gradient-to-r transition-colors duration-150",
-                  "text-white bg-white/0 hover:bg-deepcal-purple/40 border border-deepcal-purple/40 shadow-sm",
-                  location.pathname === link.to
-                    ? "bg-deepcal-purple text-white shadow-inner border-deepcal-light"
-                    : ""
-                ].join(" ")}
-              >
-                {link.label}
-                {link.icon && <link.icon className="w-4 h-4" />}
-              </Link>
-            ))}
-          </nav>
+          
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <nav className="flex gap-2 md:space-x-2 items-center">
+              {navLinks.map(link => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={[
+                    "flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-gradient-to-r transition-colors duration-150",
+                    "text-white bg-white/0 hover:bg-deepcal-purple/40 border border-deepcal-purple/40 shadow-sm",
+                    location.pathname === link.to
+                      ? "bg-deepcal-purple text-white shadow-inner border-deepcal-light"
+                      : ""
+                  ].join(" ")}
+                >
+                  {link.label}
+                  {link.icon && <link.icon className="w-4 h-4" />}
+                </Link>
+              ))}
+            </nav>
+            
+            <Avatar className="border-2 border-deepcal-purple/50 hover:border-deepcal-light transition-colors">
+              <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
+              <AvatarFallback className="bg-deepcal-purple text-white font-semibold">U</AvatarFallback>
+            </Avatar>
+          </div>
         </div>
 
         <div className="container mx-auto flex flex-col md:flex-row mt-4 md:mt-6 pb-2 items-center justify-between">
