@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, Globe, Truck, MapPin, Map } from 'lucide-react';
@@ -44,7 +43,8 @@ export const TabsAnalytics: React.FC = () => {
     const totalShipments = shipmentData.length;
     const totalCost = shipmentData.reduce((sum, s) => {
       const cost = s['carrier+cost'] || s.carrier_cost || 0;
-      return sum + (typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost);
+      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/[^0-9.-]/g, '')) : Number(cost) || 0;
+      return sum + costNum;
     }, 0);
     const avgCost = totalCost / totalShipments;
     const totalWeight = shipmentData.reduce((sum, s) => sum + (parseFloat(String(s.weight_kg || '0')) || 0), 0);
@@ -52,7 +52,7 @@ export const TabsAnalytics: React.FC = () => {
       // Calculate estimated value based on weight and cost since there's no direct value field
       const weight = parseFloat(String(s.weight_kg || '0')) || 0;
       const cost = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost;
+      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/[^0-9.-]/g, '')) : Number(cost) || 0;
       return sum + (weight * costNum * 0.1); // Estimated value multiplier
     }, 0);
     const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_carrier).filter(Boolean)).size;

@@ -39,7 +39,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
       }
       
       const cost = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost;
+      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/[^0-9.-]/g, '')) : Number(cost) || 0;
       monthlyStats[monthKey].totalCost += costNum;
       monthlyStats[monthKey].count++;
 
