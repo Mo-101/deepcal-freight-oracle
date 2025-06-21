@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import Training from "./pages/Training";
+import MapPage from "./pages/MapPage";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/deeptalk" element={<DeepTalk />} />
             <Route path="/training" element={<Training />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

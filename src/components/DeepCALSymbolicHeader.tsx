@@ -1,15 +1,15 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Dumbbell } from "lucide-react";
+import { Dumbbell, Map, Info } from "lucide-react";
 
 const navLinks = [
   { label: "Dashboard", to: "/" },
-  // { label: "Calculator", to: "/calculator", icon: Calculator }, // removed
-  // { label: "Ranking", to: "/ranking" }, // removed
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
+  { label: "Map", to: "/map", icon: Map },
+  { label: "About", to: "/about", icon: Info },
 ];
 
 const DeepCALSymbolicHeader: React.FC = () => {
