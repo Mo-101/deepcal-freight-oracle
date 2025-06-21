@@ -1,73 +1,176 @@
-# Welcome to your Lovable project
 
-## Project info
+# DeepCAL - Advanced Logistics Analytics Platform
 
-**URL**: https://lovable.dev/projects/26c2536c-8acb-4797-a939-fae124db9d3a
+**Developed by Mostar Industries**
 
-## How can I edit this code?
+## Overview
 
-There are several ways of editing your application.
+DeepCAL is a cutting-edge logistics analytics platform that revolutionizes freight forwarding through advanced AI-powered decision-making. Built with neutrosophic logic, AHP (Analytic Hierarchy Process), TOPSIS methodology, and Grey System framework, DeepCAL provides unprecedented insights into shipping routes, costs, and optimization strategies.
 
-**Use Lovable**
+## Key Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/26c2536c-8acb-4797-a939-fae124db9d3a) and start prompting.
+### 🧠 AI-Powered Analytics Engine
+- **Neutrosophic Logic Framework**: Handles uncertainty and incomplete information in logistics decisions
+- **Multi-Criteria Decision Analysis**: Uses AHP and TOPSIS for optimal route selection
+- **Grey System Theory**: Analyzes limited data scenarios common in logistics
+- **Graph Neural Networks**: Models complex shipping network relationships
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🗣️ DeepTalk AI Assistant
+- **Natural Language Processing**: Chat with your logistics data using advanced AI
+- **Voice Integration**: Multiple TTS providers (ElevenLabs, OpenAI, Web Speech)
+- **Real-time Insights**: Get instant answers about routes, costs, and optimization
+- **Groq AI Integration**: Enhanced conversational intelligence
 
-**Use your preferred IDE**
+### 📊 Advanced Visualization
+- **Interactive Maps**: Real-time logistics network visualization with Mapbox
+- **Route Optimization**: Visual representation of optimal shipping corridors
+- **Analytics Dashboard**: Comprehensive KPI monitoring and trend analysis
+- **Animated Charts**: Dynamic data presentation with Recharts
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🔄 Offline-First Architecture
+- **IndexedDB Integration**: Local data storage for offline operation
+- **Firebase Sync**: Seamless cloud synchronization when online
+- **Real Data Focus**: No placeholder data - all analytics use actual shipment information
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Technology Stack
 
-Follow these steps:
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Shadcn UI
+- **State Management**: TanStack React Query
+- **Database**: IndexedDB (local), Firestore (cloud)
+- **Maps**: Mapbox GL JS
+- **Charts**: Recharts
+- **Voice**: ElevenLabs, OpenAI TTS, Web Speech API
+- **AI**: Groq API integration
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Project Structure
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```
+src/
+├── components/          # Reusable UI components
+│   ├── analytical/      # Analytics visualization components
+│   ├── deeptalk/       # AI chat interface components
+│   ├── training/       # ML training interface components
+│   └── ui/             # Base UI components (Shadcn)
+├── hooks/              # Custom React hooks
+├── pages/              # Application pages/routes
+├── services/           # API and data services
+├── utils/              # Utility functions and helpers
+└── types/              # TypeScript type definitions
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Core Principles
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. **Single Source of Truth**: All data originates from `deeptrack_2.csv` loaded into IndexedDB
+2. **Append-Only Architecture**: New shipments append to existing data with strict schema validation
+3. **Mathematical Foundation**: All calculations use real data through Neutrosophic + AHP + TOPSIS + Grey frameworks
+4. **Zero Placeholders**: Production code never uses hard-coded sample data
+5. **Offline-First Design**: Full functionality without internet connection
+6. **Continuous Learning**: ML models retrain nightly using Firebase Functions
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm
+- Modern web browser with IndexedDB support
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd deepcal-platform
+
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Configuration
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The application requires several API keys for full functionality:
 
-**Use GitHub Codespaces**
+- **Groq API**: For enhanced AI conversations in DeepTalk
+- **ElevenLabs API**: For high-quality text-to-speech
+- **OpenAI API**: Alternative TTS provider
+- **Firebase**: For cloud synchronization and training
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Configure these through the application's settings interface.
 
-## What technologies are used for this project?
+## Data Architecture
 
-This project is built with:
+### Shipment Data Schema
+All shipment data follows strict Zod validation:
+- Origin/Destination with coordinates
+- Cargo specifications (weight, dimensions, type)
+- Forwarder details and pricing
+- Route information and transit times
+- Risk assessments and reliability scores
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Analytics Engine
+The core engine processes real shipment data through:
+1. **Neutrosophic Analysis**: Handles uncertain/incomplete data
+2. **AHP Weighting**: User-defined priority matrices
+3. **TOPSIS Ranking**: Multi-criteria optimization
+4. **Grey Prediction**: Trend analysis and forecasting
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/26c2536c-8acb-4797-a939-fae124db9d3a) and click on Share -> Publish.
+### Local Development
+```bash
+npm run dev
+```
 
-## Can I connect a custom domain to my Lovable project?
+### Production Build
+```bash
+npm run build
+npm run preview
+```
 
-Yes, you can!
+### Deployment Options
+- **Lovable Platform**: One-click deployment through Lovable interface
+- **Custom Domain**: Configure through Project → Settings → Domains
+- **Self-hosted**: Build and deploy to any static hosting service
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## API Integration
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Groq AI
+```typescript
+// Enhanced conversational AI
+const response = await deepTalkGroqService.generateResponse(query, context);
+```
+
+### Firebase Training
+```typescript
+// Automated model retraining
+const trainingResults = await firebaseTrainingService.trainModel(shipmentData);
+```
+
+### Voice Services
+```typescript
+// Multi-provider TTS
+await voiceService.speak(text, { provider: 'elevenlabs' });
+```
+
+## Contributing
+
+DeepCAL is developed by Mostar Industries with focus on:
+- Clean, maintainable code architecture
+- Comprehensive TypeScript typing
+- Responsive design principles
+- Accessibility standards
+- Performance optimization
+
+## Support
+
+For technical support or business inquiries, contact Mostar Industries.
+
+## License
+
+Proprietary software developed by Mostar Industries. All rights reserved.
+
+---
+
+**Mostar Industries** - Revolutionizing logistics through advanced analytics and AI

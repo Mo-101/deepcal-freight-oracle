@@ -1,7 +1,7 @@
-
 import { csvDataEngine } from './csvDataEngine';
 import { syntheticDataService, SyntheticDataset } from './syntheticDataService';
 import { trainingService, WeightMatrix } from './trainingService';
+import { parquetDataService } from './parquetDataService';
 import { ShipmentRecord } from './csvDataEngine';
 
 export interface EnhancedShipmentRecord extends ShipmentRecord {
@@ -14,7 +14,9 @@ export interface EnhancedShipmentRecord extends ShipmentRecord {
 class SyntheticDataEngine {
   private static instance: SyntheticDataEngine;
   private syntheticDatasets: Map<string, SyntheticDataset> = new Map();
+  private parquetDatasets: Map<string, any> = new Map();
   private currentWeights: WeightMatrix | null = null;
+  private trainingDataHash: string | null = null;
 
   private constructor() {}
 
@@ -23,6 +25,21 @@ class SyntheticDataEngine {
       SyntheticDataEngine.instance = new SyntheticDataEngine();
     }
     return SyntheticDataEngine.instance;
+  }
+
+  /**
+   * Load parquet training data
+   */
+  async loadParquetTrainingData(filename: string = 'part.000000.000000.parquet'): Promise<void> {
+    try {
+      const dataset = await parquetDataService.loadParquetDataset(filename);
+      this.parquetDatasets.set(filename, dataset);
+      
+      console.log(`Loaded ${dataset.records.length} records from parquet: ${filename}`);
+    } catch (error) {
+      console.error('Failed to load parquet training data:', error);
+      throw error;
+    }
   }
 
   /**
@@ -54,35 +71,51 @@ class SyntheticDataEngine {
   }
 
   /**
-   * Get combined dataset (real + synthetic)
+   * Get combined dataset (real + synthetic + parquet)
    */
-  getCombinedShipments(includeSynthetic: boolean = true): EnhancedShipmentRecord[] {
+  getCombinedShipments(includeSynthetic: boolean = true, includeParquet: boolean = true): EnhancedShipmentRecord[] {
     const realShipments = csvDataEngine.listShipments().map(record => ({
       ...record,
       synthetic: false
     })) as EnhancedShipmentRecord[];
 
-    if (!includeSynthetic) {
-      return realShipments;
+    let combinedShipments = [...realShipments];
+
+    if (includeSynthetic) {
+      const syntheticShipments: EnhancedShipmentRecord[] = [];
+      for (const dataset of this.syntheticDatasets.values()) {
+        const records = dataset.records.map(record => ({
+          ...record,
+          synthetic: true,
+          sourceDataset: dataset.id,
+          generationId: dataset.jobId,
+          privacyScore: Math.random() * 0.3 + 0.7
+        }));
+        syntheticShipments.push(...records);
+      }
+      combinedShipments.push(...syntheticShipments);
     }
 
-    const syntheticShipments: EnhancedShipmentRecord[] = [];
-    for (const dataset of this.syntheticDatasets.values()) {
-      const records = dataset.records.map(record => ({
-        ...record,
-        synthetic: true,
-        sourceDataset: dataset.id,
-        generationId: dataset.jobId,
-        privacyScore: Math.random() * 0.3 + 0.7
-      }));
-      syntheticShipments.push(...records);
+    if (includeParquet) {
+      const parquetShipments: EnhancedShipmentRecord[] = [];
+      for (const dataset of this.parquetDatasets.values()) {
+        const records = dataset.records.map(record => ({
+          ...record,
+          synthetic: false,
+          sourceDataset: 'parquet',
+          generationId: dataset.id,
+          privacyScore: 1.0 // Parquet data is considered fully private
+        }));
+        parquetShipments.push(...records);
+      }
+      combinedShipments.push(...parquetShipments);
     }
 
-    return [...realShipments, ...syntheticShipments];
+    return combinedShipments;
   }
 
   /**
-   * Get enhanced statistics with synthetic data insights
+   * Get enhanced statistics with parquet data insights
    */
   getEnhancedStatistics(originCountry?: string, destinationCountry?: string) {
     const allShipments = this.getCombinedShipments();
@@ -92,14 +125,17 @@ class SyntheticDataEngine {
       return true;
     });
 
-    const realCount = filteredShipments.filter(s => !s.synthetic).length;
+    const realCount = filteredShipments.filter(s => !s.synthetic && s.sourceDataset !== 'parquet').length;
     const syntheticCount = filteredShipments.filter(s => s.synthetic).length;
+    const parquetCount = filteredShipments.filter(s => s.sourceDataset === 'parquet').length;
 
     return {
       totalShipments: filteredShipments.length,
       realShipments: realCount,
       syntheticShipments: syntheticCount,
+      parquetShipments: parquetCount,
       syntheticRatio: realCount > 0 ? syntheticCount / realCount : 0,
+      parquetRatio: realCount > 0 ? parquetCount / realCount : 0,
       dataQuality: {
         completeness: this.calculateCompleteness(filteredShipments),
         consistency: this.calculateConsistency(filteredShipments),
@@ -109,6 +145,78 @@ class SyntheticDataEngine {
         averagePrivacyScore: this.calculateAveragePrivacyScore(filteredShipments),
         anonymityLevel: this.calculateAnonymityLevel(filteredShipments)
       }
+    };
+  }
+
+  /**
+   * Check if training data needs to be updated
+   */
+  isTrainingDataStale(): boolean {
+    const currentData = this.getCombinedShipments();
+    const currentHash = this.generateDataHash(currentData);
+    return this.trainingDataHash !== currentHash;
+  }
+
+  /**
+   * Generate hash for training data state
+   */
+  private generateDataHash(data: EnhancedShipmentRecord[]): string {
+    const dataString = JSON.stringify(data.map(record => ({
+      id: record.request_reference,
+      synthetic: record.synthetic,
+      timestamp: record.synthetic ? record.generationId : 'real'
+    })));
+    
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < dataString.length; i++) {
+      const char = dataString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString();
+  }
+
+  /**
+   * Mark training data as synced
+   */
+  markTrainingDataSynced(): void {
+    const currentData = this.getCombinedShipments();
+    this.trainingDataHash = this.generateDataHash(currentData);
+  }
+
+  /**
+   * Get training readiness status
+   */
+  getTrainingReadiness(): {
+    isReady: boolean;
+    dataStale: boolean;
+    totalSamples: number;
+    syntheticRatio: number;
+    recommendations: string[];
+  } {
+    const stats = this.getEnhancedStatistics();
+    const isStale = this.isTrainingDataStale();
+    const recommendations: string[] = [];
+
+    if (stats.totalShipments < 100) {
+      recommendations.push('Consider generating more synthetic data for better training');
+    }
+    
+    if (stats.syntheticRatio < 1.0) {
+      recommendations.push('Increase synthetic data ratio for better model generalization');
+    }
+    
+    if (stats.dataQuality.completeness < 0.8) {
+      recommendations.push('Improve data completeness before training');
+    }
+
+    return {
+      isReady: stats.totalShipments >= 50 && stats.dataQuality.completeness > 0.7,
+      dataStale: isStale,
+      totalSamples: stats.totalShipments,
+      syntheticRatio: stats.syntheticRatio,
+      recommendations
     };
   }
 
@@ -153,6 +261,32 @@ class SyntheticDataEngine {
       return job.id;
     } catch (error) {
       console.error('Failed to generate stress test data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save training results to parquet
+   */
+  async saveTrainingResultsToParquet(modelId: string, trainingData: EnhancedShipmentRecord[]): Promise<string> {
+    try {
+      const filename = await parquetDataService.saveTrainingResults(
+        modelId,
+        trainingData,
+        {
+          modelVersion: modelId,
+          dataComposition: {
+            real: trainingData.filter(s => !s.synthetic && s.sourceDataset !== 'parquet').length,
+            synthetic: trainingData.filter(s => s.synthetic).length,
+            parquet: trainingData.filter(s => s.sourceDataset === 'parquet').length
+          }
+        }
+      );
+      
+      console.log(`Training results saved to parquet: ${filename}`);
+      return filename;
+    } catch (error) {
+      console.error('Failed to save training results to parquet:', error);
       throw error;
     }
   }

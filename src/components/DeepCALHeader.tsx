@@ -1,52 +1,49 @@
 
-// Unified header for all pages, with navigation buttons to every primary route
-
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Dumbbell } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-// All main app pages
-const navLinks = [
-  { label: "Dashboard", to: "/" },
-  { label: "Analytics", to: "/analytics" },
-  { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Training", to: "/training", icon: Dumbbell },
-];
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const DeepCALHeader: React.FC = () => {
-  const location = useLocation();
   return (
-    <header className="w-full flex flex-col border-b border-border bg-gradient-to-r from-blue-900 to-indigo-800 shadow-lg mb-6">
-      <div className="flex items-center justify-between max-w-screen-2xl mx-auto px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/10 rounded-lg">
-            <BrainCog className="w-9 h-9 text-lime-400" />
-          </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2" title="DeepCAL">
-            DeepCAL
-          </h1>
-        </div>
-        <nav className="flex gap-2">
-          {navLinks.map(link => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={cn(
-                "px-4 py-2 rounded-xl text-white font-medium hover:bg-indigo-700 transition-colors duration-150 flex items-center gap-2",
-                location.pathname === link.to && "bg-indigo-800 shadow-inner"
-              )}
-            >
-              {link.icon && <link.icon className="w-4 h-4" />}
-              {link.label}
+    <header className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 text-white py-4 shadow-md">
+      <div className="container mx-auto px-6 flex items-center justify-between">
+        <Link to="/" className="text-2xl font-bold text-deepcal-light">
+          DeepCAL
+        </Link>
+
+        <div className="flex items-center gap-6">
+          <nav className="flex space-x-6">
+            <Link to="/" className="text-white hover:text-deepcal-light transition-colors">
+              Home
             </Link>
-          ))}
-        </nav>
-      </div>
-      <div className="text-xs tracking-wide text-indigo-100 flex gap-2 items-center px-8 pb-2">
-        <span>
-          "Nothing Moves Without the Core." – Advanced multi-criteria freight optimization engine.
-        </span>
+            <Link to="/calculator" className="text-white hover:text-deepcal-light transition-colors">
+              Calculator
+            </Link>
+            <Link to="/about" className="text-white hover:text-deepcal-light transition-colors">
+              About
+            </Link>
+            <Link to="/analytics" className="text-white hover:text-deepcal-light transition-colors">
+              Analytics
+            </Link>
+            <Link to="/deeptalk" className="text-white hover:text-deepcal-light transition-colors">
+              DeepTalk
+            </Link>
+            <Link to="/training" className="text-white hover:text-deepcal-light transition-colors">
+              Training
+            </Link>
+            <Link to="/map" className="text-white hover:text-deepcal-light transition-colors">
+              Map
+            </Link>
+            <Link to="/rfq" className="text-white hover:text-deepcal-light transition-colors">
+              RFQ
+            </Link>
+          </nav>
+
+          <Avatar className="border-2 border-deepcal-light/30 hover:border-deepcal-light transition-colors">
+            <AvatarImage src="https://github.com/shadcn.png" alt="@user" />
+            <AvatarFallback className="bg-deepcal-light text-gray-900 font-semibold">U</AvatarFallback>
+          </Avatar>
+        </div>
       </div>
     </header>
   );
