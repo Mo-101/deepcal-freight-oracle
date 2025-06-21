@@ -141,34 +141,17 @@ export const CargoReadinessRFQForm: React.FC<CargoReadinessRFQFormProps> = ({
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formField.value && formField.value !== '' 
-                        ? (() => {
-                            try {
-                              const date = new Date(formField.value);
-                              return !isNaN(date.getTime()) ? format(date, "PPP") : "Select date";
-                            } catch {
-                              return "Select date";
-                            }
-                          })()
-                        : "Select date"
-                      }
+                      {formField.value ? format(new Date(formField.value), "PPP") : "Select date"}
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700">
                   <Calendar
                     mode="single"
-                    selected={formField.value && formField.value !== '' ? (() => {
-                      try {
-                        const date = new Date(formField.value);
-                        return !isNaN(date.getTime()) ? date : undefined;
-                      } catch {
-                        return undefined;
-                      }
-                    })() : undefined}
+                    selected={formField.value ? new Date(formField.value) : undefined}
                     onSelect={(date) => formField.onChange(date?.toISOString().split('T')[0] || '')}
                     initialFocus
-                    className="bg-slate-800 pointer-events-auto"
+                    className="bg-slate-800"
                   />
                 </PopoverContent>
               </Popover>
