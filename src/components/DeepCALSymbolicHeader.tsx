@@ -21,8 +21,12 @@ const DeepCALSymbolicHeader: React.FC = () => {
       <div className="bg-gradient-to-r from-deepcal-dark to-deepcal-purple py-4 px-6 symbolic-border">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <Link to="/" className="flex items-center space-x-3 fade-in hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 bg-deepcal-purple rounded-full flex items-center justify-center glowing-border">
-              <i className="fas fa-infinity text-white text-xl"></i>
+            <div className="w-12 h-12 rounded-full overflow-hidden glowing-border">
+              <img 
+                src="/lovable-uploads/de1f267d-5603-44ce-979f-b745009bd7b1.png" 
+                alt="DeepCAL Logo" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">
               DeepCAL++ vΩ

@@ -104,11 +104,15 @@ const LandingPage = () => {
         <header className="p-6">
           <div className="flex items-center gap-3">
             <motion.div 
-              className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg"
+              className="w-12 h-12 rounded-lg overflow-hidden"
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <BrainCog className="w-8 h-8 text-white" />
+              <img 
+                src="/lovable-uploads/de1f267d-5603-44ce-979f-b745009bd7b1.png" 
+                alt="DeepCAL Logo" 
+                className="w-full h-full object-cover"
+              />
             </motion.div>
             <div>
               <h1 className="text-2xl font-bold text-white">DeepCAL++ vΩ</h1>
@@ -125,21 +129,28 @@ const LandingPage = () => {
             transition={{ duration: 1 }}
             className="max-w-6xl mx-auto"
           >
-            {/* Main Title */}
-            <motion.h1 
-              className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-lime-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
-              DeepCAL++
-              <motion.span 
-                className="text-gold-400 ml-4"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
+            {/* Main Title with Logo */}
+            <motion.div className="flex items-center justify-center mb-6">
+              <img 
+                src="/lovable-uploads/de1f267d-5603-44ce-979f-b745009bd7b1.png" 
+                alt="DeepCAL Logo" 
+                className="w-20 h-20 mr-4"
+              />
+              <motion.h1 
+                className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-lime-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"
+                animate={{ scale: [1, 1.02, 1] }}
+                transition={{ duration: 4, repeat: Infinity }}
               >
-                vΩ
-              </motion.span>
-            </motion.h1>
+                DeepCAL++
+                <motion.span 
+                  className="text-gold-400 ml-4"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  vΩ
+                </motion.span>
+              </motion.h1>
+            </motion.div>
 
             {/* Animated Tagline */}
             <div className="h-16 mb-8">

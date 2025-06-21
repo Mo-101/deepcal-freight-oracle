@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { loadAllMoScripts } from "@/moscripts/registry";
+import GlobalChatbot from "@/components/GlobalChatbot";
 import LandingPage from "./pages/LandingPage";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
 import About from "./pages/About";
@@ -40,6 +41,7 @@ const App = () => {
             <Route path="/rfq" element={<RFQPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <GlobalChatbot />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
