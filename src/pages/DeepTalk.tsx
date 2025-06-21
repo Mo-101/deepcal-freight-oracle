@@ -155,9 +155,9 @@ const DeepTalk = () => {
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // Use the smart voice system
-      console.log('🎤 DeepCAL speaking with smart voice system')
-      await speakText(response)
+      // Immediately trigger voice response without any delay
+      console.log('🎤 DeepCAL speaking immediately with smart voice system')
+      speakText(response)
       
     } catch (error) {
       console.error('Error processing query:', error)
@@ -233,8 +233,8 @@ const DeepTalk = () => {
           </div>
         </div>
 
-        {/* Main Chat Container */}
-        <div className="flex-1 min-h-0 mb-4">
+        {/* Main Chat Container - Expanded height */}
+        <div className="flex-1 min-h-0 mb-3">
           <ChatInterface
             messages={messages}
             input={input}
@@ -246,23 +246,23 @@ const DeepTalk = () => {
           />
         </div>
 
-        {/* Live Stats Cards - Fixed height at bottom */}
-        <div className="flex-shrink-0 h-40">
+        {/* Live Stats Cards - Reduced height to give more space to chat */}
+        <div className="flex-shrink-0 h-32">
           <div className="grid grid-cols-3 gap-4 h-full">
             {/* Quick Actions Card */}
             <Card className="glass-card border border-white/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
+              <CardHeader className="pb-1">
+                <CardTitle className="text-xs font-semibold text-lime-400 flex items-center gap-2">
+                  <Zap className="w-3 h-3" />
                   Quick Actions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1">
                 <Button
                   onClick={() => handleQuickQuery("What are the best routes to South Sudan?")}
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-7"
                 >
                   Best Routes
                 </Button>
@@ -270,7 +270,7 @@ const DeepTalk = () => {
                   onClick={() => handleQuickQuery("Compare costs for all carriers")}
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-7"
                 >
                   Cost Analysis
                 </Button>
@@ -278,7 +278,7 @@ const DeepTalk = () => {
                   onClick={() => handleQuickQuery("Show reliability metrics")}
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-8"
+                  className="w-full text-xs border-white/20 text-white hover:bg-white/10 h-7"
                 >
                   Reliability
                 </Button>
@@ -287,13 +287,13 @@ const DeepTalk = () => {
 
             {/* Route Performance Card */}
             <Card className="glass-card border border-white/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
+              <CardHeader className="pb-1">
+                <CardTitle className="text-xs font-semibold text-lime-400 flex items-center gap-2">
+                  <TrendingUp className="w-3 h-3" />
                   Top Routes
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1">
                 {routeDatabase.slice(0, 3).map((route) => (
                   <div key={route.id} className="flex justify-between items-center text-xs">
                     <span className="text-white truncate mr-2">{route.route}</span>
@@ -307,13 +307,13 @@ const DeepTalk = () => {
 
             {/* System Status Card */}
             <Card className="glass-card border border-white/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-lime-400 flex items-center gap-2">
-                  <Activity className="w-4 h-4" />
+              <CardHeader className="pb-1">
+                <CardTitle className="text-xs font-semibold text-lime-400 flex items-center gap-2">
+                  <Activity className="w-3 h-3" />
                   System Status
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-1">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-indigo-300">AI Brain</span>
                   <Badge className={groqConfigured ? "bg-green-900 text-green-300" : "bg-red-900 text-red-300"}>
@@ -322,8 +322,8 @@ const DeepTalk = () => {
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-indigo-300">Voice</span>
-                  <Badge className={elevenLabsConfig ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"}>
-                    {elevenLabsConfig ? "Ready" : "Config"}
+                  <Badge className={currentProvider ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"}>
+                    {currentProvider ? "Ready" : "Config"}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center text-xs">

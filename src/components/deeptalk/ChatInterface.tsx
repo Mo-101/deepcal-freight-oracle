@@ -52,36 +52,36 @@ export default function ChatInterface({
         </div>
       </div>
 
-      {/* Messages Container */}
+      {/* Messages Container - Expanded with more space */}
       <div className="flex-1 p-6 overflow-y-auto min-h-0">
-        <div className="space-y-4">
+        <div className="space-y-6">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex gap-4 ${message.type === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div className={`flex gap-3 max-w-[80%] ${message.type === "user" ? "flex-row-reverse" : ""}`}>
+              <div className={`flex gap-4 max-w-[85%] ${message.type === "user" ? "flex-row-reverse" : ""}`}>
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                     message.type === "user" ? "bg-blue-600" : "bg-lime-400"
                   }`}
                 >
                   {message.type === "user" ? (
-                    <User className="w-4 h-4 text-white" />
+                    <User className="w-5 h-5 text-white" />
                   ) : (
-                    <Bot className="w-4 h-4 text-slate-900" />
+                    <Bot className="w-5 h-5 text-slate-900" />
                   )}
                 </div>
 
                 <div
-                  className={`rounded-lg p-3 ${
+                  className={`rounded-lg p-4 ${
                     message.type === "user" 
                       ? "bg-blue-600 text-white" 
                       : "bg-slate-800/80 text-white border border-white/20"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {message.intent && (
                       <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
                         Intent: {message.intent}
@@ -100,11 +100,11 @@ export default function ChatInterface({
           ))}
 
           {isProcessing && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-full bg-lime-400 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-slate-900" />
+            <div className="flex gap-4 justify-start">
+              <div className="w-10 h-10 rounded-full bg-lime-400 flex items-center justify-center">
+                <Bot className="w-5 h-5 text-slate-900" />
               </div>
-              <div className="bg-slate-800/80 text-white rounded-lg p-3 border border-white/20">
+              <div className="bg-slate-800/80 text-white rounded-lg p-4 border border-white/20">
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-400"></div>
                   <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
