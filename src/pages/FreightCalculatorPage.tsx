@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import DeepCALHeader from '@/components/DeepCALHeader';
+import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import CSVDataLoader from '@/components/CSVDataLoader';
 import FreightCalculator from '@/components/FreightCalculator';
 import { csvDataEngine } from '@/services/csvDataEngine';
@@ -34,7 +33,7 @@ const FreightCalculatorPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-      <DeepCALHeader />
+      <DeepCALSymbolicHeader />
       <main className="container max-w-full mx-auto pt-6 px-6 space-y-8">
         {!isDataLoaded ? (
           <div className="max-w-4xl mx-auto">

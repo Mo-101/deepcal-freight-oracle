@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Sliders } from 'lucide-react';
-import { WeightVector } from '@/pages/Training';
+import { WeightVector } from '@/types/training';
 
 interface WeightsConfigTabProps {
   weights: WeightVector;
@@ -14,7 +14,7 @@ interface WeightsConfigTabProps {
 export function WeightsConfigTab({ weights, setWeights }: WeightsConfigTabProps) {
   const handleSlider = (k: keyof WeightVector, v: number) => {
     const next = { ...weights, [k]: v / 100 } as WeightVector;
-    const sum = Object.values(next).reduce((a, b) => a + b, 0);
+    const sum = Object.values(next).reduce((a: number, b: number) => a + b, 0);
     if (Math.abs(sum - 1) > 0.0001) return;
     setWeights(next);
   };
@@ -32,10 +32,10 @@ export function WeightsConfigTab({ weights, setWeights }: WeightsConfigTabProps)
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(['cost', 'time', 'reliability', 'risk'] as (keyof WeightVector)[]).map((criterion) => (
+          {(['cost', 'time', 'reliability', 'risk'] as Array<keyof WeightVector>).map((criterion) => (
             <div key={criterion} className="space-y-3">
               <Label className="text-indigo-300 text-lg capitalize">
-                {criterion} Priority
+                {String(criterion)} Priority
               </Label>
               <input
                 type="range"
