@@ -3,18 +3,13 @@
 
 import type React from "react"
 import { useState } from "react"
-import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader"
-import ChatInterface from "@/components/deeptalk/ChatInterface"
+import DeepTalkContainer from "@/components/deeptalk/DeepTalkContainer"
 import VoiceConfig from "@/components/deeptalk/VoiceConfig"
 import GroqConfig from "@/components/deeptalk/GroqConfig"
-import { useEnhancedSpeech } from "@/hooks/useEnhancedSpeech"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import { classifyIntent } from "@/utils/intentClassifier"
 import { generateDynamicResponse } from "@/utils/dynamicResponseGenerator"
 import { deepTalkGroqService } from "@/services/deepTalkGroqService"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Settings, Brain, Zap } from "lucide-react"
 import { useSmartSpeech } from "@/hooks/useSmartSpeech"
 import SmartVoiceConfig from "@/components/voice/SmartVoiceConfig"
 
@@ -204,93 +199,21 @@ const DeepTalk = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 overflow-hidden">
-      <DeepCALSymbolicHeader />
-
-      <main className="flex-1 flex flex-col min-h-0">
-        {/* Top Control Bar */}
-        <div className="flex justify-between items-center px-6 py-4 bg-slate-800/50 border-b border-white/10">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-white">DeepTalk AI Assistant</h1>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
-              <span className="text-sm text-indigo-200">DeepCAL Oracle Active</span>
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setShowGroqConfig(true)}
-              variant="outline"
-              size="sm"
-              className={`border-white/30 text-white hover:bg-white/10 ${groqConfigured ? 'border-purple-400/50 bg-purple-900/20' : ''}`}
-            >
-              <Brain className="w-4 h-4 mr-2" />
-              {groqConfigured ? 'AI Brain' : 'Enable AI'}
-            </Button>
-            <Button
-              onClick={() => setShowVoiceConfig(true)}
-              variant="outline"
-              size="sm"
-              className={`border-white/30 text-white hover:bg-white/10 ${currentProvider ? 'border-green-400/50 bg-green-900/20' : ''}`}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              {currentProvider ? `Voice: ${currentProvider}` : 'Voice'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Actions Bar */}
-        <div className="px-6 py-3 bg-slate-900/50 border-b border-white/10">
-          <div className="flex gap-2 overflow-x-auto">
-            <Button
-              onClick={() => handleQuickQuery("What are the best routes to South Sudan?")}
-              variant="outline"
-              size="sm"
-              className="text-xs border-white/20 text-white hover:bg-white/10 whitespace-nowrap"
-            >
-              Best Routes
-            </Button>
-            <Button
-              onClick={() => handleQuickQuery("Compare costs for all carriers")}
-              variant="outline"
-              size="sm"
-              className="text-xs border-white/20 text-white hover:bg-white/10 whitespace-nowrap"
-            >
-              Cost Analysis
-            </Button>
-            <Button
-              onClick={() => handleQuickQuery("Show reliability metrics")}
-              variant="outline"
-              size="sm"
-              className="text-xs border-white/20 text-white hover:bg-white/10 whitespace-nowrap"
-            >
-              Reliability
-            </Button>
-            <Button
-              onClick={() => handleQuickQuery("Calculate shipping cost for 100kg to Juba")}
-              variant="outline"
-              size="sm"
-              className="text-xs border-white/20 text-white hover:bg-white/10 whitespace-nowrap"
-            >
-              Calculate Cost
-            </Button>
-          </div>
-        </div>
-
-        {/* Chat Interface - Full Height */}
-        <div className="flex-1 min-h-0">
-          <ChatInterface
-            messages={messages}
-            input={input}
-            setInput={setInput}
-            isProcessing={isProcessing}
-            isListening={isListening}
-            onSubmit={handleSubmit}
-            onStartListening={handleStartListening}
-          />
-        </div>
-      </main>
+    <>
+      <DeepTalkContainer
+        messages={messages}
+        input={input}
+        setInput={setInput}
+        isProcessing={isProcessing}
+        isListening={isListening}
+        groqConfigured={groqConfigured}
+        currentProvider={currentProvider}
+        onSubmit={handleSubmit}
+        onStartListening={handleStartListening}
+        onQuickQuery={handleQuickQuery}
+        onShowGroqConfig={() => setShowGroqConfig(true)}
+        onShowVoiceConfig={() => setShowVoiceConfig(true)}
+      />
 
       <SmartVoiceConfig
         isOpen={showVoiceConfig}
@@ -303,7 +226,7 @@ const DeepTalk = () => {
         onClose={() => setShowGroqConfig(false)}
         onConfigSave={handleGroqConfigSave}
       />
-    </div>
+    </>
   )
 }
 
