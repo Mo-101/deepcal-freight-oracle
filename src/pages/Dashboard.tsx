@@ -1,8 +1,9 @@
+
 import React from "react";
-import UnifiedGlassHeader from '@/components/UnifiedGlassHeader';
+import DeepCALHeader from "@/components/DeepCALHeader";
 import { BrainCog, Target, Zap, Shield, Globe, TrendingUp } from "lucide-react";
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   const features = [
     {
       icon: <BrainCog className="w-6 h-6 sm:w-8 sm:h-8 text-lime-400" />,
@@ -37,9 +38,8 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-      <UnifiedGlassHeader />
-      
+    <div className="bg-gradient-to-br min-h-screen from-slate-900 via-slate-800 to-indigo-900">
+      <DeepCALHeader />
       <main className="container max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-12">
@@ -140,4 +140,6 @@ export default function Dashboard() {
       </main>
     </div>
   );
-}
+};
+
+export default Dashboard;

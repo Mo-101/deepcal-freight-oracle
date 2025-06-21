@@ -1,5 +1,5 @@
+
 import React from 'react';
-import UnifiedGlassHeader from '@/components/UnifiedGlassHeader';
 import { useSymbolicCalculator } from '@/hooks/useSymbolicCalculator';
 import CalculatorLayout from '@/components/calculator/CalculatorLayout';
 import DataStalenessWarning from '@/components/calculator/DataStalenessWarning';
@@ -8,7 +8,7 @@ import ShipmentConfigurationPanel from '@/components/calculator/ShipmentConfigur
 import OracleResultsPanel from '@/components/calculator/OracleResultsPanel';
 import MagicalOverlay from '@/components/calculator/MagicalOverlay';
 
-export default function SymbolicCalculator() {
+const SymbolicCalculator = () => {
   const {
     inputs,
     setInputs,
@@ -36,8 +36,6 @@ export default function SymbolicCalculator() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-      <UnifiedGlassHeader />
-      
       <CalculatorLayout>
         <DataStalenessWarning 
           dataStale={dataStale}
@@ -94,4 +92,6 @@ export default function SymbolicCalculator() {
       </CalculatorLayout>
     </div>
   );
-}
+};
+
+export default SymbolicCalculator;
