@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Navigation, Globe } from 'lucide-react';
@@ -95,32 +96,7 @@ const MapPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-      {/* Header */}
-      <div className="flex justify-between items-center px-6 py-4 bg-slate-800/50 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Globe className="w-6 h-6 text-blue-400" />
-            DeepCAL Logistics Map
-          </h1>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
-            <span className="text-sm text-indigo-200">Live Tracking Active</span>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <Badge className="bg-blue-900/20 text-blue-300 border-blue-400/30">
-            <MapPin className="w-3 h-3 mr-1" />
-            East Africa Focus
-          </Badge>
-          {mapLoaded && (
-            <Badge className="bg-green-900/20 text-green-300 border-green-400/30">
-              <Navigation className="w-3 h-3 mr-1" />
-              Map Ready
-            </Badge>
-          )}
-        </div>
-      </div>
+      <DeepCALSymbolicHeader />
 
       {/* Map Container */}
       <div className="flex-1 relative">

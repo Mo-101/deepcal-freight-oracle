@@ -1,6 +1,5 @@
-
 import React from "react";
-import DeepCALHeader from "@/components/DeepCALHeader";
+import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader";
 import { BrainCog, Target, Zap, Shield, Globe, TrendingUp } from "lucide-react";
 
 const About: React.FC = () => {
@@ -39,7 +38,7 @@ const About: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-br min-h-screen from-slate-900 via-slate-800 to-indigo-900">
-      <DeepCALHeader />
+      <DeepCALSymbolicHeader />
       <main className="container max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Hero Section */}
         <div className="text-center mb-8 sm:mb-12">
