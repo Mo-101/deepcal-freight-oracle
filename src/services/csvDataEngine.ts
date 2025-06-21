@@ -1,4 +1,3 @@
-
 import { ShipmentData } from '@/types/shipment';
 import { parse } from 'papaparse';
 
@@ -9,6 +8,22 @@ export interface ShipmentRecord {
     weight_kg?: number;
     volume_cbm?: number;
     item_category?: string;
+    cargo_description?: string;
+    date_of_collection?: string;
+    date_of_arrival_destination?: string;
+    delivery_status?: string;
+    mode_of_shipment?: string;
+    final_quote_awarded_freight_forwader_carrier?: string;
+    initial_quote_awarded?: string;
+    'carrier+cost'?: number;
+    kuehne_nagel?: number;
+    dhl_global?: number;
+    scan_global_logistics?: number;
+    siginon?: number;
+    agl?: number;
+    frieght_in_time?: number;
+    transit_days?: number;
+    'emergency grade'?: string;
     [key: string]: any;
 }
 
@@ -20,6 +35,7 @@ export class CSVDataEngine {
     private readonly MAX_DATA_AGE = 60 * 60 * 1000; // 1 hour
     private shipments: ShipmentRecord[] = [];
     private lineageMeta: any = null;
+    private baseRecordCount: number = 0; // Track original base data count
 
     private constructor() { }
 
@@ -39,7 +55,12 @@ export class CSVDataEngine {
     }
 
     public getLineageMeta(): any {
-        return this.lineageMeta;
+        return {
+            ...this.lineageMeta,
+            currentRecords: this.shipments.length,
+            baseRecords: this.baseRecordCount,
+            newRecords: this.shipments.length - this.baseRecordCount
+        };
     }
 
     public async loadCSVData(csvFilePath: string): Promise<ShipmentRecord[]> {
@@ -116,10 +137,11 @@ export class CSVDataEngine {
         try {
             const data = await this.autoDetectEmbeddedData();
             this.shipments = data;
+            this.baseRecordCount = data.length; // Set the base count
             this.dataLoaded = true;
             this.dataStale = false;
             this.lastLoadTime = Date.now();
-            console.log(`[CSVDataEngine] Loaded ${data.length} records from embedded data.`);
+            console.log(`[CSVDataEngine] Loaded ${data.length} base records from embedded data.`);
         } catch (error) {
             console.error('Auto-load failed:', error);
             throw error;
@@ -130,6 +152,7 @@ export class CSVDataEngine {
         try {
             const data = await this.autoDetectEmbeddedData();
             this.shipments = data;
+            this.baseRecordCount = data.length; // Reset base count
             this.dataLoaded = true;
             this.dataStale = false;
             this.lastLoadTime = Date.now();
@@ -146,6 +169,96 @@ export class CSVDataEngine {
             return [];
         }
         return this.shipments;
+    }
+
+    /**
+     * Add a new shipment to the data store
+     * This appends to the existing base data, growing the dataset
+     */
+    public addShipment(shipment: ShipmentRecord): void {
+        if (!this.dataLoaded) {
+            throw new Error('Cannot add shipment: base data not loaded');
+        }
+
+        // Ensure unique request reference
+        const existingRefs = this.shipments.map(s => s.request_reference);
+        if (existingRefs.includes(shipment.request_reference)) {
+            throw new Error(`Shipment with reference ${shipment.request_reference} already exists`);
+        }
+
+        this.shipments.push(shipment);
+        console.log(`[CSVDataEngine] Added new shipment. Total records: ${this.shipments.length} (Base: ${this.baseRecordCount}, New: ${this.shipments.length - this.baseRecordCount})`);
+        
+        // Store in IndexedDB for persistence
+        this.persistToIndexedDB();
+    }
+
+    /**
+     * Persist current shipments to IndexedDB
+     */
+    private async persistToIndexedDB(): Promise<void> {
+        try {
+            // Open IndexedDB
+            const request = indexedDB.open('DeepCALData', 1);
+            
+            request.onupgradeneeded = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains('shipments')) {
+                    db.createObjectStore('shipments', { keyPath: 'request_reference' });
+                }
+            };
+
+            request.onsuccess = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                const transaction = db.transaction(['shipments'], 'readwrite');
+                const store = transaction.objectStore('shipments');
+                
+                // Clear existing data and add all current shipments
+                store.clear();
+                this.shipments.forEach(shipment => {
+                    store.add(shipment);
+                });
+                
+                console.log('[CSVDataEngine] Data persisted to IndexedDB');
+            };
+        } catch (error) {
+            console.error('Failed to persist to IndexedDB:', error);
+        }
+    }
+
+    /**
+     * Load shipments from IndexedDB
+     */
+    public async loadFromIndexedDB(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('DeepCALData', 1);
+            
+            request.onsuccess = (event) => {
+                const db = (event.target as IDBOpenDBRequest).result;
+                if (!db.objectStoreNames.contains('shipments')) {
+                    resolve();
+                    return;
+                }
+                
+                const transaction = db.transaction(['shipments'], 'readonly');
+                const store = transaction.objectStore('shipments');
+                const getAllRequest = store.getAll();
+                
+                getAllRequest.onsuccess = () => {
+                    const storedShipments = getAllRequest.result;
+                    if (storedShipments && storedShipments.length > 0) {
+                        this.shipments = storedShipments;
+                        this.dataLoaded = true;
+                        console.log(`[CSVDataEngine] Loaded ${storedShipments.length} shipments from IndexedDB`);
+                    }
+                    resolve();
+                };
+                
+                getAllRequest.onerror = () => reject(getAllRequest.error);
+            };
+            
+            request.onerror = () => reject(request.error);
+        });
     }
 
     /**
@@ -226,6 +339,8 @@ export class CSVDataEngine {
 
         return {
             totalShipments: this.shipments.length,
+            baseShipments: this.baseRecordCount,
+            newShipments: this.shipments.length - this.baseRecordCount,
             uniqueCountries: countries.size,
             uniqueRoutes: routes.size,
             uniqueForwarders: forwarders.size,
