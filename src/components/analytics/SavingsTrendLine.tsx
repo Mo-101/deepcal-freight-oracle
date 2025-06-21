@@ -38,10 +38,10 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
         };
       }
       
-      monthlyStats[monthKey].count++;
-      const costValue = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
+      const cost = shipment['carrier+cost'] || shipment.carrier_cost || 0;
+      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost;
       monthlyStats[monthKey].totalCost += costNum;
+      monthlyStats[monthKey].count++;
 
       // Calculate delivery days if both dates are available
       if (shipment.date_of_arrival_destination && shipment.date_of_collection) {

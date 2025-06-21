@@ -25,14 +25,13 @@ export const AlertTicker: React.FC<AlertTickerProps> = ({ shipmentData }) => {
     const pendingShipments = shipmentData.filter(s => s.delivery_status !== 'Delivered').length;
     const deliveredShipments = shipmentData.filter(s => s.delivery_status === 'Delivered').length;
     const totalCost = shipmentData.reduce((sum, s) => {
-      const costValue = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
-      return sum + costNum;
+      const cost = s['carrier+cost'] || s.carrier_cost || 0;
+      return sum + (typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost);
     }, 0);
     const avgCost = totalCost / shipmentData.length;
     const highValueShipments = shipmentData.filter(s => {
-      const costValue = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof costValue === 'string' ? parseFloat(String(costValue).replace(/,/g, '')) || 0 : Number(costValue) || 0;
+      const cost = s['carrier+cost'] || s.carrier_cost || 0;
+      const costNum = typeof cost === 'string' ? parseFloat(cost.replace(/,/g, '')) : cost;
       return costNum > avgCost * 2;
     }).length;
 

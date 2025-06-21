@@ -10,7 +10,7 @@ import { Upload, Play, StopCircle } from 'lucide-react';
 import { useFirebaseTraining } from '@/hooks/useFirebaseTraining';
 
 export function FirebaseTrainingPanel() {
-  const { status, error, running, start, simulate, reset } = useFirebaseTraining();
+  const { currentJob, trainingHistory, isLoading, startTraining, uploadData } = useFirebaseTraining();
   const [trainingConfig, setTrainingConfig] = useState({
     dataSource: 'embedded_shipments.csv',
     modelType: 'symbolic',
@@ -20,7 +20,7 @@ export function FirebaseTrainingPanel() {
 
   const handleStartTraining = async () => {
     try {
-      await start(trainingConfig);
+      await startTraining(trainingConfig);
     } catch (error) {
       console.error('Failed to start training:', error);
     }
@@ -30,9 +30,8 @@ export function FirebaseTrainingPanel() {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        // For now, just update the config with the filename
-        // Real upload functionality can be added later
-        setTrainingConfig(prev => ({ ...prev, dataSource: file.name }));
+        const url = await uploadData(file, file.name);
+        setTrainingConfig(prev => ({ ...prev, dataSource: url }));
       } catch (error) {
         console.error('Failed to upload file:', error);
       }
@@ -84,53 +83,34 @@ export function FirebaseTrainingPanel() {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={handleStartTraining}
-              disabled={running}
-              className="flex-1 bg-lime-600 hover:bg-lime-700"
-            >
-              {running ? (
-                <>
-                  <StopCircle className="w-4 h-4 mr-2 animate-spin" />
-                  Training...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Real Training
-                </>
-              )}
-            </Button>
-            
-            <Button
-              onClick={() => simulate(15000)}
-              disabled={running}
-              variant="outline"
-              className="flex-1"
-            >
-              Simulate Training
-            </Button>
-            
-            <Button
-              onClick={reset}
-              disabled={!running && !status}
-              variant="outline"
-            >
-              Reset
-            </Button>
-          </div>
+          <Button
+            onClick={handleStartTraining}
+            disabled={isLoading || currentJob?.status === 'running'}
+            className="w-full bg-lime-600 hover:bg-lime-700"
+          >
+            {isLoading ? (
+              <>
+                <StopCircle className="w-4 h-4 mr-2 animate-spin" />
+                Starting...
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                Start Training
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Current Training Status */}
-      {status && (
+      {/* Current Training Job */}
+      {currentJob && (
         <Card className="glass-card shadow-glass border border-glassBorder">
           <CardHeader>
             <CardTitle className="text-xl text-lime-400 flex items-center justify-between">
-              Training Progress
-              <Badge variant={running ? 'default' : 'secondary'}>
-                {running ? 'Running' : 'Completed'}
+              Current Training Job
+              <Badge variant={currentJob.status === 'running' ? 'default' : 'secondary'}>
+                {currentJob.status}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -138,45 +118,28 @@ export function FirebaseTrainingPanel() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-indigo-300">Progress</span>
-                <span className="text-lime-400">{status.progress?.toFixed(1)}%</span>
+                <span className="text-lime-400">{currentJob.progress}%</span>
               </div>
-              <Progress value={status.progress || 0} className="h-2" />
+              <Progress value={currentJob.progress} className="h-2" />
             </div>
 
             <div>
               <span className="text-indigo-300">Stage: </span>
-              <span className="text-white">{status.stage}</span>
+              <span className="text-white">{currentJob.stage}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-indigo-300">Accuracy: </span>
-                <span className="text-lime-400">{status.accuracy?.toFixed(2)}%</span>
+            {currentJob.metrics && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-indigo-300">Accuracy: </span>
+                  <span className="text-lime-400">{(currentJob.metrics.accuracy * 100).toFixed(2)}%</span>
+                </div>
+                <div>
+                  <span className="text-indigo-300">Loss: </span>
+                  <span className="text-yellow-400">{currentJob.metrics.loss.toFixed(4)}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-indigo-300">Loss: </span>
-                <span className="text-yellow-400">{status.loss?.toFixed(4)}</span>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-indigo-300">Job ID: </span>
-              <span className="text-gray-400 font-mono text-sm">{status.jobId}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <Card className="glass-card shadow-glass border border-red-500/50">
-          <CardHeader>
-            <CardTitle className="text-xl text-red-400">Training Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-red-300 font-mono text-sm">
-              {String(error)}
-            </div>
+            )}
           </CardContent>
         </Card>
       )}

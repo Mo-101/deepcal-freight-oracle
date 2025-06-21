@@ -3,7 +3,7 @@ import React from 'react';
 import { useSymbolicCalculator } from '@/hooks/useSymbolicCalculator';
 import CalculatorLayout from '@/components/calculator/CalculatorLayout';
 import DataStalenessWarning from '@/components/calculator/DataStalenessWarning';
-import { ReferenceShipmentSelector } from '@/components/calculator/ReferenceShipmentSelector';
+import ReferenceShipmentSelector from '@/components/calculator/ReferenceShipmentSelector';
 import ShipmentConfigurationPanel from '@/components/calculator/ShipmentConfigurationPanel';
 import OracleResultsPanel from '@/components/calculator/OracleResultsPanel';
 import MagicalOverlay from '@/components/calculator/MagicalOverlay';
@@ -12,8 +12,6 @@ const SymbolicCalculator = () => {
   const {
     inputs,
     setInputs,
-    liveQuotes,
-    setLiveQuotes,
     shipments,
     selectedReference,
     setSelectedReference,
@@ -56,13 +54,11 @@ const SymbolicCalculator = () => {
           <div className="lg:col-span-1">
             <ShipmentConfigurationPanel
               inputs={inputs}
-              liveQuotes={liveQuotes}
               validation={validation}
               forwarderRFQ={forwarderRFQ}
               isAwakening={isAwakening}
               shipments={shipments}
               onInputsChange={setInputs}
-              onLiveQuotesChange={setLiveQuotes}
               onPrioritiesChange={handlePrioritiesChange}
               onForwarderToggle={handleForwarderToggle}
               onRFQChange={handleRFQChange}

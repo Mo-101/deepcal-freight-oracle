@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Slider } from "@/components/ui/slider";
 import { Info } from "lucide-react";
@@ -92,13 +91,13 @@ export const InteractivePrioritySliders: React.FC<Props> = ({ value, onChange })
       {(["time", "cost", "risk"] as (keyof Priorities)[]).map((key) => (
         <div key={key}>
           <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-medium flex items-center gap-1 text-yellow-300">
+            <span className="text-sm font-medium flex items-center gap-1">
               {sliderLabel(key)}
               <span className="tooltip" style={{ display: "inline-block" }} title={infos[key]}>
-                <Info className="inline ml-1 text-yellow-400 w-3 h-3" aria-label={infos[key]} />
+                <Info className="inline ml-1 text-purple-400 w-3 h-3" aria-label={infos[key]} />
               </span>
             </span>
-            <span className="text-sm font-semibold text-white">{value[key]}%</span>
+            <span className="text-sm font-semibold">{value[key]}%</span>
           </div>
           <Slider
             min={0}
@@ -119,7 +118,7 @@ export const InteractivePrioritySliders: React.FC<Props> = ({ value, onChange })
           </Slider>
         </div>
       ))}
-      <div className="flex justify-end text-xs text-yellow-200 mt-2">
+      <div className="flex justify-end text-xs text-slate-400 mt-2">
         <span>Total: {value.time + value.cost + value.risk}% (Always auto-balanced to 100%)</span>
       </div>
     </div>

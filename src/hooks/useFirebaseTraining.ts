@@ -1,70 +1,105 @@
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { firebaseTrainingService, TrainingStatus } from '../services/firebaseTrainingService';
+import { useState, useEffect } from 'react';
+import { firebaseTrainingService, FirebaseTrainingJob } from '@/services/firebaseTrainingService';
+import { useToast } from '@/hooks/use-toast';
 
-export interface UseTrainingState {
-  status?: TrainingStatus;
-  error?: any;
-  running: boolean;
-  start: (params: Record<string, any>) => Promise<void>;
-  simulate: (duration?: number) => void;
-  reset: () => void;
-}
+export function useFirebaseTraining() {
+  const [currentJob, setCurrentJob] = useState<FirebaseTrainingJob | null>(null);
+  const [trainingHistory, setTrainingHistory] = useState<FirebaseTrainingJob[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-export function useFirebaseTraining(): UseTrainingState {
-  const [status, setStatus] = useState<TrainingStatus | undefined>(undefined);
-  const [error, setError] = useState<any>(null);
-  const [running, setRunning] = useState(false);
-  const stopRef = useRef<(() => void) | null>(null);
-
-  // Start real backend training
-  const start = useCallback(async (params: Record<string, any>) => {
-    setRunning(true);
-    setError(null);
-    setStatus(undefined);
+  // Start a new training job
+  const startTraining = async (config: {
+    dataSource: string;
+    modelType: string;
+    epochs: number;
+    batchSize: number;
+    weights?: any;
+  }) => {
+    setIsLoading(true);
     try {
-      const jobId = await firebaseTrainingService.startTraining(params);
-      const stopMonitoring = await firebaseTrainingService.monitorTraining(jobId, (s) => {
-        setStatus(s);
-        if (s.completed) setRunning(false);
+      const job = await firebaseTrainingService.startTrainingJob(config);
+      setCurrentJob(job);
+      
+      // Subscribe to job updates
+      const unsubscribe = firebaseTrainingService.subscribeToTrainingJob(job.id, (updatedJob) => {
+        setCurrentJob(updatedJob);
+        
+        if (updatedJob.status === 'completed') {
+          toast({
+            title: 'Training Completed',
+            description: `Model training finished with ${updatedJob.metrics?.accuracy?.toFixed(2)}% accuracy`,
+          });
+        } else if (updatedJob.status === 'failed') {
+          toast({
+            title: 'Training Failed',
+            description: updatedJob.error || 'Training job encountered an error',
+            variant: 'destructive',
+          });
+        }
       });
-      stopRef.current = stopMonitoring;
-    } catch (e) {
-      setError(e);
-      setRunning(false);
+
+      // Clean up subscription when job completes or fails
+      const checkJobComplete = setInterval(() => {
+        if (currentJob && ['completed', 'failed'].includes(currentJob.status)) {
+          clearInterval(checkJobComplete);
+          unsubscribe();
+        }
+      }, 1000);
+
+      return job;
+    } catch (error) {
+      console.error('Failed to start training:', error);
+      toast({
+        title: 'Training Failed to Start',
+        description: 'Could not initialize training job',
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  };
 
-  // Simulate training for demo or dev mode
-  const simulate = useCallback((duration = 10000) => {
-    setRunning(true);
-    setError(null);
-    setStatus(undefined);
-    firebaseTrainingService.simulateTraining(duration, (s) => {
-      setStatus(s);
-      if (s.completed) setRunning(false);
-    });
-  }, []);
-
-  // Reset everything
-  const reset = useCallback(() => {
-    setStatus(undefined);
-    setError(null);
-    setRunning(false);
-    if (stopRef.current) {
-      stopRef.current();
-      stopRef.current = null;
+  // Upload training data
+  const uploadData = async (file: File, filename: string) => {
+    try {
+      const url = await firebaseTrainingService.uploadTrainingData(file, filename);
+      toast({
+        title: 'Data Uploaded',
+        description: `${filename} uploaded successfully`,
+      });
+      return url;
+    } catch (error) {
+      console.error('Failed to upload data:', error);
+      toast({
+        title: 'Upload Failed',
+        description: 'Could not upload training data',
+        variant: 'destructive',
+      });
+      throw error;
     }
-  }, []);
+  };
 
-  // Clean up polling/streaming on unmount
+  // Load training history
   useEffect(() => {
-    return () => {
-      if (stopRef.current) {
-        stopRef.current();
+    const loadHistory = async () => {
+      try {
+        const history = await firebaseTrainingService.getTrainingHistory();
+        setTrainingHistory(history);
+      } catch (error) {
+        console.error('Failed to load training history:', error);
       }
     };
+    loadHistory();
   }, []);
 
-  return { status, error, running, start, simulate, reset };
+  return {
+    currentJob,
+    trainingHistory,
+    isLoading,
+    startTraining,
+    uploadData,
+  };
 }
