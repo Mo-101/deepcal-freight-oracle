@@ -1,6 +1,6 @@
 
-<<<<<<< HEAD
 import React, { useState, useEffect } from "react";
+import { useToast } from '@/hooks/use-toast';
 import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader";
 import { TrainingHeader } from "@/components/training/TrainingHeader";
 import { TrainingTabs } from "@/components/training/TrainingTabs";
@@ -12,34 +12,6 @@ import { AdvancedConfigTab } from "@/components/training/AdvancedConfigTab";
 import { LiveMetricsPanel } from "@/components/training/LiveMetricsPanel";
 import { useFirebaseTraining } from "@/hooks/useFirebaseTraining";
 import { WeightVector, SystemStatus, TrainingMetrics } from "@/types/training";
-=======
-import React, { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import DeepCALHeader from '@/components/DeepCALHeader';
-import { SyntheticDataManager } from '@/components/SyntheticDataManager';
-import { TrainingHeader } from '@/components/training/TrainingHeader';
-import { SystemStatusSidebar } from '@/components/training/SystemStatusSidebar';
-import { TrainingTabs } from '@/components/training/TrainingTabs';
-import { EngineConfigTab } from '@/components/training/EngineConfigTab';
-import { WeightsConfigTab } from '@/components/training/WeightsConfigTab';
-import { AdvancedConfigTab } from '@/components/training/AdvancedConfigTab';
-import { LiveMetricsPanel } from '@/components/training/LiveMetricsPanel';
-import { TrainingLogsPanel } from '@/components/training/TrainingLogsPanel';
-
-export interface WeightVector {
-  cost: number;
-  time: number;
-  reliability: number;
-  risk: number;
-}
-
-const DEFAULT_WEIGHTS: WeightVector = {
-  cost: 0.35,
-  time: 0.35,
-  reliability: 0.2,
-  risk: 0.1,
-};
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
 
 interface ModelConfig {
   primaryLLM: string;
@@ -63,6 +35,7 @@ interface TrainingActivity {
 }
 
 const Training = () => {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('engine');
   const [weights, setWeights] = useState<WeightVector>({
     cost: 0.35,
@@ -79,27 +52,9 @@ const Training = () => {
     realTimeProcessing: true
   });
 
-<<<<<<< HEAD
-  const { status, error, running, start, simulate, reset } = useFirebaseTraining();
-
-  // Mock training activities that update during training
-=======
-  const [systemStatus] = useState<SystemStatus>({
-    neutroEngine: 'connected',
-    firestore: 'connected',
-    groqAPI: 'warning',
-    trainingPipeline: 'connected'
-  });
-
-  const [trainingMetrics] = useState({
-    samplesProcessed: 12543,
-    accuracy: 94.2,
-    lastTraining: '2 hours ago',
-    modelVersion: '2.1.3'
-  });
-
+  const { currentJob, isLoading, startTraining } = useFirebaseTraining();
   const [isTraining, setIsTraining] = useState(false);
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
+
   const [trainingActivities, setTrainingActivities] = useState<TrainingActivity[]>([
     {
       id: '1',
@@ -111,25 +66,6 @@ const Training = () => {
     },
     {
       id: '2',
-<<<<<<< HEAD
-      stage: 'Feature Extraction',
-      progress: 100,
-      timestamp: '14:29',
-      status: 'completed',
-      metrics: { loss: 0.198, accuracy: 91.5, learningRate: 0.0009 }
-    },
-    {
-      id: '3',
-      stage: 'Neural Network Training',
-      progress: 78,
-      timestamp: '14:30',
-      status: running ? 'active' : 'pending',
-      metrics: { loss: 0.156, accuracy: 94.2, learningRate: 0.0008 }
-    },
-    {
-      id: '4',
-      stage: 'Model Validation',
-=======
       stage: 'Neutrosophic Feature Extraction',
       progress: 78,
       timestamp: '14:33:42',
@@ -147,7 +83,6 @@ const Training = () => {
     {
       id: '4',
       stage: 'Grey System Validation',
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
       progress: 0,
       timestamp: '14:32',
       status: 'pending',
@@ -155,88 +90,93 @@ const Training = () => {
     }
   ]);
 
-  // Real system status monitoring
   const systemStatus: SystemStatus = {
     neutroEngine: 'connected',
     firestore: 'connected',
     groqAPI: 'connected',
-    trainingPipeline: running ? 'connected' : 'warning'
+    trainingPipeline: isTraining ? 'connected' : 'warning'
   };
 
-<<<<<<< HEAD
-  // Real training metrics from current training
   const trainingMetrics: TrainingMetrics = {
-    samplesProcessed: status?.progress ? Math.floor((status.progress / 100) * 15000) : 12547,
-    accuracy: status?.accuracy || 94.2,
-    lastTraining: status?.startedAt ? 'Live' : '2h ago',
+    samplesProcessed: currentJob?.progress ? Math.floor((currentJob.progress / 100) * 15000) : 12547,
+    accuracy: currentJob?.metrics?.accuracy ? currentJob.metrics.accuracy * 100 : 94.2,
+    lastTraining: currentJob?.status === 'running' ? 'Live' : '2h ago',
     modelVersion: 'v2.4.1'
   };
 
   // Update training activities when training is running
-=======
-  // Simulate real-time training updates
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
   useEffect(() => {
-    if (running && status) {
+    if (currentJob && currentJob.status === 'running') {
+      setIsTraining(true);
       setTrainingActivities(prev => prev.map(activity => {
-        if (activity.stage === 'Neural Network Training') {
+        if (activity.stage === 'Neutrosophic Feature Extraction') {
           return {
             ...activity,
-            progress: status.progress,
+            progress: currentJob.progress,
             status: 'active' as const,
             metrics: {
-              loss: status.loss,
-              accuracy: status.accuracy,
+              loss: currentJob.metrics?.loss || activity.metrics.loss,
+              accuracy: currentJob.metrics?.accuracy ? currentJob.metrics.accuracy * 100 : activity.metrics.accuracy,
               learningRate: 0.0008
             }
           };
         }
         return activity;
       }));
+    } else if (currentJob && currentJob.status === 'completed') {
+      setIsTraining(false);
     }
-  }, [running, status]);
+  }, [currentJob]);
 
-<<<<<<< HEAD
   const handleSaveConfiguration = () => {
     console.log("Configuration saved", { weights, modelConfig });
-  };
-
-  const handleToggleTraining = async () => {
-    if (running) {
-      reset();
-    } else {
-      try {
-        await start({
-          weights,
-          modelConfig,
-          dataSource: 'combined',
-          includeSynthetic: true
-        });
-      } catch (error) {
-        console.error('Failed to start training:', error);
-        // Fallback to simulation for demo
-        simulate(30000);
-      }
-=======
-  const triggerTraining = () => {
-    setIsTraining(!isTraining);
-    if (!isTraining) {
-      setTrainingActivities(prev => prev.map((activity, index) => ({
-        ...activity,
-        progress: index === 0 ? 10 : 0,
-        status: index === 0 ? 'active' : 'pending',
-        timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
-      })));
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
-    }
-    
-    toast({ 
-      title: isTraining ? 'Training Stopped' : 'Training Initiated', 
-      description: isTraining ? 'Neural engine training halted' : 'Neutrosophic engine optimization in progress...' 
+    toast({
+      title: 'Configuration Saved',
+      description: 'Model parameters updated successfully'
     });
   };
 
-<<<<<<< HEAD
+  const handleToggleTraining = async () => {
+    if (isTraining) {
+      setIsTraining(false);
+      toast({
+        title: 'Training Stopped',
+        description: 'Neural engine training halted'
+      });
+    } else {
+      try {
+        await startTraining({
+          dataSource: 'combined',
+          modelType: 'symbolic',
+          epochs: 100,
+          batchSize: 32,
+          weights
+        });
+        setIsTraining(true);
+        
+        // Simulate training progress
+        setTrainingActivities(prev => prev.map((activity, index) => ({
+          ...activity,
+          progress: index === 0 ? 10 : 0,
+          status: index === 0 ? 'active' : 'pending',
+          timestamp: index === 0 ? new Date().toLocaleTimeString() : '--:--:--'
+        })));
+
+        toast({
+          title: 'Training Initiated',
+          description: 'Neutrosophic engine optimization in progress...'
+        });
+      } catch (error) {
+        console.error('Failed to start training:', error);
+        toast({
+          title: 'Training Failed',
+          description: 'Could not start training session',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'engine':
@@ -245,7 +185,7 @@ const Training = () => {
             modelConfig={modelConfig}
             setModelConfig={setModelConfig}
             trainingMetrics={trainingMetrics}
-            isTraining={running}
+            isTraining={isTraining}
             trainingActivities={trainingActivities}
           />
         );
@@ -263,13 +203,6 @@ const Training = () => {
       default:
         return null;
     }
-=======
-  const saveConfiguration = () => {
-    toast({ 
-      title: 'Configuration Saved', 
-      description: 'Model parameters updated successfully' 
-    });
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
   };
 
   return (
@@ -278,11 +211,10 @@ const Training = () => {
       
       <main className="container max-w-full mx-auto py-6 px-6">
         <TrainingHeader
-          isTraining={running}
+          isTraining={isTraining}
           onSaveConfiguration={handleSaveConfiguration}
           onToggleTraining={handleToggleTraining}
         />
-<<<<<<< HEAD
         
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           <div className="xl:col-span-3 space-y-6">
@@ -294,73 +226,17 @@ const Training = () => {
           </div>
           
           <div className="xl:col-span-1 space-y-6">
-=======
-
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-          <div className="xl:col-span-1">
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
             <SystemStatusSidebar 
               systemStatus={systemStatus}
               trainingMetrics={trainingMetrics}
             />
-<<<<<<< HEAD
-            <LiveMetricsPanel isTraining={running} />
-=======
-          </div>
-
-          <div className="xl:col-span-4 space-y-6">
-            <TrainingTabs 
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-
-            <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
-              <div className="2xl:col-span-2">
-                {activeTab === 'engine' && (
-                  <EngineConfigTab 
-                    modelConfig={modelConfig}
-                    setModelConfig={setModelConfig}
-                    trainingMetrics={trainingMetrics}
-                    isTraining={isTraining}
-                    trainingActivities={trainingActivities}
-                  />
-                )}
-
-                {activeTab === 'weights' && (
-                  <WeightsConfigTab 
-                    weights={weights}
-                    setWeights={setWeights}
-                  />
-                )}
-
-                {activeTab === 'synthetic' && (
-                  <SyntheticDataManager 
-                    onDataGenerated={() => {
-                      toast({ 
-                        title: 'Synthetic Data Ready', 
-                        description: 'New synthetic training data is available for model retraining' 
-                      });
-                    }}
-                  />
-                )}
-
-                {activeTab === 'advanced' && (
-                  <AdvancedConfigTab />
-                )}
-              </div>
-
-              <div className="2xl:col-span-1 space-y-6">
-                <LiveMetricsPanel isTraining={isTraining} />
-                <TrainingLogsPanel isTraining={isTraining} />
-              </div>
-            </div>
->>>>>>> parent of 80b669f (Merge branch 'main' of https://github.com/Mo-101/deepcal-freight-oracle)
+            <LiveMetricsPanel isTraining={isTraining} />
           </div>
         </div>
 
-        {error && (
+        {currentJob?.error && (
           <div className="mt-6 p-4 bg-red-900/20 border border-red-500 rounded-lg">
-            <p className="text-red-400">Training Error: {error.message}</p>
+            <p className="text-red-400">Training Error: {currentJob.error}</p>
           </div>
         )}
       </main>
