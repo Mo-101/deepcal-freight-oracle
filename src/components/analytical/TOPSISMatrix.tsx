@@ -2,17 +2,11 @@
 import React from 'react';
 
 interface TOPSISMatrixProps {
-  forwarderKPIs: any[];
-  priorities: {
-    time: number;
-    cost: number;
-    risk: number;
-  };
-  revealLevel: 'novice' | 'expert' | 'phd';
+  data: any[];
 }
 
-export const TOPSISMatrix: React.FC<TOPSISMatrixProps> = ({ forwarderKPIs, priorities, revealLevel }) => {
-  if (!forwarderKPIs || forwarderKPIs.length === 0) {
+export const TOPSISMatrix: React.FC<TOPSISMatrixProps> = ({ data }) => {
+  if (!data || data.length === 0) {
     return (
       <div className="p-4 text-center text-gray-400">
         No TOPSIS matrix data available
@@ -21,8 +15,8 @@ export const TOPSISMatrix: React.FC<TOPSISMatrixProps> = ({ forwarderKPIs, prior
   }
 
   // Extract criteria from first data item
-  const criteria = Object.keys(forwarderKPIs[0]).filter(key => 
-    typeof forwarderKPIs[0][key] === 'number' && key !== 'id'
+  const criteria = Object.keys(data[0]).filter(key => 
+    typeof data[0][key] === 'number' && key !== 'id'
   );
 
   return (
@@ -39,7 +33,7 @@ export const TOPSISMatrix: React.FC<TOPSISMatrixProps> = ({ forwarderKPIs, prior
           </tr>
         </thead>
         <tbody>
-          {forwarderKPIs.map((item, index) => (
+          {data.map((item, index) => (
             <tr key={item.id || index} className="border-b border-slate-700/50">
               <td className="p-2 text-white">{item.name || `Alt ${index + 1}`}</td>
               {criteria.map(criterion => (
