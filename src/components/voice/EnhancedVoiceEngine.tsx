@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Volume2, VolumeX, Brain, Waveform } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Brain, Radio } from 'lucide-react';
 
 interface VoiceEngineProps {
   onVoiceCommand: (command: string) => void;
@@ -19,10 +18,10 @@ export const EnhancedVoiceEngine: React.FC<VoiceEngineProps> = ({
   const [audioLevel, setAudioLevel] = useState(0);
   const [lastCommand, setLastCommand] = useState<string>('');
 
-  // Voice recognition setup
+  // Voice recognition setup with proper typing
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       const recognition = new SpeechRecognition();
       
       recognition.continuous = true;
@@ -32,9 +31,9 @@ export const EnhancedVoiceEngine: React.FC<VoiceEngineProps> = ({
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
       
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
+          .map((result: any) => result[0].transcript)
           .join('');
           
         if (event.results[event.results.length - 1].isFinal) {
@@ -161,7 +160,7 @@ export const EnhancedVoiceEngine: React.FC<VoiceEngineProps> = ({
             </div>
           ) : (
             <div className="flex items-center space-x-2 text-gray-500">
-              <Waveform className="w-6 h-6" />
+              <Radio className="w-6 h-6" />
               <span className="text-sm">Voice inactive</span>
             </div>
           )}
