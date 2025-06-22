@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import * as React from 'react';
+import type { ForwardedRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Compass, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -17,16 +18,16 @@ interface EagleEyeTrackerProps {
 }
 
 export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onCheckIn }) => {
-  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([]);
-  const [eta, setEta] = useState<string>('Calculating...');
-  const [etaHistory, setEtaHistory] = useState<{timestamp: Date; eta: string}[]>([]);
-  const [lastCheckIn, setLastCheckIn] = useState<{location: {lat: number; lng: number}; timestamp: Date} | null>(null);
-  const [notifications, setNotifications] = useState<{id: string; message: string; type: 'info' | 'warning' | 'alert'}[]>([]);
+  const [routePoints, setRoutePoints] = React.useState<RoutePoint[]>([]);
+  const [eta, setEta] = React.useState<string>('Calculating...');
+  const [etaHistory, setEtaHistory] = React.useState<{timestamp: Date; eta: string}[]>([]);
+  const [lastCheckIn, setLastCheckIn] = React.useState<{location: {lat: number; lng: number}; timestamp: Date} | null>(null);
+  const [notifications, setNotifications] = React.useState<{id: string; message: string; type: 'info' | 'warning' | 'alert'}[]>([]);
   const { position, error } = useGeolocation();
-  const mapRef = useRef<any>(null);
+  const mapRef = React.useRef<HTMLDivElement>(null);
 
   // Simulate route updates
-  useEffect(() => {
+  React.useEffect(() => {
     if (position) {
       const newPoint: RoutePoint = {
         lat: position.coords.latitude,
@@ -40,7 +41,7 @@ export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onChe
   }, [position]);
 
   // Memoize ETA calculation function
-  const calculateEnhancedETA = useCallback((currentPoint: RoutePoint, previousPoint?: RoutePoint) => {
+  const calculateEnhancedETA = React.useCallback((currentPoint: RoutePoint, previousPoint?: RoutePoint) => {
     if (!previousPoint) return 'Calculating...';
     
     const distance = calculateDistance(
@@ -108,7 +109,7 @@ export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onChe
   };
 
   // Enhanced ETA calculation in useEffect
-  useEffect(() => {
+  React.useEffect(() => {
     if (position && routePoints.length > 1) {
       setEta(calculateEnhancedETA(
         {

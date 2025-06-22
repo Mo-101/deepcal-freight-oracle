@@ -1,4 +1,5 @@
-import React, { forwardRef, useEffect, useRef } from 'react';
+import * as React from 'react';
+import type { ForwardedRef } from 'react';
 import { MapPin, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface MapContainerProps {
@@ -11,10 +12,10 @@ interface MapContainerProps {
   currentPosition: GeolocationPosition | null;
 }
 
-export const MapContainer = forwardRef<any, MapContainerProps>(({ routePoints, currentPosition }, ref) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export const MapContainer = React.forwardRef<HTMLDivElement, MapContainerProps>(({ routePoints, currentPosition }, ref) => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;

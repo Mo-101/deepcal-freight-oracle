@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import type { ButtonProps } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +23,7 @@ interface CalculatorInputs {
 }
 
 const FreightCalculator = () => {
-  const [inputs, setInputs] = useState<CalculatorInputs>({
+  const [inputs, setInputs] = React.useState<CalculatorInputs>({
     origin: '',
     destination: '',
     weight: 0,
@@ -30,16 +31,16 @@ const FreightCalculator = () => {
     urgency: 'medium',
     cargoType: ''
   });
-  const [calculating, setCalculating] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [calculating, setCalculating] = React.useState(false);
+  const [dataLoaded, setDataLoaded] = React.useState(false);
 
   // All old shipments for reference selection
-  const [oldShipments, setOldShipments] = useState<ShipmentRecord[]>([]);
-  const [selectedReference, setSelectedReference] = useState<string | null>(null);
+  const [oldShipments, setOldShipments] = React.useState<ShipmentRecord[]>([]);
+  const [selectedReference, setSelectedReference] = React.useState<string | null>(null);
 
-  const [weatherRisk, setWeatherRisk] = useState<'low' | 'medium' | 'high'>('low');
+  const [weatherRisk, setWeatherRisk] = React.useState<'low' | 'medium' | 'high'>('low');
 
-  useEffect(() => {
+  React.useEffect(() => {
     (async () => {
       const shipments = await csvDataEngine.listShipments();
       setDataLoaded(Array.isArray(shipments) && shipments.length > 0);
@@ -48,7 +49,7 @@ const FreightCalculator = () => {
   }, []);
 
   // Handle selecting an old shipment by reference
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedReference) {
       const found = oldShipments.find(s => s.request_reference === selectedReference);
       if (found) {
@@ -192,11 +193,11 @@ const FreightCalculator = () => {
                 </Button>
                 <Button 
                   type="button" 
-                  variant="outline"
+                  variant="outline" asChild
                   onClick={clearForm} 
                   className="border-primary/60"
                 >
-                  Clear
+                  <span>Clear</span>
                 </Button>
               </div>
             </form>
