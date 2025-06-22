@@ -24,64 +24,91 @@ export interface TrainingMetrics {
 
 export class RealTrainingEngine {
   private weights: WeightVector;
-  private learningRate: number = 0.001;
+  private learningRate: number = 0.01; // Increased for faster convergence
   private momentum: number = 0.9;
   private velocities: WeightVector;
   private bestWeights: WeightVector;
   private bestValidationLoss: number = Infinity;
-  private patience: number = 10;
+  private patience: number = 15;
   private patienceCounter: number = 0;
 
   constructor(initialWeights: WeightVector) {
-    this.weights = { ...initialWeights };
+    // Normalize initial weights
+    const sum = initialWeights.cost + initialWeights.time + initialWeights.reliability + initialWeights.risk;
+    this.weights = {
+      cost: initialWeights.cost / sum,
+      time: initialWeights.time / sum,
+      reliability: initialWeights.reliability / sum,
+      risk: initialWeights.risk / sum
+    };
+    
     this.velocities = { cost: 0, time: 0, reliability: 0, risk: 0 };
-    this.bestWeights = { ...initialWeights };
+    this.bestWeights = { ...this.weights };
+    
+    console.log('Training engine initialized with weights:', this.weights);
   }
 
-  // Real backpropagation with gradient descent
-  private calculateGradients(data: TrainingData): WeightVector {
-    const gradients: WeightVector = { cost: 0, time: 0, reliability: 0, risk: 0 };
-    const n = data.features.length;
-
-    for (let i = 0; i < n; i++) {
-      const prediction = this.predict(data.metadata[i]);
-      const actual = data.targets[i];
-      const error = prediction - actual;
-
-      // Calculate partial derivatives
-      const costFeature = data.metadata[i].cost / 100; // Normalize
-      const timeFeature = data.metadata[i].time / 100;
-      const reliabilityFeature = data.metadata[i].reliability / 100;
-      const riskFeature = data.metadata[i].risk / 100;
-
-      gradients.cost += (2 * error * costFeature) / n;
-      gradients.time += (2 * error * timeFeature) / n;
-      gradients.reliability += (2 * error * reliabilityFeature) / n;
-      gradients.risk += (2 * error * riskFeature) / n;
-    }
-
-    return gradients;
+  // Sigmoid activation function
+  private sigmoid(x: number): number {
+    return 1 / (1 + Math.exp(-Math.max(-500, Math.min(500, x)))); // Clamp to prevent overflow
   }
 
-  // Neural network prediction function
+  // Neural network prediction with sigmoid activation
   private predict(metadata: { cost: number; time: number; reliability: number; risk: number }): number {
-    const normalizedCost = metadata.cost / 100;
-    const normalizedTime = metadata.time / 100;
+    const normalizedCost = Math.min(1, metadata.cost / 1000);
+    const normalizedTime = Math.min(1, metadata.time / 30);
     const normalizedReliability = metadata.reliability / 100;
     const normalizedRisk = metadata.risk / 100;
 
-    // Weighted sum with sigmoid activation
+    // Weighted sum with bias
     const linearOutput = 
       this.weights.cost * normalizedCost +
       this.weights.time * normalizedTime +
       this.weights.reliability * normalizedReliability +
       this.weights.risk * normalizedRisk;
 
-    return 1 / (1 + Math.exp(-linearOutput)); // Sigmoid activation
+    return this.sigmoid(linearOutput);
   }
 
-  // Real training step with momentum
+  // Calculate gradients using backpropagation
+  private calculateGradients(data: TrainingData): WeightVector {
+    const gradients: WeightVector = { cost: 0, time: 0, reliability: 0, risk: 0 };
+    const n = data.features.length;
+
+    if (n === 0) {
+      return gradients;
+    }
+
+    for (let i = 0; i < n; i++) {
+      const prediction = this.predict(data.metadata[i]);
+      const actual = data.targets[i];
+      const error = prediction - actual;
+
+      // Sigmoid derivative
+      const sigmoidDerivative = prediction * (1 - prediction);
+      const delta = error * sigmoidDerivative;
+
+      // Calculate partial derivatives
+      const normalizedCost = Math.min(1, data.metadata[i].cost / 1000);
+      const normalizedTime = Math.min(1, data.metadata[i].time / 30);
+      const normalizedReliability = data.metadata[i].reliability / 100;
+      const normalizedRisk = data.metadata[i].risk / 100;
+
+      gradients.cost += (delta * normalizedCost) / n;
+      gradients.time += (delta * normalizedTime) / n;
+      gradients.reliability += (delta * normalizedReliability) / n;
+      gradients.risk += (delta * normalizedRisk) / n;
+    }
+
+    return gradients;
+  }
+
+  // Training step with momentum and weight constraints
   trainStep(trainingData: TrainingData, validationData: TrainingData): TrainingMetrics {
+    if (trainingData.features.length === 0 || validationData.features.length === 0) {
+      throw new Error('Training or validation data is empty');
+    }
+
     const gradients = this.calculateGradients(trainingData);
 
     // Update velocities with momentum
@@ -96,20 +123,26 @@ export class RealTrainingEngine {
     this.weights.reliability += this.velocities.reliability;
     this.weights.risk += this.velocities.risk;
 
-    // Ensure weights sum to 1 (normalization constraint)
+    // Ensure weights remain positive and sum to 1
+    const minWeight = 0.01;
+    this.weights.cost = Math.max(minWeight, this.weights.cost);
+    this.weights.time = Math.max(minWeight, this.weights.time);
+    this.weights.reliability = Math.max(minWeight, this.weights.reliability);
+    this.weights.risk = Math.max(minWeight, this.weights.risk);
+
     const weightSum = this.weights.cost + this.weights.time + this.weights.reliability + this.weights.risk;
     this.weights.cost /= weightSum;
     this.weights.time /= weightSum;
     this.weights.reliability /= weightSum;
     this.weights.risk /= weightSum;
 
-    // Calculate losses and accuracies
+    // Calculate metrics
     const trainLoss = this.calculateLoss(trainingData);
     const trainAccuracy = this.calculateAccuracy(trainingData);
     const valLoss = this.calculateLoss(validationData);
     const valAccuracy = this.calculateAccuracy(validationData);
 
-    // Early stopping logic
+    // Early stopping with best model tracking
     if (valLoss < this.bestValidationLoss) {
       this.bestValidationLoss = valLoss;
       this.bestWeights = { ...this.weights };
@@ -119,8 +152,8 @@ export class RealTrainingEngine {
     }
 
     // Adaptive learning rate
-    if (this.patienceCounter > 3) {
-      this.learningRate *= 0.8;
+    if (this.patienceCounter > 5) {
+      this.learningRate *= 0.95;
     }
 
     return {
@@ -134,21 +167,27 @@ export class RealTrainingEngine {
   }
 
   private calculateLoss(data: TrainingData): number {
+    if (data.features.length === 0) return 1.0;
+    
     let totalLoss = 0;
     for (let i = 0; i < data.features.length; i++) {
       const prediction = this.predict(data.metadata[i]);
       const actual = data.targets[i];
-      totalLoss += Math.pow(prediction - actual, 2);
+      // Binary cross-entropy loss
+      const loss = -(actual * Math.log(Math.max(1e-15, prediction)) + (1 - actual) * Math.log(Math.max(1e-15, 1 - prediction)));
+      totalLoss += loss;
     }
     return totalLoss / data.features.length;
   }
 
   private calculateAccuracy(data: TrainingData): number {
+    if (data.features.length === 0) return 0;
+    
     let correct = 0;
     for (let i = 0; i < data.features.length; i++) {
       const prediction = this.predict(data.metadata[i]);
       const actual = data.targets[i];
-      // Binary classification threshold
+      // Binary classification with 0.5 threshold
       const predictedClass = prediction > 0.5 ? 1 : 0;
       if (predictedClass === actual) correct++;
     }

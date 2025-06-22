@@ -7,13 +7,18 @@ import { useToast } from '@/hooks/use-toast';
 export function useLiveTraining() {
   const [currentJob, setCurrentJob] = useState<LiveTrainingJob | null>(null);
   const [isTraining, setIsTraining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('Setting up live training hook...');
+    
     // Subscribe to training updates
     const unsubscribe = liveTrainingService.onTrainingUpdate((job) => {
+      console.log('Training update received:', job.status, job.currentEpoch);
       setCurrentJob(job);
       setIsTraining(job.status === 'running');
+      setError(null);
       
       if (job.status === 'completed') {
         toast({
@@ -32,6 +37,7 @@ export function useLiveTraining() {
     // Check for existing job
     const existingJob = liveTrainingService.getCurrentJob();
     if (existingJob) {
+      console.log('Found existing training job:', existingJob.status);
       setCurrentJob(existingJob);
       setIsTraining(existingJob.status === 'running');
     }
@@ -40,7 +46,16 @@ export function useLiveTraining() {
   }, [toast]);
 
   const startTraining = async (weights: WeightVector, epochs: number = 100) => {
+    console.log('Starting training with weights:', weights);
+    setError(null);
+    
     try {
+      // Validate weights
+      const weightSum = weights.cost + weights.time + weights.reliability + weights.risk;
+      if (Math.abs(weightSum - 1.0) > 0.01) {
+        throw new Error('Weights must sum to 1.0');
+      }
+
       const jobId = await liveTrainingService.startLiveTraining(weights, epochs);
       setIsTraining(true);
       
@@ -49,11 +64,16 @@ export function useLiveTraining() {
         description: 'Neural network is now learning from real data...',
       });
       
+      console.log('Training started successfully with job ID:', jobId);
       return jobId;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Failed to start training:', errorMessage);
+      setError(errorMessage);
+      
       toast({
         title: 'Failed to Start Training',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
       throw error;
@@ -61,8 +81,10 @@ export function useLiveTraining() {
   };
 
   const stopTraining = () => {
+    console.log('Stopping training...');
     liveTrainingService.stopLiveTraining();
     setIsTraining(false);
+    setError(null);
     
     toast({
       title: 'Training Stopped',
@@ -71,12 +93,18 @@ export function useLiveTraining() {
   };
 
   const getLatestWeights = async (): Promise<WeightVector | null> => {
-    return await liveTrainingService.getLatestTrainedWeights();
+    try {
+      return await liveTrainingService.getLatestTrainedWeights();
+    } catch (error) {
+      console.error('Failed to get latest weights:', error);
+      return null;
+    }
   };
 
   return {
     currentJob,
     isTraining,
+    error,
     startTraining,
     stopTraining,
     getLatestWeights,

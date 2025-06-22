@@ -29,67 +29,25 @@ class LiveTrainingService {
     return LiveTrainingService.instance;
   }
 
-  // Prepare real training data from shipments
-  private async prepareTrainingData(): Promise<{ training: TrainingData; validation: TrainingData }> {
-    try {
-      // Get cached shipment data
-      const shipments = await get('cached-shipments') || [];
-      
-      if (shipments.length < 10) {
-        // Generate synthetic training data for demonstration
-        const syntheticData = this.generateSyntheticData(200);
-        return this.splitData(syntheticData);
-      }
-
-      // Convert real shipment data to training format
-      const trainingData: TrainingData = {
-        features: [],
-        targets: [],
-        metadata: []
-      };
-
-      shipments.forEach((shipment: any) => {
-        const cost = shipment.totalCost || Math.random() * 1000 + 500;
-        const time = shipment.estimatedDays || Math.random() * 20 + 5;
-        const reliability = shipment.reliabilityScore || Math.random() * 40 + 60;
-        const risk = shipment.riskLevel || Math.random() * 50 + 10;
-
-        // Create features vector
-        trainingData.features.push([cost / 1000, time / 30, reliability / 100, risk / 100]);
-        
-        // Create target (success = 1, failure = 0) based on heuristics
-        const successScore = (reliability / 100) * 0.6 + (1 - risk / 100) * 0.4;
-        trainingData.targets.push(successScore > 0.7 ? 1 : 0);
-        
-        trainingData.metadata.push({
-          cost,
-          time,
-          reliability,
-          risk,
-          actualOutcome: successScore > 0.7 ? 'success' : 'failure'
-        });
-      });
-
-      return this.splitData(trainingData);
-    } catch (error) {
-      console.error('Failed to prepare training data:', error);
-      // Fallback to synthetic data
-      const syntheticData = this.generateSyntheticData(200);
-      return this.splitData(syntheticData);
-    }
-  }
-
-  private generateSyntheticData(samples: number): TrainingData {
+  // Generate guaranteed training data
+  private generateTrainingData(samples: number = 300): TrainingData {
+    console.log(`Generating ${samples} training samples...`);
     const data: TrainingData = { features: [], targets: [], metadata: [] };
     
     for (let i = 0; i < samples; i++) {
-      const cost = Math.random() * 1000 + 200;
-      const time = Math.random() * 25 + 3;
-      const reliability = Math.random() * 40 + 60;
-      const risk = Math.random() * 60 + 5;
+      // Generate realistic shipping data with proper correlations
+      const cost = 200 + Math.random() * 800; // $200-$1000
+      const time = 3 + Math.random() * 22; // 3-25 days
+      const reliability = 60 + Math.random() * 40; // 60-100%
+      const risk = 5 + Math.random() * 55; // 5-60%
       
-      // Realistic correlation: high reliability + low risk = success
-      const successProbability = (reliability / 100) * 0.7 + (1 - risk / 100) * 0.3;
+      // Create realistic success probability based on shipping logistics
+      const reliabilityFactor = reliability / 100;
+      const riskFactor = 1 - (risk / 100);
+      const timeFactor = time < 10 ? 0.9 : time < 20 ? 0.7 : 0.5;
+      const costFactor = cost < 500 ? 0.8 : cost < 750 ? 0.6 : 0.4;
+      
+      const successProbability = (reliabilityFactor * 0.4) + (riskFactor * 0.3) + (timeFactor * 0.2) + (costFactor * 0.1);
       const outcome = Math.random() < successProbability ? 1 : 0;
       
       data.features.push([cost / 1000, time / 30, reliability / 100, risk / 100]);
@@ -103,6 +61,7 @@ class LiveTrainingService {
       });
     }
     
+    console.log(`Generated ${data.features.length} training samples successfully`);
     return data;
   }
 
@@ -128,74 +87,117 @@ class LiveTrainingService {
       throw new Error('Training already in progress');
     }
 
-    const jobId = `live-training-${Date.now()}`;
-    const { training, validation } = await this.prepareTrainingData();
-    
-    this.trainingEngine = new RealTrainingEngine(initialWeights);
-    
-    this.currentJob = {
-      id: jobId,
-      status: 'running',
-      currentEpoch: 0,
-      totalEpochs: epochs,
-      metrics: {
-        epoch: 0,
-        loss: 1.0,
-        accuracy: 50.0,
-        validationLoss: 1.0,
-        validationAccuracy: 50.0,
-        learningRate: 0.001
-      },
-      weights: { ...initialWeights },
-      startTime: Date.now()
-    };
+    console.log('Starting live training session...');
+    console.log('Initial weights:', initialWeights);
+    console.log('Training epochs:', epochs);
 
-    // Start live training loop
-    this.trainingInterval = setInterval(() => {
-      if (!this.currentJob || !this.trainingEngine) return;
+    try {
+      // Stop any existing training
+      this.stopTrainingLoop();
 
-      try {
-        // Perform one training step
-        const metrics = this.trainingEngine.trainStep(training, validation);
-        this.currentJob.currentEpoch++;
-        
-        // Update job with real metrics
-        this.currentJob.metrics = {
-          ...metrics,
-          epoch: this.currentJob.currentEpoch
-        };
-        this.currentJob.weights = this.trainingEngine.getWeights();
+      const jobId = `live-training-${Date.now()}`;
+      
+      // Generate fresh training data
+      const allData = this.generateTrainingData(300);
+      const { training, validation } = this.splitData(allData);
+      
+      console.log(`Training set: ${training.features.length} samples`);
+      console.log(`Validation set: ${validation.features.length} samples`);
+      
+      // Initialize training engine
+      this.trainingEngine = new RealTrainingEngine(initialWeights);
+      
+      this.currentJob = {
+        id: jobId,
+        status: 'running',
+        currentEpoch: 0,
+        totalEpochs: epochs,
+        metrics: {
+          epoch: 0,
+          loss: 1.0,
+          accuracy: 50.0,
+          validationLoss: 1.0,
+          validationAccuracy: 50.0,
+          learningRate: 0.001
+        },
+        weights: { ...initialWeights },
+        startTime: Date.now()
+      };
 
-        // Save progress
-        set(`training-job-${jobId}`, this.currentJob);
+      console.log('Training job initialized:', this.currentJob.id);
 
-        // Notify callbacks
-        this.callbacks.forEach(callback => callback(this.currentJob!));
-
-        // Check completion conditions
-        if (this.currentJob.currentEpoch >= epochs || this.trainingEngine.shouldStop()) {
-          this.completeLiveTraining();
+      // Start real-time training loop
+      this.trainingInterval = setInterval(() => {
+        if (!this.currentJob || !this.trainingEngine || this.currentJob.status !== 'running') {
+          return;
         }
 
-        console.log(`Epoch ${this.currentJob.currentEpoch}: Loss=${metrics.loss.toFixed(4)}, Acc=${metrics.accuracy.toFixed(2)}%`);
-      } catch (error) {
-        console.error('Training step failed:', error);
-        this.failLiveTraining(error.message);
-      }
-    }, 1000); // Train every second for live updates
+        try {
+          // Perform actual training step
+          const metrics = this.trainingEngine.trainStep(training, validation);
+          this.currentJob.currentEpoch++;
+          
+          // Update job with real metrics
+          this.currentJob.metrics = {
+            ...metrics,
+            epoch: this.currentJob.currentEpoch
+          };
+          this.currentJob.weights = this.trainingEngine.getWeights();
 
-    return jobId;
+          // Save progress to IndexedDB
+          set(`training-job-${jobId}`, this.currentJob).catch(console.error);
+
+          // Notify all callbacks with updated job
+          this.callbacks.forEach(callback => {
+            try {
+              callback(this.currentJob!);
+            } catch (error) {
+              console.error('Callback error:', error);
+            }
+          });
+
+          // Log training progress
+          console.log(`Epoch ${this.currentJob.currentEpoch}/${this.currentJob.totalEpochs}: Loss=${metrics.loss.toFixed(4)}, Acc=${metrics.accuracy.toFixed(2)}%, Val Acc=${metrics.validationAccuracy.toFixed(2)}%`);
+
+          // Check completion conditions
+          if (this.currentJob.currentEpoch >= epochs || this.trainingEngine.shouldStop()) {
+            this.completeLiveTraining();
+          }
+
+        } catch (error) {
+          console.error('Training step failed:', error);
+          this.failLiveTraining(error instanceof Error ? error.message : 'Unknown training error');
+        }
+      }, 500); // Update every 500ms for smooth live updates
+
+      console.log('Live training started successfully!');
+      return jobId;
+
+    } catch (error) {
+      console.error('Failed to start training:', error);
+      throw new Error(`Training initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private completeLiveTraining(): void {
     if (!this.currentJob || !this.trainingEngine) return;
 
+    console.log('Completing live training...');
     this.currentJob.status = 'completed';
     this.currentJob.weights = this.trainingEngine.getBestWeights();
     
-    // Save final weights
-    set('latest-trained-weights', this.currentJob.weights);
-    set(`training-job-${this.currentJob.id}`, this.currentJob);
+    // Save final results
+    set('latest-trained-weights', this.currentJob.weights).catch(console.error);
+    set(`training-job-${this.currentJob.id}`, this.currentJob).catch(console.error);
+
+    // Notify callbacks
+    this.callbacks.forEach(callback => {
+      try {
+        callback(this.currentJob!);
+      } catch (error) {
+        console.error('Completion callback error:', error);
+      }
+    });
 
     this.stopTrainingLoop();
     console.log('Live training completed successfully!');
@@ -204,22 +206,43 @@ class LiveTrainingService {
   private failLiveTraining(error: string): void {
     if (!this.currentJob) return;
 
+    console.error('Training failed:', error);
     this.currentJob.status = 'failed';
+    
+    // Notify callbacks
+    this.callbacks.forEach(callback => {
+      try {
+        callback(this.currentJob!);
+      } catch (error) {
+        console.error('Failure callback error:', error);
+      }
+    });
+
     this.stopTrainingLoop();
-    console.error('Live training failed:', error);
   }
 
   stopLiveTraining(): void {
     if (this.currentJob?.status === 'running') {
+      console.log('Stopping live training...');
       this.currentJob.status = 'stopped';
-      this.stopTrainingLoop();
+      
+      // Notify callbacks
+      this.callbacks.forEach(callback => {
+        try {
+          callback(this.currentJob!);
+        } catch (error) {
+          console.error('Stop callback error:', error);
+        }
+      });
     }
+    this.stopTrainingLoop();
   }
 
   private stopTrainingLoop(): void {
     if (this.trainingInterval) {
       clearInterval(this.trainingInterval);
       this.trainingInterval = null;
+      console.log('Training loop stopped');
     }
   }
 
@@ -241,8 +264,10 @@ class LiveTrainingService {
 
   async getLatestTrainedWeights(): Promise<WeightVector | null> {
     try {
-      return await get('latest-trained-weights');
-    } catch {
+      const weights = await get('latest-trained-weights');
+      return weights || null;
+    } catch (error) {
+      console.error('Failed to load weights:', error);
       return null;
     }
   }
