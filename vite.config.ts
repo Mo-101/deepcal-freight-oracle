@@ -6,9 +6,6 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Always use a static safe token to prevent any syntax errors
-  const safeToken = 'lovable-safe-token-12345';
-
   return {
     server: {
       host: "::",
@@ -29,7 +26,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
-      __WS_TOKEN__: JSON.stringify(safeToken),
     },
   };
 });
