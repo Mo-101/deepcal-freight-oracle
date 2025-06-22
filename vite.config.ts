@@ -6,10 +6,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Use a completely safe default token to avoid any syntax errors
-  const wsToken = process.env.WS_TOKEN || 'lovable-safe-default-token';
-  // More aggressive sanitization - only allow alphanumeric characters and hyphens
-  const sanitizedToken = wsToken.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 32) || 'fallback-token';
+  // Always use a static safe token to prevent any syntax errors
+  const safeToken = 'lovable-safe-token-12345';
 
   return {
     server: {
@@ -31,7 +29,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
-      __WS_TOKEN__: JSON.stringify(sanitizedToken),
+      __WS_TOKEN__: JSON.stringify(safeToken),
     },
   };
 });
