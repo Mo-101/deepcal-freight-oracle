@@ -10,6 +10,8 @@ import { WeightsConfigTab } from "@/components/training/WeightsConfigTab";
 import { SyntheticDataTab } from "@/components/training/SyntheticDataTab";
 import { AdvancedConfigTab } from "@/components/training/AdvancedConfigTab";
 import { LiveMetricsPanel } from "@/components/training/LiveMetricsPanel";
+import { TrainingLogsPanel } from "@/components/training/TrainingLogsPanel";
+import { TrainingActivityMonitor } from "@/components/training/TrainingActivityMonitor";
 import { useLiveTraining } from "@/hooks/useLiveTraining";
 import { WeightVector, SystemStatus, TrainingMetrics } from "@/types/training";
 
@@ -65,15 +67,15 @@ const Training = () => {
     },
     {
       id: '2',
-      stage: 'Neutrosophic Feature Extraction',
+      stage: 'Enhanced Neural Training',
       progress: 0,
       timestamp: '--:--:--',
       status: 'pending',
-      metrics: { loss: 0.0, accuracy: 0, learningRate: 0.001 }
+      metrics: { loss: 0.0, accuracy: 0, learningRate: 0.05 }
     },
     {
       id: '3',
-      stage: 'TOPSIS Weight Optimization',
+      stage: 'Weight Matrix Optimization',
       progress: 0,
       timestamp: '--:--:--',
       status: 'pending',
@@ -81,9 +83,9 @@ const Training = () => {
     },
     {
       id: '4',
-      stage: 'Grey System Validation',
+      stage: 'XGBoost Validation',
       progress: 0,
-      timestamp: '14:32',
+      timestamp: '--:--:--',
       status: 'pending',
       metrics: { loss: 0.0, accuracy: 0, learningRate: 0.0007 }
     }
@@ -97,20 +99,20 @@ const Training = () => {
   };
 
   const trainingMetrics: TrainingMetrics = {
-    samplesProcessed: currentJob ? Math.floor((currentJob.currentEpoch / currentJob.totalEpochs) * 15000) : 12547,
+    samplesProcessed: currentJob ? Math.floor((currentJob.currentEpoch / currentJob.totalEpochs) * 20000) : 15247,
     accuracy: currentJob ? currentJob.metrics.validationAccuracy : 94.2,
     lastTraining: isTraining ? 'Live' : '2h ago',
-    modelVersion: 'v2.4.1'
+    modelVersion: 'v3.1.0-Enhanced'
   };
 
-  // Update training activities based on real training progress
+  // Enhanced training activity updates
   useEffect(() => {
     if (currentJob && isTraining) {
       const progress = (currentJob.currentEpoch / currentJob.totalEpochs) * 100;
       const currentTime = new Date().toLocaleTimeString();
       
       setTrainingActivities(prev => prev.map((activity, index) => {
-        if (index === 1) { // Neutrosophic Feature Extraction
+        if (index === 1) { // Enhanced Neural Training
           return {
             ...activity,
             progress: Math.min(progress, 100),
@@ -123,12 +125,25 @@ const Training = () => {
             }
           };
         }
-        if (index === 2 && progress > 50) { // TOPSIS Weight Optimization
+        if (index === 2 && progress > 40) { // Weight Matrix Optimization
           return {
             ...activity,
-            progress: Math.max(0, progress - 50) * 2,
-            status: progress > 50 ? 'active' as const : 'pending' as const,
-            timestamp: progress > 50 ? currentTime : '--:--:--'
+            progress: Math.max(0, (progress - 40) * 1.67),
+            status: progress > 40 ? 'active' as const : 'pending' as const,
+            timestamp: progress > 40 ? currentTime : '--:--:--',
+            metrics: {
+              loss: currentJob.metrics.validationLoss,
+              accuracy: currentJob.metrics.validationAccuracy,
+              learningRate: currentJob.metrics.learningRate
+            }
+          };
+        }
+        if (index === 3 && progress > 80) { // XGBoost Validation
+          return {
+            ...activity,
+            progress: Math.max(0, (progress - 80) * 5),
+            status: progress > 80 ? 'active' as const : 'pending' as const,
+            timestamp: progress > 80 ? currentTime : '--:--:--'
           };
         }
         return activity;
@@ -170,9 +185,8 @@ const Training = () => {
       stopTraining();
     } else {
       try {
-        await startTraining(weights, 100); // 100 epochs of real training
+        await startTraining(weights, 150); // Enhanced training with 150 epochs
         
-        // Reset training activities for new session
         setTrainingActivities(prev => prev.map((activity, index) => ({
           ...activity,
           progress: index === 0 ? 100 : 0,
@@ -181,7 +195,7 @@ const Training = () => {
         })));
 
       } catch (error) {
-        console.error('Failed to start training:', error);
+        console.error('Failed to start enhanced training:', error);
       }
     }
   };
@@ -231,6 +245,12 @@ const Training = () => {
             
             <div className="space-y-6">
               {renderTabContent()}
+              
+              {/* Enhanced Training Activity Monitor */}
+              <TrainingActivityMonitor 
+                isTraining={isTraining} 
+                trainingActivities={trainingActivities} 
+              />
             </div>
           </div>
           
@@ -240,33 +260,48 @@ const Training = () => {
               trainingMetrics={trainingMetrics}
             />
             <LiveMetricsPanel isTraining={isTraining} />
+            <TrainingLogsPanel isTraining={isTraining} />
           </div>
         </div>
 
-        {/* Live Training Progress Display */}
+        {/* Enhanced Live Training Progress Display */}
         {currentJob && (
-          <div className="mt-6 p-4 bg-blue-900/20 border border-blue-400 rounded-lg">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lime-400 font-semibold">Live Training Progress</h3>
-              <span className="text-white">Epoch {currentJob.currentEpoch}/{currentJob.totalEpochs}</span>
+          <div className="mt-6 p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-400 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lime-400 font-semibold text-lg">🚀 Enhanced Live Training Progress</h3>
+              <div className="flex items-center gap-4">
+                <span className="text-white">Epoch {currentJob.currentEpoch}/{currentJob.totalEpochs}</span>
+                <div className="w-32 bg-slate-700 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-lime-400 to-blue-400 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(currentJob.currentEpoch / currentJob.totalEpochs) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-indigo-300">Loss: </span>
-                <span className="text-red-400 font-mono">{currentJob.metrics.loss.toFixed(4)}</span>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="bg-slate-800/50 p-3 rounded-lg">
+                <span className="text-indigo-300 block">Training Loss:</span>
+                <span className="text-red-400 font-mono text-lg">{currentJob.metrics.loss.toFixed(4)}</span>
               </div>
-              <div>
-                <span className="text-indigo-300">Accuracy: </span>
-                <span className="text-lime-400 font-mono">{currentJob.metrics.accuracy.toFixed(2)}%</span>
+              <div className="bg-slate-800/50 p-3 rounded-lg">
+                <span className="text-indigo-300 block">Training Acc:</span>
+                <span className="text-lime-400 font-mono text-lg">{currentJob.metrics.accuracy.toFixed(2)}%</span>
               </div>
-              <div>
-                <span className="text-indigo-300">Val Loss: </span>
-                <span className="text-yellow-400 font-mono">{currentJob.metrics.validationLoss.toFixed(4)}</span>
+              <div className="bg-slate-800/50 p-3 rounded-lg">
+                <span className="text-indigo-300 block">Validation Loss:</span>
+                <span className="text-yellow-400 font-mono text-lg">{currentJob.metrics.validationLoss.toFixed(4)}</span>
               </div>
-              <div>
-                <span className="text-indigo-300">Val Acc: </span>
-                <span className="text-purple-400 font-mono">{currentJob.metrics.validationAccuracy.toFixed(2)}%</span>
+              <div className="bg-slate-800/50 p-3 rounded-lg">
+                <span className="text-indigo-300 block">Validation Acc:</span>
+                <span className="text-purple-400 font-mono text-lg">{currentJob.metrics.validationAccuracy.toFixed(2)}%</span>
               </div>
+            </div>
+            
+            <div className="mt-4 flex justify-between items-center text-xs text-indigo-300">
+              <span>Learning Rate: <span className="text-cyan-400 font-mono">{currentJob.metrics.learningRate.toFixed(6)}</span></span>
+              <span>Status: <span className="text-lime-400">{currentJob.status.toUpperCase()}</span></span>
             </div>
           </div>
         )}

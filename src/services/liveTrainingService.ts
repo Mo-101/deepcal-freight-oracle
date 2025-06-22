@@ -1,4 +1,3 @@
-
 import { RealTrainingEngine, TrainingData, TrainingMetrics } from './realTrainingEngine';
 import { WeightVector } from '@/types/training';
 import { get, set } from 'idb-keyval';
@@ -19,6 +18,7 @@ class LiveTrainingService {
   private currentJob: LiveTrainingJob | null = null;
   private trainingInterval: NodeJS.Timeout | null = null;
   private callbacks: ((job: LiveTrainingJob) => void)[] = [];
+  private dataGenerationSeed: number = 0;
 
   private constructor() {}
 
@@ -29,44 +29,80 @@ class LiveTrainingService {
     return LiveTrainingService.instance;
   }
 
-  // Generate guaranteed training data
-  private generateTrainingData(samples: number = 300): TrainingData {
-    console.log(`Generating ${samples} training samples...`);
+  // Enhanced data generation with XGBoost-style features
+  private generateAdvancedTrainingData(samples: number = 400, epochBased: boolean = false): TrainingData {
+    console.log(`Generating ${samples} advanced training samples (epoch-based: ${epochBased})...`);
     const data: TrainingData = { features: [], targets: [], metadata: [] };
     
+    // Use epoch-based seed for evolving data distribution
+    const seed = epochBased ? this.dataGenerationSeed++ : 42;
+    
     for (let i = 0; i < samples; i++) {
-      // Generate realistic shipping data with proper correlations
-      const cost = 200 + Math.random() * 800; // $200-$1000
-      const time = 3 + Math.random() * 22; // 3-25 days
-      const reliability = 60 + Math.random() * 40; // 60-100%
-      const risk = 5 + Math.random() * 55; // 5-60%
+      // More realistic shipping data with correlations
+      const complexity = epochBased ? Math.sin(seed * 0.1) * 0.3 + 0.7 : 1.0;
       
-      // Create realistic success probability based on shipping logistics
-      const reliabilityFactor = reliability / 100;
-      const riskFactor = 1 - (risk / 100);
-      const timeFactor = time < 10 ? 0.9 : time < 20 ? 0.7 : 0.5;
-      const costFactor = cost < 500 ? 0.8 : cost < 750 ? 0.6 : 0.4;
+      // Generate correlated features
+      const baseReliability = 60 + Math.random() * 35;
+      const baseRisk = Math.max(5, Math.min(60, 65 - baseReliability + Math.random() * 20));
       
-      const successProbability = (reliabilityFactor * 0.4) + (riskFactor * 0.3) + (timeFactor * 0.2) + (costFactor * 0.1);
-      const outcome = Math.random() < successProbability ? 1 : 0;
+      const cost = 150 + Math.random() * 850 * complexity; // $150-$1000
+      const time = Math.max(1, 2 + Math.random() * 28 * complexity); // 2-30 days
+      const reliability = Math.max(50, Math.min(99, baseReliability + (Math.random() - 0.5) * 15));
+      const risk = Math.max(1, Math.min(70, baseRisk + (Math.random() - 0.5) * 15));
       
-      data.features.push([cost / 1000, time / 30, reliability / 100, risk / 100]);
+      // Enhanced success probability with more factors
+      const reliabilityFactor = (reliability / 100) ** 1.2;
+      const riskFactor = (1 - risk / 100) ** 0.8;
+      const timeFactor = time < 7 ? 0.95 : time < 14 ? 0.85 : time < 21 ? 0.7 : 0.5;
+      const costFactor = cost < 300 ? 0.9 : cost < 600 ? 0.75 : cost < 900 ? 0.6 : 0.4;
+      
+      // Add seasonal and trend factors
+      const seasonalFactor = 0.8 + 0.4 * Math.sin((seed + i) * 0.1);
+      const trendFactor = epochBased ? 0.9 + 0.2 * Math.tanh(seed * 0.05) : 1.0;
+      
+      const successProbability = Math.min(0.98, Math.max(0.02,
+        (reliabilityFactor * 0.35) + 
+        (riskFactor * 0.25) + 
+        (timeFactor * 0.2) + 
+        (costFactor * 0.1) + 
+        (seasonalFactor * 0.05) + 
+        (trendFactor * 0.05)
+      ));
+      
+      // Add noise for realistic variation
+      const noisyProbability = Math.max(0, Math.min(1, successProbability + (Math.random() - 0.5) * 0.15));
+      const outcome = Math.random() < noisyProbability ? 1 : 0;
+      
+      // Enhanced feature representation
+      const features = [
+        cost / 1000,
+        time / 30,
+        reliability / 100,
+        risk / 100,
+        // Additional derived features
+        (cost * time) / 30000, // cost-time interaction
+        Math.log(cost + 1) / 10, // log-cost
+        reliability / (risk + 1), // reliability-risk ratio
+        Math.sqrt(time) / 6 // sqrt-time
+      ];
+      
+      data.features.push(features);
       data.targets.push(outcome);
       data.metadata.push({
         cost,
         time,
         reliability,
         risk,
-        actualOutcome: outcome === 1 ? 'success' : 'failure'
+        actualOutcome: outcome === 1 ? 'success' : (Math.random() < 0.2 ? 'delayed' : 'failure')
       });
     }
     
-    console.log(`Generated ${data.features.length} training samples successfully`);
+    console.log(`Generated ${data.features.length} samples with ${(data.targets.reduce((a, b) => a + b, 0) / data.targets.length * 100).toFixed(1)}% success rate`);
     return data;
   }
 
   private splitData(data: TrainingData): { training: TrainingData; validation: TrainingData } {
-    const splitIndex = Math.floor(data.features.length * 0.8);
+    const splitIndex = Math.floor(data.features.length * 0.75); // 75/25 split for better validation
     
     return {
       training: {
@@ -82,29 +118,28 @@ class LiveTrainingService {
     };
   }
 
-  async startLiveTraining(initialWeights: WeightVector, epochs: number = 100): Promise<string> {
+  async startLiveTraining(initialWeights: WeightVector, epochs: number = 150): Promise<string> {
     if (this.currentJob?.status === 'running') {
       throw new Error('Training already in progress');
     }
 
-    console.log('Starting live training session...');
+    console.log('Starting enhanced live training session...');
     console.log('Initial weights:', initialWeights);
     console.log('Training epochs:', epochs);
 
     try {
-      // Stop any existing training
       this.stopTrainingLoop();
-
-      const jobId = `live-training-${Date.now()}`;
       
-      // Generate fresh training data
-      const allData = this.generateTrainingData(300);
+      const jobId = `enhanced-training-${Date.now()}`;
+      this.dataGenerationSeed = Date.now() % 1000;
+      
+      // Generate initial training data
+      const allData = this.generateAdvancedTrainingData(400, false);
       const { training, validation } = this.splitData(allData);
       
       console.log(`Training set: ${training.features.length} samples`);
       console.log(`Validation set: ${validation.features.length} samples`);
       
-      // Initialize training engine
       this.trainingEngine = new RealTrainingEngine(initialWeights);
       
       this.currentJob = {
@@ -118,36 +153,56 @@ class LiveTrainingService {
           accuracy: 50.0,
           validationLoss: 1.0,
           validationAccuracy: 50.0,
-          learningRate: 0.001
+          learningRate: 0.05
         },
         weights: { ...initialWeights },
         startTime: Date.now()
       };
 
-      console.log('Training job initialized:', this.currentJob.id);
+      console.log('Enhanced training job initialized:', this.currentJob.id);
 
-      // Start real-time training loop
+      // Enhanced training loop with adaptive data generation
       this.trainingInterval = setInterval(() => {
         if (!this.currentJob || !this.trainingEngine || this.currentJob.status !== 'running') {
           return;
         }
 
         try {
-          // Perform actual training step
-          const metrics = this.trainingEngine.trainStep(training, validation);
+          // Regenerate data every 10 epochs for curriculum learning
+          let currentTraining = training;
+          let currentValidation = validation;
+          
+          if (this.currentJob.currentEpoch % 10 === 0 && this.currentJob.currentEpoch > 0) {
+            console.log(`Regenerating training data at epoch ${this.currentJob.currentEpoch}...`);
+            const newData = this.generateAdvancedTrainingData(400, true);
+            const split = this.splitData(newData);
+            currentTraining = split.training;
+            currentValidation = split.validation;
+          }
+
+          // Perform training step
+          const metrics = this.trainingEngine.trainStep(currentTraining, currentValidation);
           this.currentJob.currentEpoch++;
           
-          // Update job with real metrics
           this.currentJob.metrics = {
             ...metrics,
             epoch: this.currentJob.currentEpoch
           };
           this.currentJob.weights = this.trainingEngine.getWeights();
 
-          // Save progress to IndexedDB
-          set(`training-job-${jobId}`, this.currentJob).catch(console.error);
+          // Enhanced progress logging
+          if (this.currentJob.currentEpoch % 5 === 0) {
+            console.log(`Epoch ${this.currentJob.currentEpoch}/${this.currentJob.totalEpochs}: ` +
+              `Loss=${metrics.loss.toFixed(4)}, Acc=${metrics.accuracy.toFixed(2)}%, ` +
+              `Val Acc=${metrics.validationAccuracy.toFixed(2)}%, LR=${metrics.learningRate.toFixed(5)}`);
+          }
 
-          // Notify all callbacks with updated job
+          // Save progress periodically
+          if (this.currentJob.currentEpoch % 20 === 0) {
+            set(`training-job-${jobId}`, this.currentJob).catch(console.error);
+          }
+
+          // Notify callbacks
           this.callbacks.forEach(callback => {
             try {
               callback(this.currentJob!);
@@ -156,10 +211,7 @@ class LiveTrainingService {
             }
           });
 
-          // Log training progress
-          console.log(`Epoch ${this.currentJob.currentEpoch}/${this.currentJob.totalEpochs}: Loss=${metrics.loss.toFixed(4)}, Acc=${metrics.accuracy.toFixed(2)}%, Val Acc=${metrics.validationAccuracy.toFixed(2)}%`);
-
-          // Check completion conditions
+          // Check completion
           if (this.currentJob.currentEpoch >= epochs || this.trainingEngine.shouldStop()) {
             this.completeLiveTraining();
           }
@@ -168,21 +220,21 @@ class LiveTrainingService {
           console.error('Training step failed:', error);
           this.failLiveTraining(error instanceof Error ? error.message : 'Unknown training error');
         }
-      }, 500); // Update every 500ms for smooth live updates
+      }, 300); // Faster updates at 300ms
 
-      console.log('Live training started successfully!');
+      console.log('Enhanced live training started successfully!');
       return jobId;
 
     } catch (error) {
-      console.error('Failed to start training:', error);
-      throw new Error(`Training initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to start enhanced training:', error);
+      throw new Error(`Enhanced training initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   private completeLiveTraining(): void {
     if (!this.currentJob || !this.trainingEngine) return;
 
-    console.log('Completing live training...');
+    console.log('Completing enhanced live training...');
     this.currentJob.status = 'completed';
     this.currentJob.weights = this.trainingEngine.getBestWeights();
     
@@ -190,7 +242,6 @@ class LiveTrainingService {
     set('latest-trained-weights', this.currentJob.weights).catch(console.error);
     set(`training-job-${this.currentJob.id}`, this.currentJob).catch(console.error);
 
-    // Notify callbacks
     this.callbacks.forEach(callback => {
       try {
         callback(this.currentJob!);
@@ -200,7 +251,7 @@ class LiveTrainingService {
     });
 
     this.stopTrainingLoop();
-    console.log('Live training completed successfully!');
+    console.log('Enhanced live training completed successfully!');
   }
 
   private failLiveTraining(error: string): void {
@@ -209,7 +260,6 @@ class LiveTrainingService {
     console.error('Training failed:', error);
     this.currentJob.status = 'failed';
     
-    // Notify callbacks
     this.callbacks.forEach(callback => {
       try {
         callback(this.currentJob!);
@@ -223,10 +273,9 @@ class LiveTrainingService {
 
   stopLiveTraining(): void {
     if (this.currentJob?.status === 'running') {
-      console.log('Stopping live training...');
+      console.log('Stopping enhanced live training...');
       this.currentJob.status = 'stopped';
       
-      // Notify callbacks
       this.callbacks.forEach(callback => {
         try {
           callback(this.currentJob!);
@@ -242,7 +291,7 @@ class LiveTrainingService {
     if (this.trainingInterval) {
       clearInterval(this.trainingInterval);
       this.trainingInterval = null;
-      console.log('Training loop stopped');
+      console.log('Enhanced training loop stopped');
     }
   }
 
@@ -252,8 +301,6 @@ class LiveTrainingService {
 
   onTrainingUpdate(callback: (job: LiveTrainingJob) => void): () => void {
     this.callbacks.push(callback);
-    
-    // Return unsubscribe function
     return () => {
       const index = this.callbacks.indexOf(callback);
       if (index > -1) {
