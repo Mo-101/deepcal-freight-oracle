@@ -25,6 +25,6 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     global: 'globalThis',
-    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'default-token'),
+    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'lovable-default'),
   },
 }));
