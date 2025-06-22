@@ -6,9 +6,10 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Safely handle the WS_TOKEN to avoid syntax errors
-  const wsToken = process.env.WS_TOKEN || 'lovable-default';
-  const sanitizedToken = wsToken.replace(/[^a-zA-Z0-9-_]/g, '-');
+  // Use a completely safe default token to avoid any syntax errors
+  const wsToken = process.env.WS_TOKEN || 'lovable-safe-default-token';
+  // More aggressive sanitization - only allow alphanumeric characters and hyphens
+  const sanitizedToken = wsToken.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 32) || 'fallback-token';
 
   return {
     server: {
