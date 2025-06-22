@@ -190,7 +190,12 @@ const FreightCalculator = () => {
                 >
                   {calculating ? "Calculating..." : "Calculate Best Route"}
                 </Button>
-                <Button type="button" variant="outline" onClick={clearForm} className="border-primary/60">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={clearForm} 
+                  className="border-primary/60"
+                >
                   Clear
                 </Button>
               </div>

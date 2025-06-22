@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Compass, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -19,6 +19,9 @@ interface EagleEyeTrackerProps {
 export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onCheckIn }) => {
   const [routePoints, setRoutePoints] = useState<RoutePoint[]>([]);
   const [eta, setEta] = useState<string>('Calculating...');
+  const [etaHistory, setEtaHistory] = useState<{timestamp: Date; eta: string}[]>([]);
+  const [lastCheckIn, setLastCheckIn] = useState<{location: {lat: number; lng: number}; timestamp: Date} | null>(null);
+  const [notifications, setNotifications] = useState<{id: string; message: string; type: 'info' | 'warning' | 'alert'}[]>([]);
   const { position, error } = useGeolocation();
   const mapRef = useRef<any>(null);
 
@@ -33,34 +36,91 @@ export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onChe
       };
       
       setRoutePoints(prev => [...prev, newPoint]);
-      
-      // Calculate ETA based on distance and speed
-      if (routePoints.length > 1) {
-        const lastPoint = routePoints[routePoints.length - 1];
-        const distance = calculateDistance(
-          lastPoint.lat, lastPoint.lng,
-          newPoint.lat, newPoint.lng
-        );
-        
-        const timeDiff = (newPoint.timestamp.getTime() - lastPoint.timestamp.getTime()) / 1000;
-        const speed = distance / timeDiff; // km/s
-        
-        // Simplified ETA calculation
-        const remainingDistance = 100; // TODO: Replace with actual destination distance
-        const remainingTime = remainingDistance / speed;
-        setEta(formatDuration(remainingTime));
-      }
     }
   }, [position]);
 
+  // Memoize ETA calculation function
+  const calculateEnhancedETA = useCallback((currentPoint: RoutePoint, previousPoint?: RoutePoint) => {
+    if (!previousPoint) return 'Calculating...';
+    
+    const distance = calculateDistance(
+      previousPoint.lat, previousPoint.lng,
+      currentPoint.lat, currentPoint.lng
+    );
+    
+    const timeDiff = (currentPoint.timestamp.getTime() - previousPoint.timestamp.getTime()) / 1000; // seconds
+    const speed = distance / (timeDiff / 3600); // km/h
+    
+    // Store ETA history for trend analysis
+    const newEtaHistory = [...etaHistory, {
+      timestamp: new Date(),
+      eta: formatDuration(100 / speed * 3600)
+    }].slice(-5); // Keep last 5 entries
+    
+    setEtaHistory(newEtaHistory);
+    
+    // Calculate ETA trend
+    const trend = newEtaHistory.length > 1 
+      ? newEtaHistory[newEtaHistory.length - 1].eta.localeCompare(newEtaHistory[0].eta)
+      : 0;
+    
+    // Add notification if significant delay detected
+    if (trend > 0 && newEtaHistory.length > 2) {
+      addNotification({
+        id: `delay-${Date.now()}`,
+        message: 'Potential delay detected - ETA increasing',
+        type: 'warning'
+      });
+    }
+    
+    return formatDuration(100 / speed * 3600);
+  }, [etaHistory]);
+
+  const addNotification = (notification: {id: string; message: string; type: 'info' | 'warning' | 'alert'}) => {
+    setNotifications(prev => [notification, ...prev].slice(0, 3)); // Max 3 notifications
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
+  };
+
   const handleCheckIn = () => {
     if (position) {
-      onCheckIn({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
+      const checkIn = {
+        location: {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        },
+        timestamp: new Date()
+      };
+      
+      setLastCheckIn(checkIn);
+      onCheckIn(checkIn.location);
+      
+      // Add check-in notification
+      addNotification({
+        id: `checkin-${Date.now()}`,
+        message: 'Driver check-in confirmed',
+        type: 'info'
       });
     }
   };
+
+  // Enhanced ETA calculation in useEffect
+  useEffect(() => {
+    if (position && routePoints.length > 1) {
+      setEta(calculateEnhancedETA(
+        {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: new Date(),
+          status: 'in-transit'
+        },
+        routePoints[routePoints.length - 1]
+      ));
+    }
+  }, [position, routePoints, calculateEnhancedETA]);
 
   return (
     <Card className="border-0 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
@@ -95,9 +155,7 @@ export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onChe
             <div>
               <p className="text-xs text-muted-foreground">Last Check-in</p>
               <p className="font-mono">
-                {routePoints.length > 0 ? 
-                  routePoints[routePoints.length - 1].timestamp.toLocaleTimeString() : 
-                  'None'}
+                {lastCheckIn ? lastCheckIn.timestamp.toLocaleTimeString() : 'None'}
               </p>
             </div>
           </div>
@@ -120,6 +178,24 @@ export const EagleEyeTracker: React.FC<EagleEyeTrackerProps> = ({ routeId, onChe
             <span>Check In</span>
           </button>
         </div>
+        
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 space-y-2 z-10">
+            {notifications.map(notification => (
+              <div 
+                key={notification.id}
+                className={`p-3 rounded-md border ${notification.type === 'warning' 
+                  ? 'bg-amber-900/80 border-amber-400' 
+                  : notification.type === 'alert' 
+                    ? 'bg-red-900/80 border-red-400'
+                    : 'bg-emerald-900/80 border-emerald-400'}`}
+              >
+                <p className="text-sm">{notification.message}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

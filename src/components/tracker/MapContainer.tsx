@@ -47,17 +47,37 @@ export const MapContainer = forwardRef<any, MapContainerProps>(({ routePoints, c
       ctx.stroke();
     }
     
+    // Calculate min/max bounds if we have route points
+    let minLat = 0, maxLat = 0, minLng = 0, maxLng = 0;
+    if (routePoints.length > 0) {
+      minLat = Math.min(...routePoints.map(p => p.lat));
+      maxLat = Math.max(...routePoints.map(p => p.lat));
+      minLng = Math.min(...routePoints.map(p => p.lng));
+      maxLng = Math.max(...routePoints.map(p => p.lng));
+      
+      // Add some padding to the bounds
+      const latPadding = (maxLat - minLat) * 0.1;
+      const lngPadding = (maxLng - minLng) * 0.1;
+      minLat -= latPadding;
+      maxLat += latPadding;
+      minLng -= lngPadding;
+      maxLng += lngPadding;
+    } else if (currentPosition) {
+      // Use current position as center with default bounds
+      minLat = currentPosition.coords.latitude - 0.1;
+      maxLat = currentPosition.coords.latitude + 0.1;
+      minLng = currentPosition.coords.longitude - 0.1;
+      maxLng = currentPosition.coords.longitude + 0.1;
+    } else {
+      // Default bounds if no data
+      minLat = -1; maxLat = 1; minLng = -1; maxLng = 1;
+    }
+    
     // Draw route path
     if (routePoints.length > 1) {
       ctx.strokeStyle = 'rgba(6, 182, 212, 0.8)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      
-      // Scale coordinates to fit canvas
-      const minLat = Math.min(...routePoints.map(p => p.lat));
-      const maxLat = Math.max(...routePoints.map(p => p.lat));
-      const minLng = Math.min(...routePoints.map(p => p.lng));
-      const maxLng = Math.max(...routePoints.map(p => p.lng));
       
       routePoints.forEach((point, i) => {
         const x = ((point.lng - minLng) / (maxLng - minLng)) * canvas.width;
