@@ -4,7 +4,7 @@ import { NeuralNetwork, NeuralNetworkConfig } from './neuralNetwork';
 import { TrainingDataGenerator, TrainingData } from './trainingDataGenerator';
 import { MetricsCalculator, TrainingMetrics } from './metricsCalculator';
 
-export { TrainingData, TrainingMetrics };
+export type { TrainingData, TrainingMetrics };
 
 export class RealTrainingEngine {
   private weights: WeightVector;
