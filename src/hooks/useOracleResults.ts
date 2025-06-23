@@ -1,10 +1,11 @@
 
+import React from 'react';
 import { ShipmentData, CalculatorInputs } from '@/types/shipment';
 import { useOracleCalculation } from './useOracleCalculation';
 import { useOracleAwakening } from './useOracleAwakening';
 import { useOracleOutput } from './useOracleOutput';
 
-const SESSION_HISTORY_LIMIT = 12; // configurable: how many past “oracle sessions” to keep
+const SESSION_HISTORY_LIMIT = 12; // configurable: how many past "oracle sessions" to keep
 
 export const useOracleResults = () => {
   const {
@@ -43,7 +44,7 @@ export const useOracleResults = () => {
     setResults(null);
     setShowOutput(false);
     setOutputAnimation(false);
-    // Optionally, clear log for a true “new session”
+    // Optionally, clear log for a true "new session"
     // setSessionLog([]);
   };
 
@@ -60,7 +61,7 @@ export const useOracleResults = () => {
     setTimeout(async () => {
       const newResults = await performCalculation(shipment, mappedInputs);
 
-      // 🦉 Compose a witty, human, explanatory “oracle” narrative if missing
+      // 🦉 Compose a witty, human, explanatory "oracle" narrative if missing
       if (!newResults.oracleNarrative) {
         newResults.oracleNarrative = `The Oracle sees all: shipment "${shipment.request_reference}" from ${shipment.origin_country} to ${shipment.destination_country}. ${newResults.bestForwarder} shines, but beware: ${Object.keys(anomalyMap).length ? "anomalies detected!" : "route looks clear."}`;
       }

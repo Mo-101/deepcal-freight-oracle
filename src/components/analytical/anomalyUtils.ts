@@ -1,3 +1,4 @@
+
 /**
  * Utilities for detecting anomalies in forwarder KPIs.
  * Here, a value is flagged as anomalous if it is more than 1.5 standard deviations from the mean for its set.
@@ -11,6 +12,14 @@ export interface ForwarderAnomalies {
   [forwarderName: string]: {
     anomalyFields: AnomalyField[];
     reasons: string[]; // e.g. ["High cost", "Long delivery"]
+  };
+}
+
+export interface PriceChanges {
+  [forwarderName: string]: {
+    changeType: 'increase' | 'decrease';
+    percentage: number;
+    reason: string;
   };
 }
 
@@ -68,4 +77,28 @@ export function detectForwarderAnomalies(forwarderKPIs: ForwarderKPI[]): Forward
   });
 
   return anomalies;
+}
+
+export function detectPriceChanges(forwarderKPIs: ForwarderKPI[], ffHistory: any): PriceChanges {
+  const priceChanges: PriceChanges = {};
+  
+  forwarderKPIs.forEach(fwd => {
+    const historicalData = ffHistory[fwd.name];
+    if (historicalData && historicalData.avgCost) {
+      const currentCost = fwd.costPerKg;
+      const historicalCost = historicalData.avgCost;
+      const changePercentage = ((currentCost - historicalCost) / historicalCost) * 100;
+      
+      // Flag if price change is more than 10%
+      if (Math.abs(changePercentage) > 10) {
+        priceChanges[fwd.name] = {
+          changeType: changePercentage > 0 ? 'increase' : 'decrease',
+          percentage: Math.abs(changePercentage),
+          reason: `Price ${changePercentage > 0 ? 'increased' : 'decreased'} by ${Math.abs(changePercentage).toFixed(1)}%`
+        };
+      }
+    }
+  });
+  
+  return priceChanges;
 }

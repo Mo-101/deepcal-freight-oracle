@@ -1,11 +1,17 @@
+
 import { useState } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
-import { detectForwarderAnomalies, detectPriceChanges } from "@/components/analytical/anomalyUtils";
+import { detectForwarderAnomalies, detectPriceChanges, ForwarderAnomalies, PriceChanges } from "@/components/analytical/anomalyUtils";
 import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
-import { generateForwarderComparison, analyzeHistoricalPerformance } from '@/utils/shipmentMapper';
+import { generateForwarderComparison, analyzeHistoricalPerformance, HistoricalPerformance } from '@/utils/shipmentMapper';
 
 // Add helper for Oracle (Woo) wit
-function getWooWisdom(bestForwarder, anomalies, priceChanges, ffHistory) {
+function getWooWisdom(
+  bestForwarder: string, 
+  anomalies: ForwarderAnomalies, 
+  priceChanges: PriceChanges, 
+  ffHistory: HistoricalPerformance
+): string {
   if (anomalies[bestForwarder]) {
     return `⚡ Oracle alert: Anomaly with ${bestForwarder}! Might be magic, or a glitch in the matrix.`;
   }
@@ -20,8 +26,8 @@ function getWooWisdom(bestForwarder, anomalies, priceChanges, ffHistory) {
 
 export const useOracleCalculation = () => {
   const [isCalculating, setIsCalculating] = useState(false);
-  const [anomalyMap, setAnomalyMap] = useState<any>({});
-  const [priceChangeMap, setPriceChangeMap] = useState<any>({});
+  const [anomalyMap, setAnomalyMap] = useState<ForwarderAnomalies>({});
+  const [priceChangeMap, setPriceChangeMap] = useState<PriceChanges>({});
 
   const performCalculation = async (
     shipment: ShipmentData,
@@ -31,11 +37,11 @@ export const useOracleCalculation = () => {
     console.log('Oracle is now calculating results for shipment:', shipment.request_reference);
 
     // === 1. Generate forwarder comparison with MCDA ===
-    const forwarderComparison = await generateForwarderComparison(shipment);
+    const forwarderComparison = generateForwarderComparison(shipment);
 
     // === 2. Deep analytics: Historical stats, anomalies, price changes ===
     const ffHistory = await analyzeHistoricalPerformance(shipment, forwarderComparison);
-    const anomalies = detectForwarderAnomalies(forwarderComparison, ffHistory);
+    const anomalies = detectForwarderAnomalies(forwarderComparison);
     setAnomalyMap(anomalies);
     const priceChanges = detectPriceChanges(forwarderComparison, ffHistory);
     setPriceChangeMap(priceChanges);
@@ -78,7 +84,7 @@ export const useOracleCalculation = () => {
       oracleNarrative: narrative,
       methodology,
       seal: options?.oracleMode ? "🔮 ORACLE MODE" : "📋 HISTORICAL",
-      qseal: shipment.request_reference?.substring(0, 8),
+      qseal: shipment.request_reference?.substring(0, 8) || '',
       timestamp: shipment.date_of_collection || shipment.shipment_date || new Date().toISOString(),
       blessing: `Woo's blessing: ${bestForwarder} on ${ffHistory[bestForwarder]?.count || 1} historic runs.`
     };
