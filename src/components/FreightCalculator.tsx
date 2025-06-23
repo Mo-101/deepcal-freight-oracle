@@ -39,7 +39,8 @@ const FreightCalculator = () => {
   const [oldShipments, setOldShipments] = React.useState<ShipmentRecord[]>([]);
   const [selectedReference, setSelectedReference] = React.useState<string | null>(null);
   const [weatherRisk, setWeatherRisk] = React.useState<'low' | 'medium' | 'high'>('low');
-  const [activeView, setActiveView] = React.useState<'calculator' | 'analytics' | 'tracking'>('calculator');
+  type ViewId = 'calculator' | 'analytics' | 'tracking';
+  const [activeView, setActiveView] = React.useState<ViewId>('calculator');
 
   React.useEffect(() => {
     (async () => {
@@ -122,8 +123,7 @@ const FreightCalculator = () => {
                 { id: 'tracking', label: 'Tracking', icon: MapPin }
               ].map(({ id, label, icon: Icon }) => (
                 <button
-                  key={id}
-                  onClick={() => setActiveView(id as any)}
+                  onClick={() => setActiveView(id as ViewId)}
                   className={`flex items-center space-x-2 px-4 py-2 rounded transition-all ${
                     activeView === id 
                       ? 'bg-cyan-600/30 text-cyan-400 border border-cyan-500/50' 
