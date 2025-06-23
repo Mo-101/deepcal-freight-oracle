@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { ButtonProps } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -103,11 +102,8 @@ const FreightCalculator = () => {
     setSelectedReference(null);
   };
 
-  const lineageMeta = csvDataEngine.getLineageMeta?.();
-
   const handleMessage = (msg: { type: string; content: string }) => {
     console.log('Message received:', msg.content);
-    // Add any additional message processing here
   };
 
   return (
@@ -143,7 +139,6 @@ const FreightCalculator = () => {
         </TerminalCard>
       </div>
 
-<<<<<<< Updated upstream
       {activeView === 'calculator' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Calculator Input */}
@@ -256,7 +251,7 @@ const FreightCalculator = () => {
             
             <FieldIntelComm 
               shipmentId={selectedReference || 'new'}
-              onMessageSent={(msg) => console.log('Field message:', msg)}
+              onMessageSent={handleMessage}
             />
 
             <EnhancedVoiceEngine 
@@ -349,91 +344,12 @@ const FreightCalculator = () => {
           <div className="space-y-6">
             <FieldIntelComm 
               shipmentId={selectedReference || 'tracking-comms'}
-              onMessageSent={(msg) => console.log('Tracking comms:', msg)}
+              onMessageSent={handleMessage}
             />
             <WeatherBrain onWeatherRisk={setWeatherRisk} />
           </div>
         </div>
       )}
-=======
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-2 justify-end">
-                <Button 
-                  type="submit"
-                  className="glass-button"
-                  disabled={calculating || !dataLoaded}
-                >
-                  {calculating ? "Calculating..." : "Calculate Best Route"}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={clearForm} 
-                  className="border-primary/60"
-                >
-                  <span>Clear</span>
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-        
-        {/* Field Intel */}
-        <FieldIntelComm 
-          shipmentId={selectedReference || 'new'} 
-          onMessageSent={handleMessage}
-        />
-      </div>
-      
-      {/* Middle Column - Results */}
-      <div className="space-y-6">
-        {/* Power Analytical Engine */}
-        <Card className="border-0 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gradient-green">
-              <TrendingUp className="w-5 h-5" />
-              DeepCAL Engine Output
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Calculator className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Enter shipment details and click Calculate to see recommendations</p>
-              <p className="text-xs mt-2">All calculations use real data - no mock values!</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Weather Brain */}
-        <WeatherBrain 
-          onWeatherRisk={setWeatherRisk}
-        />
-      </div>
-      
-      {/* Right Column - Tracking */}
-      <div className="space-y-6">
-        {/* Eagle-Eye Tracker */}
-        <EagleEyeTracker 
-          routeId={selectedReference || 'new'}
-          onCheckIn={(location) => console.log('Check-in at:', location)}
-        />
-        
-        {/* Real Analytics */}
-        <Card className="border-0 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <Database className="w-5 h-5" />
-              Real Analytics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Real-time analytics coming soon...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
->>>>>>> Stashed changes
     </div>
   );
 };
