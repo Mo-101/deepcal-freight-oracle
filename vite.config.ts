@@ -26,6 +26,23 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
+      __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'development-token'),
+    },
+    build: {
+      sourcemap: false,
+      minify: 'terser',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast'],
+          },
+        },
+      },
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom'],
+      exclude: ['@lovable-ui/toolkit'],
     },
   };
 });

@@ -1,10 +1,11 @@
-
 import { WeightVector } from '@/types/training';
 import { NeuralNetwork, NeuralNetworkConfig } from './neuralNetwork';
-import { TrainingDataGenerator, TrainingData } from './trainingDataGenerator';
-import { MetricsCalculator, TrainingMetrics } from './metricsCalculator';
+import { TrainingDataGenerator } from './trainingDataGenerator';
+import { MetricsCalculator } from './metricsCalculator';
 
-export { TrainingData, TrainingMetrics };
+// Fix: Use proper type exports for isolatedModules
+export type { TrainingData, TrainingMetadata } from './trainingDataGenerator';
+export type { TrainingMetrics } from './metricsCalculator';
 
 export class RealTrainingEngine {
   private weights: WeightVector;
@@ -44,7 +45,7 @@ export class RealTrainingEngine {
     console.log('Enhanced training engine initialized with weights:', this.weights);
   }
 
-  trainStep(trainingData: TrainingData, validationData: TrainingData): TrainingMetrics {
+  trainStep(trainingData: import('./trainingDataGenerator').TrainingData, validationData: import('./trainingDataGenerator').TrainingData): import('./metricsCalculator').TrainingMetrics {
     if (trainingData.features.length === 0 || validationData.features.length === 0) {
       throw new Error('Training or validation data is empty');
     }
