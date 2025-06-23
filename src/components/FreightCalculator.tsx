@@ -1,21 +1,14 @@
 
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { ButtonProps } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin, Database, Package, Brain, Zap } from 'lucide-react';
+import { Calculator, TrendingUp, Clock, DollarSign, Shield, MapPin, Database, Package } from 'lucide-react';
 import { csvDataEngine, ShipmentRecord } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 import { fire } from "@/moscripts/engine";
-import { EagleEyeTracker } from './tracker/EagleEyeTracker';
-import { FieldIntelComm } from './fieldintel/FieldIntelComm';
-import { WeatherBrain } from './weather/WeatherBrain';
-import { EnhancedAnalytics } from './analytics/EnhancedAnalytics';
-import { EnhancedVoiceEngine } from './voice/EnhancedVoiceEngine';
-import { TerminalCard, TerminalHeader, TerminalTitle, TerminalContent } from './ui/terminal-card';
 
 interface CalculatorInputs {
   origin: string;
@@ -27,7 +20,7 @@ interface CalculatorInputs {
 }
 
 const FreightCalculator = () => {
-  const [inputs, setInputs] = React.useState<CalculatorInputs>({
+  const [inputs, setInputs] = useState<CalculatorInputs>({
     origin: '',
     destination: '',
     weight: 0,
@@ -35,14 +28,14 @@ const FreightCalculator = () => {
     urgency: 'medium',
     cargoType: ''
   });
-  const [calculating, setCalculating] = React.useState(false);
-  const [dataLoaded, setDataLoaded] = React.useState(false);
-  const [oldShipments, setOldShipments] = React.useState<ShipmentRecord[]>([]);
-  const [selectedReference, setSelectedReference] = React.useState<string | null>(null);
-  const [weatherRisk, setWeatherRisk] = React.useState<'low' | 'medium' | 'high'>('low');
-  const [activeView, setActiveView] = React.useState<'calculator' | 'analytics' | 'tracking'>('calculator');
+  const [calculating, setCalculating] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  React.useEffect(() => {
+  // All old shipments for reference selection
+  const [oldShipments, setOldShipments] = useState<ShipmentRecord[]>([]);
+  const [selectedReference, setSelectedReference] = useState<string | null>(null);
+
+  useEffect(() => {
     (async () => {
       const shipments = await csvDataEngine.listShipments();
       setDataLoaded(Array.isArray(shipments) && shipments.length > 0);
@@ -50,7 +43,8 @@ const FreightCalculator = () => {
     })();
   }, []);
 
-  React.useEffect(() => {
+  // Handle selecting an old shipment by reference
+  useEffect(() => {
     if (selectedReference) {
       const found = oldShipments.find(s => s.request_reference === selectedReference);
       if (found) {
@@ -59,7 +53,7 @@ const FreightCalculator = () => {
           destination: found.destination_country ?? "",
           weight: found.weight_kg ?? 0,
           volume: found.volume_cbm ?? 0,
-          urgency: 'medium',
+          urgency: 'medium', // No urgency field on ShipmentRecord; use default or infer logic if needed
           cargoType: found.item_category ?? "",
         });
       }
@@ -72,23 +66,7 @@ const FreightCalculator = () => {
         ...inputs,
       },
     });
-    humorToast("🧠 DeepCAL++ Processing", "Neutrosophic analysis initiated. Real calculations using live data.", 3000);
-  };
-
-  const handleVoiceCommand = (command: string) => {
-    const lowerCommand = command.toLowerCase();
-    
-    if (lowerCommand.includes('calculate') || lowerCommand.includes('analyze')) {
-      handleCalculate();
-    } else if (lowerCommand.includes('clear') || lowerCommand.includes('reset')) {
-      clearForm();
-    } else if (lowerCommand.includes('analytics')) {
-      setActiveView('analytics');
-    } else if (lowerCommand.includes('tracking')) {
-      setActiveView('tracking');
-    } else if (lowerCommand.includes('calculator')) {
-      setActiveView('calculator');
-    }
+    humorToast("❌ Calculation Engine Disabled", "Calculation methods have been decoupled from loader; scoring coming via @deepcal/core-mcdm.", 3000);
   };
 
   const clearForm = () => {
@@ -106,249 +84,206 @@ const FreightCalculator = () => {
   const lineageMeta = csvDataEngine.getLineageMeta?.();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 p-4">
-      {/* Header Navigation */}
-      <div className="mb-6">
-        <TerminalCard variant="cyberpunk" glowing>
-          <TerminalHeader>
-            <TerminalTitle>DEEPCAL++ COMMAND CENTER</TerminalTitle>
-          </TerminalHeader>
-          <TerminalContent>
-            <div className="flex space-x-4">
-              {[
-                { id: 'calculator', label: 'Calculator', icon: Calculator },
-                { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-                { id: 'tracking', label: 'Tracking', icon: MapPin }
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveView(id as any)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded transition-all ${
-                    activeView === id 
-                      ? 'bg-cyan-600/30 text-cyan-400 border border-cyan-500/50' 
-                      : 'bg-slate-800/50 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
-          </TerminalContent>
-        </TerminalCard>
+    <div className="max-w-6xl mx-auto space-y-8 page-transition font-elegant">
+      <div className="text-center mb-3">
+        <h1 className="section-title flex items-center justify-center gap-3 mb-2">
+          <Calculator className="w-8 h-8 text-primary" />
+          DeepCAL™ Advanced Freight Calculator
+        </h1>
+        <p className="subtle-text">
+          Neutrosophic AHP-TOPSIS Decision Framework for multi-carrier optimization powered by real data.
+        </p>
+        {lineageMeta && (
+          <div className="mt-2 text-xs text-accent flex items-center justify-center gap-2">
+            <Database className="w-4 h-4" />
+            {lineageMeta.records} real records • {lineageMeta.source} • Hash: {lineageMeta.sha256.substring(0, 8)}
+          </div>
+        )}
       </div>
 
-      {activeView === 'calculator' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Calculator Input */}
-          <div className="space-y-6">
-            <TerminalCard variant="tactical" glowing>
-              <TerminalHeader>
-                <TerminalTitle>SHIPMENT_CONFIG</TerminalTitle>
-              </TerminalHeader>
-              <TerminalContent>
-                <form onSubmit={e => { e.preventDefault(); handleCalculate(); }}>
-                  <div className="grid grid-cols-1 gap-4 mb-6">
-                    <div>
-                      <Label htmlFor="origin" className="text-green-400 font-mono">Origin_Country</Label>
-                      <Input
-                        id="origin"
-                        className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1"
-                        placeholder="Kenya"
-                        value={inputs.origin}
-                        onChange={(e) => setInputs({...inputs, origin: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="destination" className="text-green-400 font-mono">Destination_Country</Label>
-                      <Input
-                        id="destination"
-                        className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1"
-                        placeholder="Burundi"
-                        value={inputs.destination}
-                        onChange={(e) => setInputs({...inputs, destination: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="cargoType" className="text-green-400 font-mono">Cargo_Classification</Label>
-                      <Input
-                        id="cargoType"
-                        className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1"
-                        placeholder="Emergency Health Kits"
-                        value={inputs.cargoType}
-                        onChange={(e) => setInputs({...inputs, cargoType: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="weight" className="text-green-400 font-mono">Weight_KG</Label>
-                        <Input
-                          id="weight"
-                          className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1"
-                          type="number"
-                          min="0"
-                          step="any"
-                          placeholder="0"
-                          value={inputs.weight || ''}
-                          onChange={(e) => setInputs({...inputs, weight: parseFloat(e.target.value) || 0})}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="volume" className="text-green-400 font-mono">Volume_CBM</Label>
-                        <Input
-                          id="volume"
-                          className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={inputs.volume || ''}
-                          onChange={(e) => setInputs({...inputs, volume: parseFloat(e.target.value) || 0})}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="urgency" className="text-green-400 font-mono">Priority_Level</Label>
-                      <Select value={inputs.urgency} onValueChange={(value: 'medium' | 'high') => setInputs({...inputs, urgency: value})}>
-                        <SelectTrigger className="bg-slate-900/50 border-green-500/30 text-green-300 font-mono mt-1">
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="medium">STANDARD</SelectItem>
-                          <SelectItem value="high">URGENT</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 justify-end">
-                    <Button 
-                      type="submit"
-                      className="bg-cyan-600 hover:bg-cyan-500 text-black font-mono"
-                      disabled={calculating || !dataLoaded}
-                    >
-                      <Brain className="w-4 h-4 mr-2" />
-                      {calculating ? "PROCESSING..." : "EXECUTE_ANALYSIS"}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={clearForm} 
-                      className="border-red-500/60 text-red-400 hover:bg-red-500/10 font-mono"
-                    >
-                      RESET
-                    </Button>
-                  </div>
-                </form>
-              </TerminalContent>
-            </TerminalCard>
-            
-            <FieldIntelComm 
-              shipmentId={selectedReference || 'new'}
-              onMessageSent={(msg) => console.log('Field message:', msg)}
-            />
-
-            <EnhancedVoiceEngine 
-              onVoiceCommand={handleVoiceCommand}
-              contextData={{ shipmentsCount: oldShipments.length }}
-            />
+      {/* OLD SHIPMENT SELECTION - DASHBOARD STYLE */}
+      <Card className="glass-card border border-border bg-white/85 shadow-lg mb-6">
+        <CardHeader className="flex flex-row items-center gap-3 pb-1">
+          <Package className="w-6 h-6 text-accent" />
+          <CardTitle className="text-lg font-semibold tracking-tight">
+            Select an Existing Shipment (Reference)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            <div className="w-full md:w-96">
+              <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-blue-900">
+                Load by Request Reference
+              </Label>
+              <Select
+                value={selectedReference || ""}
+                onValueChange={val => setSelectedReference(val)}
+                disabled={oldShipments.length === 0}
+              >
+                <SelectTrigger
+                  id="old-shipment-select"
+                  className="border border-accent/50 rounded-lg px-4 py-2 text-base font-medium bg-white focus:ring-accent shadow transition-all"
+                >
+                  <SelectValue placeholder="Select previous shipment..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white shadow-2xl border border-accent/40 z-50">
+                  {oldShipments.length > 0 ? (
+                    oldShipments.map((s) => (
+                      <SelectItem
+                        value={s.request_reference}
+                        key={s.request_reference}
+                        className="hover:bg-accent/10 text-black font-normal"
+                      >
+                        <span className="font-mono font-medium text-primary">{s.request_reference}</span>
+                        <span className="ml-2 text-gray-600">
+                          {s.origin_country} → {s.destination_country} <span className="text-xs text-muted-foreground">({s.item_category})</span>
+                        </span>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    // Use a non-empty value; this item is disabled and will never be selected.
+                    <SelectItem value="__no_shipments__" disabled>
+                      <span className="italic text-muted-foreground">No shipments available</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedReference && (
+              <Button onClick={clearForm} variant="outline" className="border-primary px-3">
+                Clear Selection
+              </Button>
+            )}
           </div>
-          
-          {/* Middle Column - Results */}
-          <div className="space-y-6">
-            <TerminalCard variant="cyberpunk" glowing>
-              <TerminalHeader>
-                <TerminalTitle>DEEPCAL_ENGINE_OUTPUT</TerminalTitle>
-              </TerminalHeader>
-              <TerminalContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="flex justify-center mb-4">
-                    <div className="relative">
-                      <Calculator className="w-12 h-12 opacity-50" />
-                      <div className="absolute inset-0 w-12 h-12 border-2 border-cyan-500/30 rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-                  <p className="font-mono text-cyan-400">AWAITING_INPUT_PARAMETERS</p>
-                  <p className="text-xs mt-2 font-mono text-gray-500">Neural networks standing by for calculation</p>
-                </div>
-              </TerminalContent>
-            </TerminalCard>
-            
-            <WeatherBrain onWeatherRisk={setWeatherRisk} />
-          </div>
-          
-          {/* Right Column - Tracking */}
-          <div className="space-y-6">
-            <EagleEyeTracker 
-              routeId={selectedReference || 'new'}
-              onCheckIn={(location) => console.log('Position update:', location)}
-            />
-            
-            <TerminalCard variant="tactical">
-              <TerminalHeader>
-                <TerminalTitle>SYSTEM_STATUS</TerminalTitle>
-              </TerminalHeader>
-              <TerminalContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-400 font-mono">Data_Engine</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-green-400 text-sm">ONLINE</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-400 font-mono">Weather_Brain</span>
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full animate-pulse ${
-                        weatherRisk === 'high' ? 'bg-red-400' : 
-                        weatherRisk === 'medium' ? 'bg-amber-400' : 'bg-green-400'
-                      }`}></div>
-                      <span className={`text-sm ${
-                        weatherRisk === 'high' ? 'text-red-400' : 
-                        weatherRisk === 'medium' ? 'text-amber-400' : 'text-green-400'
-                      }`}>
-                        {weatherRisk.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-400 font-mono">Active_Shipments</span>
-                    <span className="text-cyan-400 font-mono">{oldShipments.length}</span>
-                  </div>
-                </div>
-              </TerminalContent>
-            </TerminalCard>
-          </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      {activeView === 'analytics' && (
-        <div className="space-y-6">
-          <EnhancedAnalytics shipmentData={oldShipments} />
-        </div>
-      )}
+      {/* INPUT GRID */}
+      <Card className="glass-card shadow-glass">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-primary">
+            <MapPin className="w-5 h-5" />
+            Shipment Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              handleCalculate();
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+              <div>
+                <Label htmlFor="origin" className="input-label">Origin Country</Label>
+                <Input
+                  id="origin"
+                  className="elegant-input mt-1"
+                  placeholder="e.g., Kenya"
+                  value={inputs.origin}
+                  onChange={(e) => setInputs({...inputs, origin: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="destination" className="input-label">Destination Country</Label>
+                <Input
+                  id="destination"
+                  className="elegant-input mt-1"
+                  placeholder="e.g., Burundi"
+                  value={inputs.destination}
+                  onChange={(e) => setInputs({...inputs, destination: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="cargoType" className="input-label">Item Category</Label>
+                <Input
+                  id="cargoType"
+                  className="elegant-input mt-1"
+                  placeholder="e.g., Emergency Health Kits"
+                  value={inputs.cargoType}
+                  onChange={(e) => setInputs({...inputs, cargoType: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="weight" className="input-label">Weight (kg)</Label>
+                <Input
+                  id="weight"
+                  className="elegant-input mt-1"
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="0"
+                  value={inputs.weight || ''}
+                  onChange={(e) => setInputs({...inputs, weight: parseFloat(e.target.value) || 0})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="volume" className="input-label">Volume (cbm)</Label>
+                <Input
+                  id="volume"
+                  className="elegant-input mt-1"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={inputs.volume || ''}
+                  onChange={(e) => setInputs({...inputs, volume: parseFloat(e.target.value) || 0})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="urgency" className="input-label">Priority Level</Label>
+                <Select value={inputs.urgency} onValueChange={(value: 'medium' | 'high') => setInputs({...inputs, urgency: value})}>
+                  <SelectTrigger className="elegant-input mt-1">
+                    <SelectValue placeholder="Choose priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="medium">Standard</SelectItem>
+                    <SelectItem value="high">High - Speed priority</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-      {activeView === 'tracking' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <EagleEyeTracker 
-            routeId={selectedReference || 'tracking-view'}
-            onCheckIn={(location) => console.log('Tracking view check-in:', location)}
-          />
-          <div className="space-y-6">
-            <FieldIntelComm 
-              shipmentId={selectedReference || 'tracking-comms'}
-              onMessageSent={(msg) => console.log('Tracking comms:', msg)}
-            />
-            <WeatherBrain onWeatherRisk={setWeatherRisk} />
-          </div>
-        </div>
-      )}
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-2 justify-end">
+              <Button 
+                type="submit"
+                className="glass-button"
+                disabled={calculating || !dataLoaded}
+              >
+                {calculating ? "Calculating..." : "Calculate Best Route"}
+              </Button>
+              <Button type="button" variant="outline" onClick={clearForm} className="border-primary/60">
+                Clear
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* ENGINE OUTPUT - Results Section */}
+      <div className="w-full">
+        <Card className="glass-card shadow-cosmic">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-gradient-green">
+              <TrendingUp className="w-5 h-5" />
+              DeepCAL™ Engine Output
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              <Calculator className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Enter shipment details and click Calculate to see recommendations</p>
+              <p className="text-xs mt-2">All calculations use real data - no mock values!</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
