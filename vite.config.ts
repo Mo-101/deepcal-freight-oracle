@@ -6,6 +6,9 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  // Safely handle WS_TOKEN to prevent syntax errors
+  const wsToken = process.env.WS_TOKEN || 'development-token';
+  
   return {
     server: {
       host: "::",
@@ -26,7 +29,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
-      __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || 'development-token'),
+      // Properly escape and define the WS_TOKEN
+      __WS_TOKEN__: JSON.stringify(wsToken),
     },
     build: {
       sourcemap: false,
