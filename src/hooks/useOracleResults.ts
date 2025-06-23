@@ -1,92 +1,108 @@
 
-import React from 'react';
-import { ShipmentData, CalculatorInputs } from '@/types/shipment';
-import { useOracleCalculation } from './useOracleCalculation';
-import { useOracleAwakening } from './useOracleAwakening';
-import { useOracleOutput } from './useOracleOutput';
-
-const SESSION_HISTORY_LIMIT = 12; // configurable: how many past "oracle sessions" to keep
+import { useState, useEffect } from 'react';
+import { csvDataEngine } from '@/services/csvDataEngine';
+import { humorToast } from '@/components/HumorToast';
+import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
+import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
+import { generateForwarderComparison } from '@/utils/shipmentMapper';
 
 export const useOracleResults = () => {
-  const {
-    isCalculating,
-    setIsCalculating,
-    anomalyMap,
-    performCalculation,
-  } = useOracleCalculation();
+  const [results, setResults] = useState<OracleResults | null>(null);
+  const [isAwakening, setIsAwakening] = useState(false);
+  const [showOutput, setShowOutput] = useState(false);
+  const [outputAnimation, setOutputAnimation] = useState(false);
+  const [anomalyMap, setAnomalyMap] = useState<any>({});
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  const {
-    isAwakening,
-    setIsAwakening,
-    awakenOracle: baseAwakenOracle,
-  } = useOracleAwakening();
-
-  const {
-    results,
-    setResults,
-    showOutput,
-    setShowOutput,
-    outputAnimation,
-    setOutputAnimation,
-    resetOutput,
-    displayResults,
-    outputHistory,
-    showPreviousOutput,
-  } = useOracleOutput();
-
-  // Keep a “session log” for this user/session
-  const [sessionLog, setSessionLog] = React.useState<any[]>([]);
-
-  // Awaken the Oracle for a new run
   const awakenOracle = async () => {
-    await baseAwakenOracle();
+    const isLoaded = await csvDataEngine.isDataLoaded();
+    if (!isLoaded) {
+      await csvDataEngine.autoLoadEmbeddedData();
+    }
+    setIsAwakening(true);
     setIsCalculating(true);
     setResults(null);
     setShowOutput(false);
     setOutputAnimation(false);
-    // Optionally, clear log for a true "new session"
-    // setSessionLog([]);
+    
+    humorToast("🔮 Oracle Awakening", "The Symbolic Intelligence is stirring...", 2000);
   };
 
-  // Main runner: calculate and display results, then log session
-  const generateAndShowResults = async (
-    shipment: ShipmentData,
-    mappedInputs: Partial<CalculatorInputs>
-  ) => {
+  const resetOutput = () => {
+    setShowOutput(false);
+    setOutputAnimation(false);
+    setResults(null);
+    setIsCalculating(false);
+  };
+
+  const generateAndShowResults = async (shipment: ShipmentData, mappedInputs: Partial<CalculatorInputs>) => {
+    // Start the awakening process
     setIsAwakening(true);
     setIsCalculating(true);
     setResults(null);
     setShowOutput(true);
-
+    
+    // Let the typing animation run for 3-4 seconds before showing results
     setTimeout(async () => {
-      const newResults = await performCalculation(shipment, mappedInputs);
+      console.log('Oracle is now calculating results for shipment:', shipment.request_reference);
+      
+      // Generate real forwarder comparison with TOPSIS calculations
+      const forwarderComparison = generateForwarderComparison(shipment);
+      
+      // Determine best forwarder from actual data or TOPSIS ranking
+      const bestForwarder = shipment.initial_quote_awarded || 
+                           shipment.final_quote_awarded_freight_forwader_carrier ||
+                           shipment.awarded_forwarder ||
+                           (forwarderComparison.length > 0 ? forwarderComparison[0].name : 'Unknown');
 
-      // 🦉 Compose a witty, human, explanatory "oracle" narrative if missing
-      if (!newResults.oracleNarrative) {
-        newResults.oracleNarrative = `The Oracle sees all: shipment "${shipment.request_reference}" from ${shipment.origin_country} to ${shipment.destination_country}. ${newResults.bestForwarder} shines, but beware: ${Object.keys(anomalyMap).length ? "anomalies detected!" : "route looks clear."}`;
-      }
+      // Calculate route score from TOPSIS results
+      const routeScore = forwarderComparison.length > 0 ? forwarderComparison[0].topsisScore?.toFixed(3) : "N/A";
 
-      // Add academic, statistical, and symbolic marks
-      newResults.methodology = (newResults.methodology ?? '') +
-        `\n\nDeepCAL++ MCDA: Neutrosophic-TOPSIS-GRA engine. Forwarder reliability, cost dynamics, and responsiveness evaluated.`;
-      newResults.seal = "🦉 ORACLE MODE";
-      newResults.timestamp = newResults.timestamp ?? new Date().toISOString();
+      // Get emergency grade safely
+      const emergencyGrade = (shipment as any)['emergency grade'] || 
+                            (shipment as any).emergency_grade || 
+                            'Standard';
 
-      // Optional: add a humorous blessing or quip
-      newResults.blessing = newResults.blessing ??
-        (Object.keys(anomalyMap).length
-          ? "⚠️ May your freight forwarders be more reliable than your WiFi!"
-          : "✨ May your shipments fly smoother than this algorithm's code.");
+      const newResults = {
+        bestForwarder,
+        routeScore,
+        forwarderComparison,
+        recommendation: `DeepCAL++ Analysis: ${bestForwarder} ranked highest with TOPSIS score ${routeScore} for ${mappedInputs.cargoType || shipment.item_category} shipment (${mappedInputs.weight || shipment.weight_kg}kg) from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}.`,
+        oracleNarrative: `📊 Historical Shipment Analysis: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}. Final carrier: ${bestForwarder}. Delivery Status: ${shipment.delivery_status}.`,
+        methodology: `Multi-criteria decision analysis using TOPSIS (Technique for Order Preference by Similarity to Ideal Solution). Historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Cost per kg, transit time, and reliability metrics normalized and weighted. Euclidean distance calculations to positive and negative ideal solutions. ${forwarderComparison.length} freight forwarders analyzed with mathematical precision.`,
+        seal: "📋 HISTORICAL",
+        qseal: shipment.request_reference.substring(0, 8),
+        timestamp: shipment.date_of_collection || shipment.shipment_date || new Date().toISOString(),
+        blessing: `Historical reference: ${shipment.request_reference}`
+      };
 
-      // Save to audit/session log (rolling buffer)
-      setSessionLog((log) => [newResults, ...log].slice(0, SESSION_HISTORY_LIMIT));
-
+      console.log('Oracle calculations complete, displaying results:', newResults);
+      
       setResults(newResults);
       setIsCalculating(false);
       setIsAwakening(false);
       setTimeout(() => setOutputAnimation(true), 100);
-    }, 3500); // 3.5s "oracle typing" delay
+      humorToast("✨ Transmission Complete", "Oracle analysis ready.", 3000);
+    }, 3500); // 3.5 second delay to let typing complete
   };
+
+  const displayResults = (newResults: OracleResults) => {
+    console.log('Displaying pre-calculated results:', newResults);
+    setResults(newResults);
+    setShowOutput(true);
+    setIsCalculating(false);
+    setTimeout(() => setOutputAnimation(true), 100);
+  };
+
+  // Anomaly detection effect
+  useEffect(() => {
+    if (results && results.forwarderComparison) {
+      const found = detectForwarderAnomalies(results.forwarderComparison);
+      setAnomalyMap(found);
+    } else {
+      setAnomalyMap({});
+    }
+  }, [results]);
 
   return {
     results,
@@ -99,9 +115,6 @@ export const useOracleResults = () => {
     awakenOracle,
     resetOutput,
     generateAndShowResults,
-    displayResults,
-    outputHistory,      // All past outputs (QA/audit)
-    showPreviousOutput, // Navigate previous
-    sessionLog,         // All outputs for session, in order
+    displayResults
   };
 };

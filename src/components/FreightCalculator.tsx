@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import type { ButtonProps } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -39,8 +40,7 @@ const FreightCalculator = () => {
   const [oldShipments, setOldShipments] = React.useState<ShipmentRecord[]>([]);
   const [selectedReference, setSelectedReference] = React.useState<string | null>(null);
   const [weatherRisk, setWeatherRisk] = React.useState<'low' | 'medium' | 'high'>('low');
-  type ViewId = 'calculator' | 'analytics' | 'tracking';
-  const [activeView, setActiveView] = React.useState<ViewId>('calculator');
+  const [activeView, setActiveView] = React.useState<'calculator' | 'analytics' | 'tracking'>('calculator');
 
   React.useEffect(() => {
     (async () => {
@@ -103,9 +103,7 @@ const FreightCalculator = () => {
     setSelectedReference(null);
   };
 
-  const handleMessage = (msg: { type: string; content: string }) => {
-    console.log('Message received:', msg.content);
-  };
+  const lineageMeta = csvDataEngine.getLineageMeta?.();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 p-4">
@@ -123,7 +121,8 @@ const FreightCalculator = () => {
                 { id: 'tracking', label: 'Tracking', icon: MapPin }
               ].map(({ id, label, icon: Icon }) => (
                 <button
-                  onClick={() => setActiveView(id as ViewId)}
+                  key={id}
+                  onClick={() => setActiveView(id as any)}
                   className={`flex items-center space-x-2 px-4 py-2 rounded transition-all ${
                     activeView === id 
                       ? 'bg-cyan-600/30 text-cyan-400 border border-cyan-500/50' 
@@ -251,7 +250,7 @@ const FreightCalculator = () => {
             
             <FieldIntelComm 
               shipmentId={selectedReference || 'new'}
-              onMessageSent={handleMessage}
+              onMessageSent={(msg) => console.log('Field message:', msg)}
             />
 
             <EnhancedVoiceEngine 
@@ -344,7 +343,7 @@ const FreightCalculator = () => {
           <div className="space-y-6">
             <FieldIntelComm 
               shipmentId={selectedReference || 'tracking-comms'}
-              onMessageSent={handleMessage}
+              onMessageSent={(msg) => console.log('Tracking comms:', msg)}
             />
             <WeatherBrain onWeatherRisk={setWeatherRisk} />
           </div>

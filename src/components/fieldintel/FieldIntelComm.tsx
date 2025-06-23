@@ -1,5 +1,4 @@
-import * as React from 'react';
-import type { ForwardedRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,27 +16,17 @@ type Message = {
 
 interface FieldIntelCommProps {
   shipmentId: string;
-  onMessageSent: (msg: { type: string; content: string }) => void;
+  onMessageSent: (message: string) => void;
 }
 
 export const FieldIntelComm: React.FC<FieldIntelCommProps> = ({ shipmentId, onMessageSent }) => {
-  const [messages, setMessages] = React.useState<Message[]>([]);
-  const [newMessage, setNewMessage] = React.useState('');
-  const [selectedChannel, setSelectedChannel] = React.useState<'sms' | 'whatsapp'>('whatsapp');
-  const [isConnected, setIsConnected] = React.useState(false);
-  const [isSending, setIsSending] = React.useState(false);
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  React.useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [selectedChannel, setSelectedChannel] = useState<'sms' | 'whatsapp'>('whatsapp');
+  const [isConnected, setIsConnected] = useState(false);
 
   // Simulate connecting to Twilio service
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setIsConnected(true);
       toast.success('Field Intel connected', {
@@ -81,7 +70,7 @@ export const FieldIntelComm: React.FC<FieldIntelCommProps> = ({ shipmentId, onMe
     };
     
     setMessages(prev => [...prev, message]);
-    onMessageSent({ type: selectedChannel, content: newMessage });
+    onMessageSent(newMessage);
     setNewMessage('');
     
     // Simulate message sending
@@ -133,7 +122,6 @@ export const FieldIntelComm: React.FC<FieldIntelCommProps> = ({ shipmentId, onMe
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
         
         <div className="flex space-x-2">

@@ -1,4 +1,3 @@
-
 import { CalculatorInputs, ShipmentData, ForwarderComparison } from '@/types/shipment';
 
 export const CARGO_TYPE_OPTIONS = [
@@ -117,36 +116,6 @@ export const mapShipmentToInputs = (shipment: ShipmentData): Partial<CalculatorI
       ''
     ),
   };
-};
-
-export interface HistoricalPerformance {
-  [forwarderName: string]: {
-    count: number;
-    avgCost: number;
-    avgTransitDays: number;
-    onTimeDeliveries: number;
-    summary: string;
-  };
-}
-
-export const analyzeHistoricalPerformance = async (
-  shipment: ShipmentData, 
-  forwarderComparison: ForwarderComparison[]
-): Promise<HistoricalPerformance> => {
-  const ffHistory: HistoricalPerformance = {};
-  
-  // Initialize with current comparison data
-  forwarderComparison.forEach(ff => {
-    ffHistory[ff.name] = {
-      count: 1,
-      avgCost: ff.costPerKg,
-      avgTransitDays: ff.avgTransitDays,
-      onTimeDeliveries: Math.round(ff.onTimeRate * 100),
-      summary: `Active forwarder with ${ff.onTimeRate > 0.9 ? 'excellent' : ff.onTimeRate > 0.8 ? 'good' : 'fair'} reliability`
-    };
-  });
-  
-  return ffHistory;
 };
 
 export const generateForwarderComparison = (shipment: ShipmentData): ForwarderComparison[] => {
