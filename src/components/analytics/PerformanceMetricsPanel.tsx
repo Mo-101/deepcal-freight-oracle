@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/cards';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, TrendingDown, DollarSign, Clock, Shield, Target } from 'lucide-react';
@@ -32,7 +32,7 @@ export const PerformanceMetricsPanel: React.FC<PerformanceMetricsPanelProps> = (
     }, 0);
 
     const totalWeight = shipmentData.reduce((sum, s) => {
-      return sum + parseFloat(s.weight_kg || '0');
+      return sum + parseFloat((s.weight_kg || '0').toString());
     }, 0);
 
     const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;

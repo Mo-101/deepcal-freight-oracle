@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
@@ -28,8 +27,8 @@ export const TrendAnalysisPanel: React.FC<TrendAnalysisPanelProps> = ({ shipment
       }
       
       monthlyData[monthKey].shipments += 1;
-      monthlyData[monthKey].cost += parseFloat(shipment['carrier+cost']?.toString().replace(/[^0-9.-]/g, '') || '0');
-      monthlyData[monthKey].weight += parseFloat(shipment.weight_kg || '0');
+      monthlyData[monthKey].cost += parseFloat((shipment['carrier+cost'] || '0').toString().replace(/[^0-9.-]/g, ''));
+      monthlyData[monthKey].weight += parseFloat((shipment.weight_kg || '0').toString());
     });
 
     const monthlyTrends = Object.entries(monthlyData)
@@ -78,8 +77,8 @@ export const TrendAnalysisPanel: React.FC<TrendAnalysisPanelProps> = ({ shipment
       }
       
       routeData[route].count += 1;
-      routeData[route].totalCost += parseFloat(shipment['carrier+cost']?.toString().replace(/[^0-9.-]/g, '') || '0');
-      routeData[route].avgWeight += parseFloat(shipment.weight_kg || '0');
+      routeData[route].totalCost += parseFloat((shipment['carrier+cost'] || '0').toString().replace(/[^0-9.-]/g, ''));
+      routeData[route].avgWeight += parseFloat((shipment.weight_kg || '0').toString());
     });
 
     const routeTrends = Object.entries(routeData)
