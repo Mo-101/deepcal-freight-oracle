@@ -34,10 +34,25 @@ export default function ChatInterface({
   onStartListening,
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
 
+  // Only scroll to bottom on user messages, not assistant responses
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      // Only auto-scroll for user messages to prevent page jumping
+      if (lastMessage.type === "user") {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+      }
+    }
   }, [messages])
+
+  // Ensure chat container doesn't cause page jumping
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [isProcessing])
 
   return (
     <div className="flex-1 lg:max-w-3xl">
@@ -53,7 +68,12 @@ export default function ChatInterface({
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-y-auto flex flex-col" id="chatContainer">
+        <div 
+          ref={chatContainerRef}
+          className="flex-1 p-6 overflow-y-auto flex flex-col scroll-smooth" 
+          id="chatContainer"
+          style={{ scrollBehavior: 'smooth' }}
+        >
           <div className="space-y-4">
             {messages.map((message) => (
               <div

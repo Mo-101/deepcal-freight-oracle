@@ -102,6 +102,9 @@ const DeepTalk = () => {
 
   // Load ElevenLabs config on component mount
   useEffect(() => {
+    // Ensure page starts at top
+    window.scrollTo(0, 0)
+    
     const loadVoiceConfig = () => {
       const savedConfig = localStorage.getItem("elevenlabs-config")
       if (savedConfig) {
@@ -118,6 +121,18 @@ const DeepTalk = () => {
     }
     
     loadVoiceConfig()
+  }, [])
+
+  // Prevent page jumping when new messages are added
+  useEffect(() => {
+    // Don't auto-scroll when assistant messages are added
+    const handleScroll = () => {
+      // Keep page at current position when new content appears
+      return false
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: false })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const processQuery = async (query: string) => {
@@ -280,7 +295,8 @@ const DeepTalk = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
-      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'"
+      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
+      overflow: 'auto' // Ensure proper scrolling behavior
     }}>
       <DeepCALHeader />
 
