@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,29 +44,46 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
   const voiceOptions = [
     { 
       id: "onwK4e9ZLuTAKqWW03F9", 
-      name: "Daniel - DeepCAL Oracle", 
-      description: "Professional, wise, perfect for logistics analysis" 
+      name: "Daniel - Professional Oracle", 
+      description: "Professional, wise, perfect for logistics analysis",
+      region: "Global"
     },
     { 
       id: "JBFqnCBsd6RMkjVDRZzb", 
-      name: "George - The Logistics Sage", 
-      description: "Deep, authoritative voice for complex explanations" 
-    },
-    { 
-      id: "CwhRBWXzGAHq8TQ4Fs17", 
-      name: "Roger - The Strategic Advisor", 
-      description: "Mature, thoughtful delivery for strategic insights" 
+      name: "George - Deep Authority", 
+      description: "Deep, authoritative voice for complex explanations",
+      region: "Global" 
     },
     { 
       id: "TX3LPaxmHKxFdv7VOQHJ", 
-      name: "Liam - The Quick Analyst", 
-      description: "Clear, energetic voice for rapid-fire analysis" 
+      name: "Liam - Quick Analyst", 
+      description: "Clear, energetic voice for rapid-fire analysis",
+      region: "Global"
     },
     { 
       id: "bIHbv24MWmeRgasZH58o", 
-      name: "Will - The Enthusiastic Guide", 
-      description: "Dynamic voice that brings humor to life" 
+      name: "Will - Enthusiastic Guide", 
+      description: "Dynamic voice that brings humor to life",
+      region: "Global"
     },
+    { 
+      id: "9BWtsMINqrJLrRacOk9x", 
+      name: "Aria - African Wisdom", 
+      description: "Warm, wise African female voice with natural accent",
+      region: "African"
+    },
+    { 
+      id: "EXAVITQu4vr4xnSDxMaL", 
+      name: "Sarah - African Professional", 
+      description: "Professional African female voice, perfect for business",
+      region: "African"
+    },
+    { 
+      id: "cgSgspJ2msm6clMCkdW9", 
+      name: "Jessica - African Storyteller", 
+      description: "Rich, storytelling African voice with cultural depth",
+      region: "African"
+    }
   ]
 
   if (!isOpen) return null
@@ -121,7 +139,14 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
                 {voiceOptions.map((voice) => (
                   <SelectItem key={voice.id} value={voice.id} className="text-white hover:bg-white/10">
                     <div className="flex flex-col">
-                      <span className="font-medium">{voice.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{voice.name}</span>
+                        {voice.region === "African" && (
+                          <span className="text-xs bg-orange-600 px-2 py-0.5 rounded text-white">
+                            🌍 African
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-white/70">{voice.description}</span>
                     </div>
                   </SelectItem>
@@ -129,7 +154,7 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
               </SelectContent>
             </Select>
             <p className="text-white/60 text-xs mt-1">
-              Each voice brings a unique personality to DeepCAL's logistics wisdom
+              African voices bring authentic cultural depth to DeepCAL's logistics wisdom
             </p>
           </div>
 
@@ -159,10 +184,10 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
           </div>
 
           <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg p-4">
-            <h4 className="text-amber-400 font-medium mb-2">💡 Quota Management Tips</h4>
+            <h4 className="text-amber-400 font-medium mb-2">💡 Voice Enhancement Tips</h4>
             <ul className="text-white/70 text-sm space-y-1">
-              <li>• Responses are automatically shortened to save quota</li>
-              <li>• Turbo v2.5 model uses 50% less quota than Multilingual</li>
+              <li>• Responses now speak 4 sentences for fuller conversations</li>
+              <li>• African voices provide authentic cultural perspectives</li>
               <li>• Browser speech synthesis available as free fallback</li>
               <li>• Check your quota at elevenlabs.io dashboard</li>
             </ul>

@@ -26,9 +26,9 @@ export function preprocessText(text: string): string {
     .replace(/TOPSIS/g, 'analysis')
     .replace(/neutrosophic/g, 'advanced')
     
-    // Keep only the first 2 sentences for efficiency
+    // Keep more sentences for fuller responses (increased from 2 to 4)
     .split(/[.!?]+/)
-    .slice(0, 2)
+    .slice(0, 4)
     .join('. ')
     
     // Clean up extra whitespace
@@ -36,5 +36,5 @@ export function preprocessText(text: string): string {
     .trim()
     
     // Add natural ending if truncated
-    + (text.length > 200 ? '.' : '');
+    + (text.length > 300 ? '.' : '');
 }

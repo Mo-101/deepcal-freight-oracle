@@ -14,9 +14,9 @@ export const elevenLabsService = {
       throw new Error('ElevenLabs API key is required')
     }
     
-    // Validate text length to prevent quota issues
-    if (text.length > 500) {
-      throw new Error(`Text too long (${text.length} chars). Limit to 500 characters to preserve quota.`)
+    // Increased text length limit for fuller responses
+    if (text.length > 800) {
+      throw new Error(`Text too long (${text.length} chars). Limit to 800 characters to preserve quota.`)
     }
 
     console.log(`🎤 ElevenLabs API call: ${text.length} chars, voice: ${config.voiceId}`)
@@ -30,14 +30,14 @@ export const elevenLabsService = {
       },
       body: JSON.stringify({
         text: text.trim(),
-        model_id: config.model || 'eleven_turbo_v2_5', // Use faster, cheaper model by default
+        model_id: config.model || 'eleven_multilingual_v2', // Use multilingual for better African accent support
         voice_settings: {
-          stability: config.stability || 0.5,
-          similarity_boost: config.similarityBoost || 0.75,
-          style: 0.0,
+          stability: config.stability || 0.6, // Slightly higher for African voices
+          similarity_boost: config.similarityBoost || 0.8, // Higher for accent preservation
+          style: 0.2, // Add some style for natural expression
           use_speaker_boost: true
         },
-        output_format: 'mp3_22050_32', // Lower quality for quota efficiency
+        output_format: 'mp3_44100_128', // Higher quality for better accent reproduction
       })
     })
 
