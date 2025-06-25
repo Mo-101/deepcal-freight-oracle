@@ -1,3 +1,4 @@
+
 export interface LocalVoiceConfig {
   model: 'vits' | 'speecht5' | 'fastspeech2'
   gatewayUrl: string
@@ -6,6 +7,9 @@ export interface LocalVoiceConfig {
 export interface LocalVoiceRequest {
   text: string
   voice: string
+  chunk_size?: number
+  speed?: number
+  pitch?: number
 }
 
 export const localVoiceGatewayService = {
@@ -14,8 +18,20 @@ export const localVoiceGatewayService = {
       throw new Error('Local voice gateway URL is required')
     }
 
+    // Enhanced preprocessing for better male voice synthesis
+    const processedText = text
+      // Remove problematic characters that cause TTS issues
+      .replace(/[🎯🚀📊⚔️🔥🌊⚖️👑🏆🌟🛡️🧠💫🔬🧙‍♂️☕🤖💰📜⏰🌍⌚✨⚡🎭🎨🔮]/g, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove markdown bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove markdown italic
+      .replace(/`(.*?)`/g, '$1') // Remove code formatting
+      .replace(/DeepCAL\+\+/g, 'DeepCAL')
+      .replace(/TOPSIS/g, 'analysis')
+      .replace(/neutrosophic/g, 'advanced')
+      .trim()
+
     // Create cache key for audio reuse
-    const cacheKey = `local_voice_${btoa(text + config.model)}`
+    const cacheKey = `local_voice_${btoa(processedText + config.model)}`
     
     // Check if we have cached audio
     const cachedUrl = sessionStorage.getItem(cacheKey)
@@ -28,7 +44,7 @@ export const localVoiceGatewayService = {
       return
     }
 
-    console.log(`🎤 Local voice gateway request: ${text.length} chars, model: ${config.model}`)
+    console.log(`🎤 Local voice gateway request: ${processedText.length} chars, model: ${config.model}`)
 
     try {
       const response = await fetch(`${config.gatewayUrl}/speak`, {
@@ -37,8 +53,12 @@ export const localVoiceGatewayService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: text.trim(),
-          voice: config.model
+          text: processedText,
+          voice: config.model,
+          // Enhanced parameters for smoother male voice
+          chunk_size: 200, // Ensure full text processing
+          speed: 0.9, // Slightly slower for clarity
+          pitch: -0.1 // Lower pitch for male voice
         } as LocalVoiceRequest)
       })
 
@@ -56,7 +76,7 @@ export const localVoiceGatewayService = {
       audio.preload = 'auto'
       audio.volume = 1.0
       
-      console.log(`🎙️ DeepCAL speaking with local ${config.model} voice`)
+      console.log(`🎙️ DeepCAL speaking with optimized local ${config.model} voice`)
       
       // Clean up URL when audio ends
       audio.addEventListener('ended', () => {

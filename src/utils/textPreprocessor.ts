@@ -1,4 +1,5 @@
-// Enhanced text preprocessing for efficient voice synthesis
+
+// Enhanced text preprocessing for efficient voice synthesis with male voice optimization
 export function preprocessText(text: string): string {
   return text
     // Remove markdown formatting
@@ -21,20 +22,22 @@ export function preprocessText(text: string): string {
     .replace(/^[\s]*[-•*]\s/gm, '')
     .replace(/^\d+\.\s/gm, '')
     
-    // Simplify for natural speech
+    // Simplify technical terms for natural male speech
     .replace(/DeepCAL\+\+/g, 'DeepCAL')
     .replace(/TOPSIS/g, 'analysis')
     .replace(/neutrosophic/g, 'advanced')
+    .replace(/AHP/g, 'analytical hierarchy process')
     
-    // Keep more sentences for fuller responses (increased from 2 to 4)
+    // Enhanced sentence preservation for complete text synthesis
     .split(/[.!?]+/)
-    .slice(0, 4)
+    .filter(sentence => sentence.trim().length > 5) // Remove very short fragments
+    .slice(0, 6) // Increased from 4 to 6 sentences for fuller responses
     .join('. ')
     
-    // Clean up extra whitespace
+    // Clean up extra whitespace and ensure proper sentence endings
     .replace(/\s+/g, ' ')
     .trim()
     
-    // Add natural ending if truncated
-    + (text.length > 300 ? '.' : '');
+    // Add natural ending punctuation for better male voice delivery
+    + (text.length > 200 ? '.' : '');
 }

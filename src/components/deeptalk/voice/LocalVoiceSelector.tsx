@@ -12,19 +12,19 @@ interface LocalVoiceSelectorProps {
 
 const localModels = [
   {
-    id: "vits",
-    name: "VITS - Natural Male Voice",
-    description: "High-quality smooth male speech synthesis"
+    id: "speecht5",
+    name: "SpeechT5 - Natural Male (Recommended)",
+    description: "Microsoft's expressive model with smooth male delivery and full text support"
   },
   {
-    id: "speecht5", 
-    name: "SpeechT5 - Expressive Male",
-    description: "Microsoft's smooth expressive male model"
+    id: "vits", 
+    name: "VITS - High Quality Male",
+    description: "High-quality neural voice with natural male speech patterns"
   },
   {
     id: "fastspeech2",
     name: "FastSpeech2 - Fast Male",
-    description: "Facebook's fast and smooth male TTS model"
+    description: "Facebook's efficient model optimized for male voice clarity"
   }
 ]
 
@@ -54,7 +54,7 @@ export default function LocalVoiceSelector({
 
       <div>
         <label className="text-white text-sm font-medium mb-2 block">
-          Male TTS Model (Optimized for Smoothness)
+          Male Voice Model (Optimized for Complete Text)
         </label>
         <Select value={model} onValueChange={onModelChange}>
           <SelectTrigger className="bg-white/10 border-white/30 text-white">
@@ -71,6 +71,19 @@ export default function LocalVoiceSelector({
             ))}
           </SelectContent>
         </Select>
+        <p className="text-white/60 text-xs mt-1">
+          SpeechT5 recommended for natural male voice and full text synthesis
+        </p>
+      </div>
+
+      <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-3">
+        <h4 className="text-green-400 font-medium mb-2 text-sm">🎙️ Male Voice Optimization Tips</h4>
+        <ul className="text-white/70 text-xs space-y-1">
+          <li>• Enhanced text chunking ensures complete speech output</li>
+          <li>• Lower pitch settings for natural male voice delivery</li>
+          <li>• SpeechT5 model provides best prosody and expression</li>
+          <li>• Automatic text preprocessing removes TTS-breaking characters</li>
+        </ul>
       </div>
     </>
   )
