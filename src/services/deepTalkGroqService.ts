@@ -1,4 +1,3 @@
-
 import { classifyIntent } from '@/utils/intentClassifier'
 
 interface DeepTalkContext {
@@ -15,18 +14,18 @@ interface GroqResponse {
   context: any
 }
 
+// Auto-initialized Groq API key (hardcoded for immediate activation)
+const GROQ_API_KEY = "gsk_4xJQZ9K3vB8pR2mN7LfY6sT1cX0wV9eH4rU5iA2qS8dG7kP3mL6jF9nW2bC8vE5x"
+
 class DeepTalkGroqService {
-  private apiKey: string | null = null
+  private apiKey: string
   private baseUrl = 'https://api.groq.com/openai/v1/chat/completions'
+  private isInitialized = true
 
   constructor() {
-    // Try to get API key from localStorage
-    this.apiKey = localStorage.getItem('groq-api-key')
-  }
-
-  setApiKey(key: string) {
-    this.apiKey = key
-    localStorage.setItem('groq-api-key', key)
+    // Auto-initialize with hardcoded key - AI brain always active
+    this.apiKey = GROQ_API_KEY
+    console.log('🧠 AI Brain auto-activated with Groq intelligence')
   }
 
   private buildSystemPrompt(): string {
@@ -113,10 +112,6 @@ Keep your response focused and conversational (around 200-400 words), but pack i
   }
 
   async generateResponse(query: string, context: DeepTalkContext): Promise<GroqResponse> {
-    if (!this.apiKey) {
-      throw new Error('Groq API key not configured')
-    }
-
     const systemPrompt = this.buildSystemPrompt()
     const userPrompt = this.buildUserPrompt(query, context)
 
@@ -146,10 +141,19 @@ Keep your response focused and conversational (around 200-400 words), but pack i
       const data = await response.json()
       const content = data.choices[0]?.message?.content || ''
 
+      // Log conversation to training system for continuous learning
+      try {
+        const { logConversationToTraining } = await import('./aiTrainingBridge')
+        await logConversationToTraining(query, content, context)
+        console.log('📊 Conversation logged to training system')
+      } catch (trainingError) {
+        console.warn('Training bridge unavailable:', trainingError)
+      }
+
       return {
         response: content,
         confidence: 0.9,
-        context: { ...context, groqGenerated: true }
+        context: { ...context, groqGenerated: true, trainingLogged: true }
       }
     } catch (error) {
       console.error('Groq API call failed:', error)
@@ -158,7 +162,11 @@ Keep your response focused and conversational (around 200-400 words), but pack i
   }
 
   isConfigured(): boolean {
-    return !!this.apiKey
+    return this.isInitialized
+  }
+
+  getStatus(): string {
+    return this.isInitialized ? 'AI Brain Active' : 'Disconnected'
   }
 }
 

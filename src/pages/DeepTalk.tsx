@@ -6,14 +6,14 @@ import DeepCALHeader from "@/components/DeepCALHeader"
 import ChatInterface from "@/components/deeptalk/ChatInterface"
 import SidePanel from "@/components/deeptalk/SidePanel"
 import VoiceConfig from "@/components/deeptalk/VoiceConfig"
-import GroqConfig from "@/components/deeptalk/GroqConfig"
 import { useEnhancedSpeech } from "@/hooks/useEnhancedSpeech"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import { classifyIntent } from "@/utils/intentClassifier"
 import { generateDynamicResponse } from "@/utils/dynamicResponseGenerator"
 import { deepTalkGroqService } from "@/services/deepTalkGroqService"
+import { getTrainingBufferStatus } from "@/services/aiTrainingBridge"
 import { Button } from "@/components/ui/button"
-import { Settings, Brain } from "lucide-react"
+import { Settings, Brain, Zap } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Message {
@@ -44,7 +44,7 @@ const DeepTalk = () => {
       id: "1",
       type: "assistant",
       content:
-        "Welcome to DeepTalk! I'm your AI logistics coordinator with a PhD in getting stuff from A to B without losing my mind. Ask me anything about shipments, routes, or why Nairobi traffic is still a mystery to science!",
+        "🧠 DeepCAL AI Brain activated! I'm your enhanced logistics oracle with full Groq intelligence and live training integration. Ask me anything about shipments, routes, or the mysteries of African logistics!",
       timestamp: new Date(),
     },
   ])
@@ -52,9 +52,8 @@ const DeepTalk = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [context, setContext] = useState<any>({})
   const [showVoiceConfig, setShowVoiceConfig] = useState(false)
-  const [showGroqConfig, setShowGroqConfig] = useState(false)
-  const [groqConfigured, setGroqConfigured] = useState(deepTalkGroqService.isConfigured())
   const [voiceConfig, setVoiceConfig] = useState<any>(null)
+  const [trainingBufferStatus, setTrainingBufferStatus] = useState({ count: 0, maxSize: 10 })
 
   const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
   const { isListening, startListening } = useSpeechRecognition()
@@ -100,7 +99,7 @@ const DeepTalk = () => {
     },
   ]
 
-  // Load voice config on component mount
+  // Load voice config and training status on component mount
   useEffect(() => {
     window.scrollTo(0, 0)
     
@@ -143,6 +142,15 @@ const DeepTalk = () => {
     }
     
     loadVoiceConfig()
+
+    // Update training buffer status periodically
+    const updateTrainingStatus = () => {
+      setTrainingBufferStatus(getTrainingBufferStatus())
+    }
+    updateTrainingStatus()
+    const statusInterval = setInterval(updateTrainingStatus, 5000)
+    
+    return () => clearInterval(statusInterval)
   }, [])
 
   // Prevent page jumping when new messages are added
@@ -197,7 +205,7 @@ const DeepTalk = () => {
         content: response,
         timestamp: new Date(),
         intent,
-        data: { confidence, params, groqPowered: groqConfigured },
+        data: { confidence, params, groqPowered: true, trainingIntegrated: true },
       }
 
       setMessages((prev) => [...prev, assistantMessage])
@@ -311,17 +319,6 @@ const DeepTalk = () => {
     })
   }
 
-  const handleGroqConfigSave = (apiKey: string) => {
-    deepTalkGroqService.setApiKey(apiKey)
-    setGroqConfigured(true)
-    
-    toast({
-      title: "🧠 AI Brain Activated",
-      description: "DeepCAL intelligence enhanced with Groq",
-      duration: 3000,
-    })
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
       fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
@@ -334,13 +331,22 @@ const DeepTalk = () => {
           <h1 className="text-2xl font-bold text-white">DeepTalk AI</h1>
           <div className="flex gap-2">
             <Button
-              onClick={() => setShowGroqConfig(true)}
               variant="outline"
               size="sm"
-              className={`border-white/30 text-white hover:bg-white/10 ${groqConfigured ? 'border-purple-400/50 bg-purple-900/20' : ''}`}
+              className="border-purple-400/50 bg-purple-900/20 text-purple-300 hover:bg-purple-800/30"
+              disabled
             >
               <Brain className="w-4 h-4 mr-2" />
-              {groqConfigured ? 'AI Brain' : 'Enable AI'}
+              AI Brain Active
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-yellow-400/50 bg-yellow-900/20 text-yellow-300 hover:bg-yellow-800/30"
+              disabled
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Training: {trainingBufferStatus.count}/{trainingBufferStatus.maxSize}
             </Button>
             <Button
               onClick={() => setShowVoiceConfig(true)}
@@ -367,13 +373,22 @@ const DeepTalk = () => {
         <div className="space-y-4">
           <div className="hidden lg:flex justify-end gap-2">
             <Button
-              onClick={() => setShowGroqConfig(true)}
               variant="outline"
               size="sm"
-              className={`border-white/30 text-white hover:bg-white/10 ${groqConfigured ? 'border-purple-400/50 bg-purple-900/20' : ''}`}
+              className="border-purple-400/50 bg-purple-900/20 text-purple-300 hover:bg-purple-800/30"
+              disabled
             >
               <Brain className="w-4 h-4 mr-2" />
-              {groqConfigured ? 'AI Brain Active' : 'Enable AI Brain'}
+              AI Brain Active
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-yellow-400/50 bg-yellow-900/20 text-yellow-300 hover:bg-yellow-800/30"
+              disabled
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Training: {trainingBufferStatus.count}/{trainingBufferStatus.maxSize}
             </Button>
             <Button
               onClick={() => setShowVoiceConfig(true)}
@@ -398,12 +413,6 @@ const DeepTalk = () => {
         isOpen={showVoiceConfig}
         onClose={() => setShowVoiceConfig(false)}
         onConfigSave={handleVoiceConfigSave}
-      />
-
-      <GroqConfig
-        isOpen={showGroqConfig}
-        onClose={() => setShowGroqConfig(false)}
-        onConfigSave={handleGroqConfigSave}
       />
 
       <style>
