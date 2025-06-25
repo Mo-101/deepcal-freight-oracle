@@ -11,7 +11,7 @@ import {
   AlertCircle,
   XCircle
 } from 'lucide-react';
-import { AnimatedBrain } from './AnimatedBrain';
+import { NeuralNetworkNodes } from './NeuralNetworkNodes';
 
 interface SystemStatus {
   neutroEngine: 'connected' | 'warning' | 'error';
@@ -51,7 +51,7 @@ export function SystemStatusSidebar({
 
   return (
     <div className="lg:col-span-1 space-y-6">
-      {/* Enhanced Neural Engine Preview with 3D Brain */}
+      {/* Enhanced Neural Engine Preview with Node Network */}
       <Card className="glass-card shadow-glass border border-glassBorder">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
@@ -61,7 +61,7 @@ export function SystemStatusSidebar({
         </CardHeader>
         <CardContent className="text-center">
           <div className="mb-4">
-            <AnimatedBrain
+            <NeuralNetworkNodes
               trainingProgress={trainingProgress}
               accuracy={trainingMetrics.accuracy}
               isTraining={isTraining}
