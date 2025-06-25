@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from '@/hooks/use-toast';
 import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader";
@@ -104,6 +103,9 @@ const Training = () => {
     lastTraining: isTraining ? 'Live' : '2h ago',
     modelVersion: 'v3.1.0-Enhanced'
   };
+
+  // Calculate training progress percentage
+  const trainingProgress = currentJob ? (currentJob.currentEpoch / currentJob.totalEpochs) * 100 : 0;
 
   // Enhanced training activity updates
   useEffect(() => {
@@ -258,6 +260,8 @@ const Training = () => {
             <SystemStatusSidebar 
               systemStatus={systemStatus}
               trainingMetrics={trainingMetrics}
+              isTraining={isTraining}
+              trainingProgress={trainingProgress}
             />
             <LiveMetricsPanel isTraining={isTraining} />
             <TrainingLogsPanel isTraining={isTraining} />

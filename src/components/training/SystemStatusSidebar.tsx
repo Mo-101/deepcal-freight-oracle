@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Cpu, 
-  Activity, 
   Settings, 
   Target,
   CheckCircle,
   AlertCircle,
   XCircle
 } from 'lucide-react';
+import { AnimatedBrain } from './AnimatedBrain';
 
 interface SystemStatus {
   neutroEngine: 'connected' | 'warning' | 'error';
@@ -30,9 +30,16 @@ interface TrainingMetrics {
 interface SystemStatusSidebarProps {
   systemStatus: SystemStatus;
   trainingMetrics: TrainingMetrics;
+  isTraining?: boolean;
+  trainingProgress?: number;
 }
 
-export function SystemStatusSidebar({ systemStatus, trainingMetrics }: SystemStatusSidebarProps) {
+export function SystemStatusSidebar({ 
+  systemStatus, 
+  trainingMetrics, 
+  isTraining = false, 
+  trainingProgress = 0 
+}: SystemStatusSidebarProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected': return <CheckCircle className="w-4 h-4 text-green-400" />;
@@ -44,7 +51,7 @@ export function SystemStatusSidebar({ systemStatus, trainingMetrics }: SystemSta
 
   return (
     <div className="lg:col-span-1 space-y-6">
-      {/* Engine Preview */}
+      {/* Enhanced Neural Engine Preview with 3D Brain */}
       <Card className="glass-card shadow-glass border border-glassBorder">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
@@ -53,10 +60,20 @@ export function SystemStatusSidebar({ systemStatus, trainingMetrics }: SystemSta
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-            <Activity className="w-8 h-8 text-white animate-pulse" />
+          <div className="mb-4">
+            <AnimatedBrain
+              trainingProgress={trainingProgress}
+              accuracy={trainingMetrics.accuracy}
+              isTraining={isTraining}
+              samples={trainingMetrics.samplesProcessed}
+            />
           </div>
-          <p className="text-indigo-300 mb-4">Neutrosophic Core Active</p>
+          <p className="text-indigo-300 mb-2">
+            {isTraining ? 'Neural Core Training...' : 'Neutrosophic Core Active'}
+          </p>
+          <p className="text-xs text-slate-400 mb-4">
+            {trainingMetrics.samplesProcessed.toLocaleString()} samples processed
+          </p>
           <div className="space-y-2">
             <Button size="sm" variant="outline" className="w-full">
               Monitor Performance
