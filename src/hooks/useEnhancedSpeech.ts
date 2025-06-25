@@ -2,6 +2,20 @@
 import { useState, useCallback } from "react"
 import { preprocessText } from '@/utils/textPreprocessor'
 import { elevenLabsService, type ElevenLabsConfig } from '@/services/elevenLabsService'
+import { localVoiceGatewayService, type LocalVoiceConfig } from '@/services/localVoiceGatewayService'
+
+interface VoiceConfig {
+  provider: 'elevenlabs' | 'local'
+  // ElevenLabs config
+  apiKey?: string
+  voiceId?: string
+  modelId?: string
+  stability?: number
+  similarityBoost?: number
+  // Local gateway config
+  model?: 'vits' | 'speecht5' | 'fastspeech2'
+  gatewayUrl?: string
+}
 
 export function useEnhancedSpeech() {
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -38,12 +52,51 @@ export function useEnhancedSpeech() {
       console.error("🎤 ElevenLabs speech error:", error)
       setIsSpeaking(false)
       
-      // Handle specific quota errors and fallback
       if (error.message?.includes('401') || error.message?.includes('quota')) {
         console.log("🔊 ElevenLabs quota exceeded. Falling back to browser speech.")
-        throw new Error('QUOTA_EXCEEDED') // Let the caller handle fallback
+        throw new Error('QUOTA_EXCEEDED')
       } else {
-        throw error // Re-throw other errors
+        throw error
+      }
+    }
+  }
+
+  const speakWithLocalGateway = async (text: string, config: LocalVoiceConfig) => {
+    if (isSpeaking) {
+      stopSpeaking()
+    }
+
+    setIsSpeaking(true)
+    const processedText = preprocessText(text)
+    
+    console.log(`🎤 Local gateway speech request: ${processedText.length} chars, model: ${config.model}`)
+    
+    try {
+      await localVoiceGatewayService.speak(processedText, config, (audio) => {
+        setAudioElement(audio)
+        
+        audio.onended = () => {
+          console.log('🎤 Local gateway speech completed')
+          setIsSpeaking(false)
+          setAudioElement(null)
+        }
+        
+        audio.onerror = (error) => {
+          console.error('🎤 Local gateway audio error:', error)
+          setIsSpeaking(false)
+          setAudioElement(null)
+        }
+      })
+      
+    } catch (error: any) {
+      console.error("🎤 Local gateway speech error:", error)
+      setIsSpeaking(false)
+      
+      if (error.message?.includes('LOCAL_GATEWAY_OFFLINE')) {
+        console.log("🔊 Local gateway offline. Falling back to browser speech.")
+        throw new Error('GATEWAY_OFFLINE')
+      } else {
+        throw error
       }
     }
   }
@@ -56,21 +109,17 @@ export function useEnhancedSpeech() {
       return
     }
 
-    // Cancel any ongoing speech
     speechSynthesis.cancel()
     
     const processedText = preprocessText(text)
     const utterance = new SpeechSynthesisUtterance(processedText)
     
-    // Enhanced voice settings for more natural speech
     utterance.rate = 0.9
     utterance.pitch = 1.0
     utterance.volume = 0.8
     
-    // Try to use the best available voice
     const voices = speechSynthesis.getVoices()
     
-    // Prefer natural/enhanced voices
     const naturalVoice = voices.find(voice => 
       voice.name.includes('Natural') || 
       voice.name.includes('Enhanced') ||
@@ -106,14 +155,12 @@ export function useEnhancedSpeech() {
   const stopSpeaking = () => {
     console.log('🛑 Stopping all speech')
     
-    // Stop ElevenLabs audio
     if (audioElement) {
       audioElement.pause()
       audioElement.currentTime = 0
       setAudioElement(null)
     }
     
-    // Stop browser speech
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel()
     }
@@ -121,29 +168,44 @@ export function useEnhancedSpeech() {
     setIsSpeaking(false)
   }
 
-  const speakText = useCallback(async (text: string, elevenLabsConfig?: ElevenLabsConfig) => {
-    // Stop any current speech
+  const speakText = useCallback(async (text: string, voiceConfig?: VoiceConfig) => {
     stopSpeaking()
     
     console.log('🎯 Speech request:', { 
       textLength: text.length, 
-      hasElevenLabsConfig: !!elevenLabsConfig,
-      hasApiKey: !!(elevenLabsConfig?.apiKey) 
+      provider: voiceConfig?.provider,
+      hasConfig: !!voiceConfig 
     })
     
-    if (elevenLabsConfig?.apiKey) {
+    if (voiceConfig?.provider === 'elevenlabs' && voiceConfig.apiKey) {
       try {
+        const elevenLabsConfig: ElevenLabsConfig = {
+          apiKey: voiceConfig.apiKey,
+          voiceId: voiceConfig.voiceId || 'onwK4e9ZLuTAKqWW03F9',
+          model: voiceConfig.modelId || 'eleven_multilingual_v2',
+          stability: voiceConfig.stability || 0.5,
+          similarityBoost: voiceConfig.similarityBoost || 0.75
+        }
         await speakWithElevenLabs(text, elevenLabsConfig)
-        return // Success with ElevenLabs
+        return
       } catch (error: any) {
         console.warn('🎤 ElevenLabs failed, falling back to browser speech:', error.message)
-        // Fall through to browser speech
+      }
+    } else if (voiceConfig?.provider === 'local' && voiceConfig.gatewayUrl) {
+      try {
+        const localConfig: LocalVoiceConfig = {
+          model: voiceConfig.model || 'vits',
+          gatewayUrl: voiceConfig.gatewayUrl
+        }
+        await speakWithLocalGateway(text, localConfig)
+        return
+      } catch (error: any) {
+        console.warn('🎤 Local gateway failed, falling back to browser speech:', error.message)
       }
     } else {
-      console.log("🔊 No ElevenLabs API key, using browser speech synthesis")
+      console.log("🔊 No voice provider configured, using browser speech synthesis")
     }
     
-    // Fallback to browser speech
     tryBrowserSpeech(text)
   }, [audioElement, isSpeaking])
 

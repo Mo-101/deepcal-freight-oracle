@@ -54,7 +54,7 @@ const DeepTalk = () => {
   const [showVoiceConfig, setShowVoiceConfig] = useState(false)
   const [showGroqConfig, setShowGroqConfig] = useState(false)
   const [groqConfigured, setGroqConfigured] = useState(deepTalkGroqService.isConfigured())
-  const [elevenLabsConfig, setElevenLabsConfig] = useState<any>(null)
+  const [voiceConfig, setVoiceConfig] = useState<any>(null)
 
   const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
   const { isListening, startListening } = useSpeechRecognition()
@@ -100,23 +100,45 @@ const DeepTalk = () => {
     },
   ]
 
-  // Load ElevenLabs config on component mount
+  // Load voice config on component mount
   useEffect(() => {
-    // Ensure page starts at top
     window.scrollTo(0, 0)
     
     const loadVoiceConfig = () => {
-      const savedConfig = localStorage.getItem("elevenlabs-config")
-      if (savedConfig) {
-        try {
-          const config = JSON.parse(savedConfig)
-          setElevenLabsConfig(config)
-          console.log('🎤 Loaded ElevenLabs config:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
-        } catch (error) {
-          console.error('Error loading voice config:', error)
+      const provider = localStorage.getItem("voice-provider") || "elevenlabs"
+      
+      if (provider === "elevenlabs") {
+        const savedConfig = localStorage.getItem("elevenlabs-config")
+        if (savedConfig) {
+          try {
+            const config = JSON.parse(savedConfig)
+            setVoiceConfig({
+              provider: "elevenlabs",
+              ...config
+            })
+            console.log('🎤 Loaded ElevenLabs config:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
+          } catch (error) {
+            console.error('Error loading ElevenLabs config:', error)
+          }
         }
-      } else {
-        console.log('🔕 No ElevenLabs config found - voice will use browser synthesis')
+      } else if (provider === "local") {
+        const savedConfig = localStorage.getItem("local-voice-config")
+        if (savedConfig) {
+          try {
+            const config = JSON.parse(savedConfig)
+            setVoiceConfig({
+              provider: "local",
+              ...config
+            })
+            console.log('🎤 Loaded local voice config:', { model: config.model, gatewayUrl: config.gatewayUrl })
+          } catch (error) {
+            console.error('Error loading local voice config:', error)
+          }
+        }
+      }
+      
+      if (!voiceConfig) {
+        console.log('🔕 No voice config found - voice will use browser synthesis')
       }
     }
     
@@ -162,7 +184,7 @@ const DeepTalk = () => {
         query,
         routeDatabase,
         conversationHistory: messages,
-        userPreferences: { elevenLabsConfig },
+        userPreferences: { voiceConfig },
         currentShipment: null,
         setContext
       }
@@ -181,25 +203,29 @@ const DeepTalk = () => {
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // ENHANCED VOICE SYNTHESIS - Always try to speak the response
+      // ENHANCED VOICE SYNTHESIS with provider support
       console.log('🎯 DeepCAL preparing to speak...', { 
-        hasElevenLabsConfig: !!elevenLabsConfig,
-        hasApiKey: !!(elevenLabsConfig?.apiKey),
+        provider: voiceConfig?.provider,
+        hasConfig: !!voiceConfig,
         responseLength: response.length 
       })
       
       try {
-        if (elevenLabsConfig?.apiKey) {
-          console.log('🎙️ Using ElevenLabs voice synthesis')
-          await speakText(response, elevenLabsConfig)
+        if (voiceConfig) {
+          console.log(`🎙️ Using ${voiceConfig.provider} voice synthesis`)
+          await speakText(response, voiceConfig)
+          
+          const providerName = voiceConfig.provider === 'elevenlabs' ? 
+            (voiceConfig.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel' : 'ElevenLabs') :
+            voiceConfig.model?.toUpperCase() || 'Local'
           
           toast({
-            title: "🎤 DeepCAL Speaking",
-            description: `Using ${elevenLabsConfig.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel' : 'ElevenLabs'} voice`,
+            title: `🎤 DeepCAL Speaking`,
+            description: `Using ${providerName} voice`,
             duration: 2000,
           })
         } else {
-          console.log('🔊 Using browser speech synthesis (no API key)')
+          console.log('🔊 Using browser speech synthesis (no config)')
           await speakText(response)
           
           toast({
@@ -211,12 +237,11 @@ const DeepTalk = () => {
       } catch (voiceError) {
         console.error('Voice synthesis failed:', voiceError)
         
-        // Force fallback to browser speech
         try {
           await speakText(response)
           toast({
             title: "🔊 Voice Fallback Active",
-            description: "Using browser synthesis due to API issue",
+            description: "Using browser synthesis due to provider issue",
             duration: 3000,
           })
         } catch (fallbackError) {
@@ -272,12 +297,16 @@ const DeepTalk = () => {
   }
 
   const handleVoiceConfigSave = (config: any) => {
-    setElevenLabsConfig(config)
-    console.log('🎤 Voice config updated:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
+    setVoiceConfig(config)
+    console.log('🎤 Voice config updated:', config)
+    
+    const providerDescription = config.provider === 'elevenlabs' ? 
+      `ElevenLabs ${config.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel voice' : 'voice'}` :
+      `Local ${config.model?.toUpperCase()} model`
     
     toast({
       title: "🎤 Voice Configuration Saved",
-      description: `DeepCAL will now speak with ${config.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel voice' : 'custom voice'}`,
+      description: `DeepCAL will now speak with ${providerDescription}`,
       duration: 3000,
     })
   }
