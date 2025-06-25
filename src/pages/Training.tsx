@@ -15,7 +15,8 @@ import { useLiveTraining } from "@/hooks/useLiveTraining";
 import { WeightVector, SystemStatus, TrainingMetrics } from "@/types/training";
 
 interface ModelConfig {
-  primaryLLM: string;
+  provider: 'openai' | 'groq' | 'claude' | 'mixtral';
+  model: string;
   creativity: number;
   responseLength: number;
   contextWindow: number;
@@ -46,7 +47,8 @@ const Training = () => {
   });
 
   const [modelConfig, setModelConfig] = useState<ModelConfig>({
-    primaryLLM: 'GPT-4 Turbo (Recommended)',
+    provider: 'openai',
+    model: 'gpt-4o',
     creativity: 75,
     responseLength: 50,
     contextWindow: 8,

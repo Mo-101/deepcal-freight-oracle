@@ -17,8 +17,8 @@ interface SimpleVoiceConfigProps {
 export default function SimpleVoiceConfig({ isOpen, onClose, onConfigSave }: SimpleVoiceConfigProps) {
   const { toast } = useToast()
   const [apiKey, setApiKey] = useState("")
-  const [voice, setVoice] = useState("onyx")
-  const [model, setModel] = useState("tts-1")
+  const [voice, setVoice] = useState<'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'>("onyx")
+  const [model, setModel] = useState<'tts-1' | 'tts-1-hd'>("tts-1")
   const [speed, setSpeed] = useState(1.0)
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function SimpleVoiceConfig({ isOpen, onClose, onConfigSave }: Sim
       localStorage.setItem("openai-api-key", apiKey.trim())
     }
     
-    // Save voice config
+    // Save voice config with proper typing
     const config = { voice, model, speed }
     openAIVoiceService.updateConfig(config)
     
@@ -117,13 +117,13 @@ export default function SimpleVoiceConfig({ isOpen, onClose, onConfigSave }: Sim
             <label className="text-white text-sm font-medium mb-2 block">
               Voice Selection
             </label>
-            <Select value={voice} onValueChange={setVoice}>
+            <Select value={voice} onValueChange={(value: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer') => setVoice(value)}>
               <SelectTrigger className="bg-white/10 border-white/30 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-white/20">
                 {openAIVoiceService.getVoices().map(v => (
-                  <SelectItem key={v.id} value={v.id} className="text-white hover:bg-white/10">
+                  <SelectItem key={v.id} value={v.id as 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer'} className="text-white hover:bg-white/10">
                     {v.name}
                   </SelectItem>
                 ))}
@@ -135,7 +135,7 @@ export default function SimpleVoiceConfig({ isOpen, onClose, onConfigSave }: Sim
             <label className="text-white text-sm font-medium mb-2 block">
               Quality Model
             </label>
-            <Select value={model} onValueChange={setModel}>
+            <Select value={model} onValueChange={(value: 'tts-1' | 'tts-1-hd') => setModel(value)}>
               <SelectTrigger className="bg-white/10 border-white/30 text-white">
                 <SelectValue />
               </SelectTrigger>
