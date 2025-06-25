@@ -1,16 +1,13 @@
 
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { openAIVoiceService } from "@/services/openAIVoiceService"
 
 interface VoiceConfig {
-  provider: 'elevenlabs' | 'local'
-  apiKey?: string
-  voiceId?: string
-  modelId?: string
-  stability?: number
-  similarityBoost?: number
-  model?: 'vits' | 'speecht5' | 'fastspeech2'
-  gatewayUrl?: string
+  provider: 'openai' | 'browser'
+  voice?: string
+  model?: string
+  speed?: number
 }
 
 export function useVoiceConfig() {
@@ -20,40 +17,27 @@ export function useVoiceConfig() {
 
   useEffect(() => {
     const loadVoiceConfig = () => {
-      const provider = localStorage.getItem("voice-provider") || "elevenlabs"
+      const hasOpenAIKey = !!localStorage.getItem("openai-api-key")
       
-      if (provider === "elevenlabs") {
-        const savedConfig = localStorage.getItem("elevenlabs-config")
+      if (hasOpenAIKey) {
+        const savedConfig = localStorage.getItem("openai-voice-config")
         if (savedConfig) {
           try {
             const config = JSON.parse(savedConfig)
             setVoiceConfig({
-              provider: "elevenlabs",
+              provider: "openai",
               ...config
             })
-            console.log('🎤 Loaded ElevenLabs config:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
+            console.log('🎤 Loaded OpenAI voice config:', config)
           } catch (error) {
-            console.error('Error loading ElevenLabs config:', error)
+            console.error('Error loading OpenAI voice config:', error)
           }
+        } else {
+          setVoiceConfig({ provider: "openai" })
         }
-      } else if (provider === "local") {
-        const savedConfig = localStorage.getItem("local-voice-config")
-        if (savedConfig) {
-          try {
-            const config = JSON.parse(savedConfig)
-            setVoiceConfig({
-              provider: "local",
-              ...config
-            })
-            console.log('🎤 Loaded local voice config:', { model: config.model, gatewayUrl: config.gatewayUrl })
-          } catch (error) {
-            console.error('Error loading local voice config:', error)
-          }
-        }
-      }
-      
-      if (!voiceConfig) {
-        console.log('🔕 No voice config found - voice will use browser synthesis')
+      } else {
+        setVoiceConfig({ provider: "browser" })
+        console.log('🔕 No OpenAI key found - using browser speech synthesis')
       }
     }
     
@@ -64,13 +48,13 @@ export function useVoiceConfig() {
     setVoiceConfig(config)
     console.log('🎤 Voice config updated:', config)
     
-    const providerDescription = config.provider === 'elevenlabs' ? 
-      `ElevenLabs ${config.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel voice' : 'voice'}` :
-      `Local ${config.model?.toUpperCase()} model`
+    const description = config.provider === 'openai' ? 
+      `OpenAI ${config.voice} voice` :
+      'Browser speech synthesis'
     
     toast({
       title: "🎤 Voice Configuration Saved",
-      description: `DeepCAL will now speak with ${providerDescription}`,
+      description: `DeepCAL will now speak with ${description}`,
       duration: 3000,
     })
   }
