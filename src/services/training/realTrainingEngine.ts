@@ -1,3 +1,4 @@
+
 import { WeightVector } from '@/types/training';
 import { NeuralNetwork, NeuralNetworkConfig } from './neuralNetwork';
 import { TrainingDataGenerator } from './trainingDataGenerator';
@@ -12,15 +13,16 @@ export class RealTrainingEngine {
   private learningRate: number = 0.05;
   private bestWeights: WeightVector;
   private bestValidationLoss: number = Infinity;
-  private patience: number = 10;
+  private patience: number = 30; // Increased patience
   private patienceCounter: number = 0;
   private epochCount: number = 0;
+  private targetEpochs: number = 150;
   
   private neuralNetwork: NeuralNetwork;
   private dataGenerator: TrainingDataGenerator;
   private metricsCalculator: MetricsCalculator;
 
-  constructor(initialWeights: WeightVector) {
+  constructor(initialWeights: WeightVector, targetEpochs: number = 150) {
     // Normalize initial weights
     const sum = initialWeights.cost + initialWeights.time + initialWeights.reliability + initialWeights.risk;
     this.weights = {
@@ -31,6 +33,7 @@ export class RealTrainingEngine {
     };
     
     this.bestWeights = { ...this.weights };
+    this.targetEpochs = targetEpochs;
     
     const networkConfig: NeuralNetworkConfig = {
       hiddenLayerSize: 8,
@@ -43,6 +46,7 @@ export class RealTrainingEngine {
     this.metricsCalculator = new MetricsCalculator();
     
     console.log('Enhanced training engine initialized with weights:', this.weights);
+    console.log('Target epochs:', this.targetEpochs);
   }
 
   trainStep(trainingData: import('./trainingDataGenerator').TrainingData, validationData: import('./trainingDataGenerator').TrainingData): import('./metricsCalculator').TrainingMetrics {
@@ -67,18 +71,27 @@ export class RealTrainingEngine {
     const valLoss = this.metricsCalculator.calculateLoss(validationData, this.neuralNetwork, this.weights);
     const valAccuracy = this.metricsCalculator.calculateAccuracy(validationData, this.neuralNetwork, this.weights);
 
-    // Early stopping with improvement tracking
-    if (valLoss < this.bestValidationLoss - 0.001) {
+    // Improved early stopping with more lenient criteria
+    const improvement = this.bestValidationLoss - valLoss;
+    if (improvement > 0.0001) { // Lower threshold for improvement
       this.bestValidationLoss = valLoss;
       this.bestWeights = { ...this.weights };
       this.patienceCounter = 0;
+      console.log(`Epoch ${this.epochCount}: New best validation loss: ${valLoss.toFixed(4)}`);
     } else {
       this.patienceCounter++;
     }
 
+    // Only apply early stopping after significant training
+    if (this.patienceCounter > 5 && this.epochCount < this.targetEpochs * 0.3) {
+      // Reset patience counter if we're still early in training
+      this.patienceCounter = 0;
+      console.log(`Epoch ${this.epochCount}: Resetting patience counter (early training phase)`);
+    }
+
     // Adaptive learning rate scheduling
-    if (this.patienceCounter > 3) {
-      this.learningRate *= 0.95;
+    if (this.patienceCounter > 10) {
+      this.learningRate *= 0.98;
     }
 
     return {
@@ -100,6 +113,20 @@ export class RealTrainingEngine {
   }
 
   shouldStop(): boolean {
-    return this.patienceCounter >= this.patience || this.epochCount >= 200;
+    // Only stop if we've reached target epochs OR if we're really stuck
+    const reachedTarget = this.epochCount >= this.targetEpochs;
+    const reallyStuck = this.patienceCounter >= this.patience && this.epochCount > this.targetEpochs * 0.5;
+    
+    if (reachedTarget) {
+      console.log(`Training completed: reached target epochs (${this.targetEpochs})`);
+    } else if (reallyStuck) {
+      console.log(`Training stopped early: patience exceeded after ${this.epochCount} epochs`);
+    }
+    
+    return reachedTarget || reallyStuck;
+  }
+
+  getProgress(): number {
+    return Math.min(100, (this.epochCount / this.targetEpochs) * 100);
   }
 }

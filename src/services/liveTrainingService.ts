@@ -1,3 +1,4 @@
+
 import { RealTrainingEngine, TrainingData, TrainingMetrics } from './training/realTrainingEngine';
 import { TrainingDataGenerator } from './training/trainingDataGenerator';
 import { WeightVector } from '@/types/training';
@@ -53,7 +54,8 @@ class LiveTrainingService {
       console.log(`Training set: ${training.features.length} samples`);
       console.log(`Validation set: ${validation.features.length} samples`);
       
-      this.trainingEngine = new RealTrainingEngine(initialWeights);
+      // Pass target epochs to the training engine
+      this.trainingEngine = new RealTrainingEngine(initialWeights, epochs);
       
       this.currentJob = {
         id: jobId,
@@ -81,11 +83,18 @@ class LiveTrainingService {
         }
 
         try {
-          // Regenerate data every 10 epochs for curriculum learning
+          // Check if training should stop before proceeding
+          if (this.trainingEngine.shouldStop()) {
+            console.log('Training engine indicates should stop');
+            this.completeLiveTraining();
+            return;
+          }
+
+          // Regenerate data every 20 epochs for curriculum learning (reduced frequency)
           let currentTraining = training;
           let currentValidation = validation;
           
-          if (this.currentJob.currentEpoch % 10 === 0 && this.currentJob.currentEpoch > 0) {
+          if (this.currentJob.currentEpoch % 20 === 0 && this.currentJob.currentEpoch > 0) {
             console.log(`Regenerating training data at epoch ${this.currentJob.currentEpoch}...`);
             const newData = this.dataGenerator.generateAdvancedTrainingData(400, true);
             const split = this.dataGenerator.splitData(newData);
@@ -104,14 +113,14 @@ class LiveTrainingService {
           this.currentJob.weights = this.trainingEngine.getWeights();
 
           // Enhanced progress logging
-          if (this.currentJob.currentEpoch % 5 === 0) {
+          if (this.currentJob.currentEpoch % 10 === 0) {
             console.log(`Epoch ${this.currentJob.currentEpoch}/${this.currentJob.totalEpochs}: ` +
               `Loss=${metrics.loss.toFixed(4)}, Acc=${metrics.accuracy.toFixed(2)}%, ` +
               `Val Acc=${metrics.validationAccuracy.toFixed(2)}%, LR=${metrics.learningRate.toFixed(5)}`);
           }
 
           // Save progress periodically
-          if (this.currentJob.currentEpoch % 20 === 0) {
+          if (this.currentJob.currentEpoch % 25 === 0) {
             set(`training-job-${jobId}`, this.currentJob).catch(console.error);
           }
 
@@ -124,16 +133,11 @@ class LiveTrainingService {
             }
           });
 
-          // Check completion
-          if (this.currentJob.currentEpoch >= epochs || this.trainingEngine.shouldStop()) {
-            this.completeLiveTraining();
-          }
-
         } catch (error) {
           console.error('Training step failed:', error);
           this.failLiveTraining(error instanceof Error ? error.message : 'Unknown training error');
         }
-      }, 300);
+      }, 200); // Slightly faster interval
 
       console.log('Enhanced live training started successfully!');
       return jobId;
