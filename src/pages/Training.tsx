@@ -234,29 +234,81 @@ const Training = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
       <DeepCALSymbolicHeader />
       
-      <main className="container max-w-full mx-auto py-6 px-6">
-        <TrainingHeader
-          isTraining={isTraining}
-          onSaveConfiguration={handleSaveConfiguration}
-          onToggleTraining={handleToggleTraining}
-        />
-        
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div className="xl:col-span-3 space-y-6">
-            <TrainingTabs activeTab={activeTab} onTabChange={setActiveTab} />
-            
-            <div className="space-y-6">
-              {renderTabContent()}
-              
-              {/* Enhanced Training Activity Monitor */}
+      <main className="container max-w-7xl mx-auto py-6 px-4 lg:px-6">
+        {/* Header Section */}
+        <div className="mb-8">
+          <TrainingHeader
+            isTraining={isTraining}
+            onSaveConfiguration={handleSaveConfiguration}
+            onToggleTraining={handleToggleTraining}
+          />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Main Content Area */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Tabs Section */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50">
+              <TrainingTabs activeTab={activeTab} onTabChange={setActiveTab} />
+              <div className="p-6">
+                {renderTabContent()}
+              </div>
+            </div>
+
+            {/* Training Activity Monitor */}
+            <div className="bg-slate-800/50 rounded-lg border border-slate-700/50">
               <TrainingActivityMonitor 
                 isTraining={isTraining} 
                 trainingActivities={trainingActivities} 
               />
             </div>
+
+            {/* Enhanced Live Training Progress Display */}
+            {currentJob && (
+              <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-400 rounded-lg shadow-lg p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lime-400 font-semibold text-lg">🚀 Enhanced Live Training Progress</h3>
+                  <div className="flex items-center gap-4">
+                    <span className="text-white">Epoch {currentJob.currentEpoch}/{currentJob.totalEpochs}</span>
+                    <div className="w-32 bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-lime-400 to-blue-400 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(currentJob.currentEpoch / currentJob.totalEpochs) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="bg-slate-800/50 p-3 rounded-lg">
+                    <span className="text-indigo-300 block">Training Loss:</span>
+                    <span className="text-red-400 font-mono text-lg">{currentJob.metrics.loss.toFixed(4)}</span>
+                  </div>
+                  <div className="bg-slate-800/50 p-3 rounded-lg">
+                    <span className="text-indigo-300 block">Training Acc:</span>
+                    <span className="text-lime-400 font-mono text-lg">{currentJob.metrics.accuracy.toFixed(2)}%</span>
+                  </div>
+                  <div className="bg-slate-800/50 p-3 rounded-lg">
+                    <span className="text-indigo-300 block">Validation Loss:</span>
+                    <span className="text-yellow-400 font-mono text-lg">{currentJob.metrics.validationLoss.toFixed(4)}</span>
+                  </div>
+                  <div className="bg-slate-800/50 p-3 rounded-lg">
+                    <span className="text-indigo-300 block">Validation Acc:</span>
+                    <span className="text-purple-400 font-mono text-lg">{currentJob.metrics.validationAccuracy.toFixed(2)}%</span>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-between items-center text-xs text-indigo-300">
+                  <span>Learning Rate: <span className="text-cyan-400 font-mono">{currentJob.metrics.learningRate.toFixed(6)}</span></span>
+                  <span>Status: <span className="text-lime-400">{currentJob.status.toUpperCase()}</span></span>
+                </div>
+              </div>
+            )}
           </div>
           
-          <div className="xl:col-span-1 space-y-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-4 space-y-6">
             <SystemStatusSidebar 
               systemStatus={systemStatus}
               trainingMetrics={trainingMetrics}
@@ -267,48 +319,6 @@ const Training = () => {
             <TrainingLogsPanel isTraining={isTraining} />
           </div>
         </div>
-
-        {/* Enhanced Live Training Progress Display */}
-        {currentJob && (
-          <div className="mt-6 p-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-400 rounded-lg shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lime-400 font-semibold text-lg">🚀 Enhanced Live Training Progress</h3>
-              <div className="flex items-center gap-4">
-                <span className="text-white">Epoch {currentJob.currentEpoch}/{currentJob.totalEpochs}</span>
-                <div className="w-32 bg-slate-700 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-lime-400 to-blue-400 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentJob.currentEpoch / currentJob.totalEpochs) * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div className="bg-slate-800/50 p-3 rounded-lg">
-                <span className="text-indigo-300 block">Training Loss:</span>
-                <span className="text-red-400 font-mono text-lg">{currentJob.metrics.loss.toFixed(4)}</span>
-              </div>
-              <div className="bg-slate-800/50 p-3 rounded-lg">
-                <span className="text-indigo-300 block">Training Acc:</span>
-                <span className="text-lime-400 font-mono text-lg">{currentJob.metrics.accuracy.toFixed(2)}%</span>
-              </div>
-              <div className="bg-slate-800/50 p-3 rounded-lg">
-                <span className="text-indigo-300 block">Validation Loss:</span>
-                <span className="text-yellow-400 font-mono text-lg">{currentJob.metrics.validationLoss.toFixed(4)}</span>
-              </div>
-              <div className="bg-slate-800/50 p-3 rounded-lg">
-                <span className="text-indigo-300 block">Validation Acc:</span>
-                <span className="text-purple-400 font-mono text-lg">{currentJob.metrics.validationAccuracy.toFixed(2)}%</span>
-              </div>
-            </div>
-            
-            <div className="mt-4 flex justify-between items-center text-xs text-indigo-300">
-              <span>Learning Rate: <span className="text-cyan-400 font-mono">{currentJob.metrics.learningRate.toFixed(6)}</span></span>
-              <span>Status: <span className="text-lime-400">{currentJob.status.toUpperCase()}</span></span>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

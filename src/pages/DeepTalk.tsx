@@ -47,27 +47,42 @@ const DeepTalk = () => {
       fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
       overflow: 'auto'
     }}>
-      <DeepCALHeader />
+      {/* Header Section */}
+      <div className="w-full">
+        <DeepCALHeader />
+      </div>
 
-      <DeepTalkHeader 
-        trainingBufferStatus={trainingBufferStatus}
-        onShowVoiceConfig={() => setShowVoiceConfig(true)}
-      />
+      {/* Mobile Header */}
+      <div className="w-full px-4 lg:px-6">
+        <DeepTalkHeader 
+          trainingBufferStatus={trainingBufferStatus}
+          onShowVoiceConfig={() => setShowVoiceConfig(true)}
+        />
+      </div>
 
-      <DeepTalkMain
-        messages={messages}
-        input={input}
-        setInput={setInput}
-        isProcessing={isProcessing}
-        isListening={isListening}
-        routeDatabase={routeDatabase}
-        trainingBufferStatus={trainingBufferStatus}
-        onSubmit={handleFormSubmit}
-        onStartListening={handleStartListening}
-        onQuickQuery={handleQuickQueryWithConfig}
-        onShowVoiceConfig={() => setShowVoiceConfig(true)}
-      />
+      {/* Main Content Container */}
+      <div className="flex-1 container max-w-7xl mx-auto px-4 lg:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-full">
+          {/* Main Chat Area */}
+          <div className="lg:col-span-12">
+            <DeepTalkMain
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              isProcessing={isProcessing}
+              isListening={isListening}
+              routeDatabase={routeDatabase}
+              trainingBufferStatus={trainingBufferStatus}
+              onSubmit={handleFormSubmit}
+              onStartListening={handleStartListening}
+              onQuickQuery={handleQuickQueryWithConfig}
+              onShowVoiceConfig={() => setShowVoiceConfig(true)}
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Voice Config Modal */}
       <VoiceConfig
         isOpen={showVoiceConfig}
         onClose={() => setShowVoiceConfig(false)}
