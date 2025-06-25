@@ -12,6 +12,7 @@ import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
 import Training from "./pages/Training";
 import MapPage from "./pages/MapPage";
+import TrackingPage from "./pages/TrackingPage";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/deeptalk" element={<DeepTalk />} />
             <Route path="/training" element={<Training />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/tracking" element={<TrackingPage />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
