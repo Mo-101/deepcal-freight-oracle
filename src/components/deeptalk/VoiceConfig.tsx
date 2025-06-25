@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +28,13 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
   }, [])
 
   const handleSave = () => {
-    const config = { apiKey, voiceId, modelId }
+    const config = { 
+      apiKey, 
+      voiceId, 
+      modelId,
+      stability: 0.5,
+      similarityBoost: 0.75
+    }
     localStorage.setItem("elevenlabs-config", JSON.stringify(config))
     onConfigSave(config)
     onClose()
@@ -75,7 +80,7 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
             <Sparkles className="text-yellow-400" />
           </CardTitle>
           <p className="text-white/70 text-sm">
-            Configure DeepCAL's voice personality for optimal logistics wisdom delivery
+            Configure DeepCAL's voice personality for natural speech delivery
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -100,7 +105,7 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
               >
                 elevenlabs.io
               </a>
-              {" "}for premium voice quality
+              {" "}for premium natural voice quality
             </p>
           </div>
 
@@ -137,29 +142,39 @@ export default function VoiceConfig({ isOpen, onClose, onConfigSave }: VoiceConf
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-slate-800 border-white/20">
+                <SelectItem value="eleven_turbo_v2_5" className="text-white hover:bg-white/10">
+                  <div className="flex flex-col">
+                    <span className="font-medium">Turbo v2.5 (Recommended)</span>
+                    <span className="text-xs text-white/70">Fast, natural, quota-efficient</span>
+                  </div>
+                </SelectItem>
                 <SelectItem value="eleven_multilingual_v2" className="text-white hover:bg-white/10">
                   <div className="flex flex-col">
                     <span className="font-medium">Multilingual v2</span>
-                    <span className="text-xs text-white/70">Best quality, emotionally rich (Recommended)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="eleven_turbo_v2_5" className="text-white hover:bg-white/10">
-                  <div className="flex flex-col">
-                    <span className="font-medium">Turbo v2.5</span>
-                    <span className="text-xs text-white/70">Fast response, good quality</span>
+                    <span className="text-xs text-white/70">Highest quality, uses more quota</span>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
+          <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg p-4">
+            <h4 className="text-amber-400 font-medium mb-2">💡 Quota Management Tips</h4>
+            <ul className="text-white/70 text-sm space-y-1">
+              <li>• Responses are automatically shortened to save quota</li>
+              <li>• Turbo v2.5 model uses 50% less quota than Multilingual</li>
+              <li>• Browser speech synthesis available as free fallback</li>
+              <li>• Check your quota at elevenlabs.io dashboard</li>
+            </ul>
+          </div>
+
           <div className="bg-slate-700/50 rounded-lg p-4">
-            <h4 className="text-white font-medium mb-2">🎯 Voice Enhancement Features</h4>
+            <h4 className="text-white font-medium mb-2">🎯 Voice Features</h4>
             <ul className="text-white/70 text-sm space-y-1">
               <li>• Intelligent text preprocessing for natural speech</li>
+              <li>• Automatic quota monitoring and optimization</li>
               <li>• Enhanced pronunciation of logistics terminology</li>
-              <li>• Automatic pacing for complex analytical content</li>
-              <li>• Humor and wisdom delivery optimization</li>
+              <li>• Fallback to browser speech when needed</li>
             </ul>
           </div>
 

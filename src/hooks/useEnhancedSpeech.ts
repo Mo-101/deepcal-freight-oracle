@@ -15,6 +15,11 @@ export function useEnhancedSpeech() {
     setIsSpeaking(true)
     const processedText = preprocessText(text)
     
+    // Check text length and warn if too long
+    if (processedText.length > 300) {
+      console.warn(`Text length ${processedText.length} might exceed quota. Consider shortening.`)
+    }
+    
     try {
       await elevenLabsService.speak(processedText, config, (audio) => {
         setAudioElement(audio)
@@ -30,10 +35,44 @@ export function useEnhancedSpeech() {
         }
       })
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("ElevenLabs speech error:", error)
       setIsSpeaking(false)
-      // No fallback - voice synthesis requires proper API key
+      
+      // Handle specific quota errors
+      if (error.message?.includes('401') || error.message?.includes('quota')) {
+        console.log("🔊 ElevenLabs quota exceeded. Try using a shorter message or check your API key.")
+        // Try browser speech synthesis as fallback
+        tryBrowserSpeech(processedText)
+      }
+    }
+  }
+
+  const tryBrowserSpeech = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 0.9
+      utterance.pitch = 1.0
+      utterance.volume = 0.8
+      
+      // Try to use a natural voice
+      const voices = speechSynthesis.getVoices()
+      const naturalVoice = voices.find(voice => 
+        voice.name.includes('Natural') || 
+        voice.name.includes('Enhanced') ||
+        voice.lang.startsWith('en')
+      )
+      
+      if (naturalVoice) {
+        utterance.voice = naturalVoice
+      }
+      
+      utterance.onstart = () => setIsSpeaking(true)
+      utterance.onend = () => setIsSpeaking(false)
+      utterance.onerror = () => setIsSpeaking(false)
+      
+      speechSynthesis.speak(utterance)
+      console.log("🔊 Using browser speech synthesis as fallback")
     }
   }
 
@@ -43,6 +82,12 @@ export function useEnhancedSpeech() {
       audioElement.currentTime = 0
       setAudioElement(null)
     }
+    
+    // Also stop browser speech if active
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel()
+    }
+    
     setIsSpeaking(false)
   }
 
@@ -50,7 +95,8 @@ export function useEnhancedSpeech() {
     if (elevenLabsConfig && elevenLabsConfig.apiKey) {
       speakWithElevenLabs(text, elevenLabsConfig)
     } else {
-      console.log("Voice synthesis requires ElevenLabs API key configuration")
+      console.log("🔊 No ElevenLabs API key, using browser speech synthesis")
+      tryBrowserSpeech(preprocessText(text))
     }
   }, [audioElement, isSpeaking])
 
