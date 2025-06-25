@@ -75,7 +75,7 @@ const BrainMesh: React.FC<AnimatedBrainProps> = ({ trainingProgress, accuracy, i
         <bufferGeometry>
           <bufferAttribute
             attach="attributes-position"
-            count={200}
+            count={particlePositions.length / 3}
             array={particlePositions}
             itemSize={3}
           />
