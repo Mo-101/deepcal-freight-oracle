@@ -1,8 +1,7 @@
-
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import DeepCALHeader from "@/components/DeepCALHeader"
 import ChatInterface from "@/components/deeptalk/ChatInterface"
 import SidePanel from "@/components/deeptalk/SidePanel"
@@ -15,6 +14,7 @@ import { generateDynamicResponse } from "@/utils/dynamicResponseGenerator"
 import { deepTalkGroqService } from "@/services/deepTalkGroqService"
 import { Button } from "@/components/ui/button"
 import { Settings, Brain } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
   id: string
@@ -58,6 +58,7 @@ const DeepTalk = () => {
 
   const { speakText, isSpeaking, stopSpeaking } = useEnhancedSpeech()
   const { isListening, startListening } = useSpeechRecognition()
+  const { toast } = useToast()
 
   // Sample data for the analytics engine
   const routeDatabase: RouteOption[] = [
@@ -99,13 +100,25 @@ const DeepTalk = () => {
     },
   ]
 
-  // Load ElevenLabs config on mount
-  useState(() => {
-    const savedConfig = localStorage.getItem("elevenlabs-config")
-    if (savedConfig) {
-      setElevenLabsConfig(JSON.parse(savedConfig))
+  // Load ElevenLabs config on component mount
+  useEffect(() => {
+    const loadVoiceConfig = () => {
+      const savedConfig = localStorage.getItem("elevenlabs-config")
+      if (savedConfig) {
+        try {
+          const config = JSON.parse(savedConfig)
+          setElevenLabsConfig(config)
+          console.log('🎤 Loaded ElevenLabs config:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
+        } catch (error) {
+          console.error('Error loading voice config:', error)
+        }
+      } else {
+        console.log('🔕 No ElevenLabs config found - voice will use browser synthesis')
+      }
     }
-  })
+    
+    loadVoiceConfig()
+  }, [])
 
   const processQuery = async (query: string) => {
     setIsProcessing(true)
@@ -153,13 +166,55 @@ const DeepTalk = () => {
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // Only use voice synthesis if ElevenLabs is properly configured
-      if (elevenLabsConfig && elevenLabsConfig.apiKey) {
-        console.log('🎤 DeepCAL speaking with ElevenLabs voice synthesis')
-        speakText(response, elevenLabsConfig)
-      } else {
-        console.log('Voice synthesis requires ElevenLabs API key configuration')
+      // ENHANCED VOICE SYNTHESIS - Always try to speak the response
+      console.log('🎯 DeepCAL preparing to speak...', { 
+        hasElevenLabsConfig: !!elevenLabsConfig,
+        hasApiKey: !!(elevenLabsConfig?.apiKey),
+        responseLength: response.length 
+      })
+      
+      try {
+        if (elevenLabsConfig?.apiKey) {
+          console.log('🎙️ Using ElevenLabs voice synthesis')
+          await speakText(response, elevenLabsConfig)
+          
+          toast({
+            title: "🎤 DeepCAL Speaking",
+            description: `Using ${elevenLabsConfig.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel' : 'ElevenLabs'} voice`,
+            duration: 2000,
+          })
+        } else {
+          console.log('🔊 Using browser speech synthesis (no API key)')
+          await speakText(response)
+          
+          toast({
+            title: "🔊 DeepCAL Speaking",
+            description: "Using browser voice synthesis",
+            duration: 2000,
+          })
+        }
+      } catch (voiceError) {
+        console.error('Voice synthesis failed:', voiceError)
+        
+        // Force fallback to browser speech
+        try {
+          await speakText(response)
+          toast({
+            title: "🔊 Voice Fallback Active",
+            description: "Using browser synthesis due to API issue",
+            duration: 3000,
+          })
+        } catch (fallbackError) {
+          console.error('Even browser speech failed:', fallbackError)
+          toast({
+            title: "⚠️ Voice Unavailable", 
+            description: "Speech synthesis temporarily unavailable",
+            duration: 3000,
+            variant: "destructive"
+          })
+        }
       }
+      
     } catch (error) {
       console.error('Error processing query:', error)
       setIsProcessing(false)
@@ -173,6 +228,13 @@ const DeepTalk = () => {
         intent: "error",
       }
       setMessages((prev) => [...prev, errorMessage])
+      
+      // Try to speak the error message too
+      try {
+        await speakText(errorMessage.content)
+      } catch (voiceError) {
+        console.error('Could not speak error message:', voiceError)
+      }
     }
   }
 
@@ -196,11 +258,24 @@ const DeepTalk = () => {
 
   const handleVoiceConfigSave = (config: any) => {
     setElevenLabsConfig(config)
+    console.log('🎤 Voice config updated:', { hasApiKey: !!config.apiKey, voiceId: config.voiceId })
+    
+    toast({
+      title: "🎤 Voice Configuration Saved",
+      description: `DeepCAL will now speak with ${config.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel voice' : 'custom voice'}`,
+      duration: 3000,
+    })
   }
 
   const handleGroqConfigSave = (apiKey: string) => {
     deepTalkGroqService.setApiKey(apiKey)
     setGroqConfigured(true)
+    
+    toast({
+      title: "🧠 AI Brain Activated",
+      description: "DeepCAL intelligence enhanced with Groq",
+      duration: 3000,
+    })
   }
 
   return (
