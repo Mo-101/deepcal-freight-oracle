@@ -5,6 +5,8 @@ export interface ElevenLabsConfig {
   model: string
   stability: number
   similarityBoost: number
+  style?: number
+  useSpeakerBoost?: boolean
 }
 
 export const elevenLabsService = {
@@ -19,7 +21,7 @@ export const elevenLabsService = {
       throw new Error(`Text too long (${text.length} chars). Limit to 800 characters to preserve quota.`)
     }
 
-    console.log(`🎤 ElevenLabs API call: ${text.length} chars, voice: ${config.voiceId}`)
+    console.log(`🎤 ElevenLabs API call: ${text.length} chars, voice: ${config.voiceId} (optimized for smooth male voice)`)
 
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${config.voiceId}`, {
       method: 'POST',
@@ -30,14 +32,14 @@ export const elevenLabsService = {
       },
       body: JSON.stringify({
         text: text.trim(),
-        model_id: config.model || 'eleven_multilingual_v2', // Use multilingual for better African accent support
+        model_id: config.model || 'eleven_turbo_v2_5', // Default to turbo for smoother delivery
         voice_settings: {
-          stability: config.stability || 0.6, // Slightly higher for African voices
-          similarity_boost: config.similarityBoost || 0.8, // Higher for accent preservation
-          style: 0.2, // Add some style for natural expression
-          use_speaker_boost: true
+          stability: config.stability || 0.7, // Higher stability for smoother speech
+          similarity_boost: config.similarityBoost || 0.85, // Higher for consistent male voice
+          style: config.style || 0.3, // Added style for natural expression
+          use_speaker_boost: config.useSpeakerBoost !== false // Default to true for clearer male voice
         },
-        output_format: 'mp3_44100_128', // Higher quality for better accent reproduction
+        output_format: 'mp3_44100_128', // Higher quality for better male voice reproduction
       })
     })
 
@@ -64,11 +66,11 @@ export const elevenLabsService = {
     const audioUrl = URL.createObjectURL(audioBlob)
     const audio = new Audio(audioUrl)
     
-    // Set audio properties for better playback
+    // Set audio properties for better male voice playback
     audio.preload = 'auto'
     audio.volume = 1.0
     
-    console.log(`🎙️ DeepCAL speaking with ElevenLabs voice: ${config.voiceId} (${text.length} chars)`)
+    console.log(`🎙️ DeepCAL speaking with smooth male voice: ${config.voiceId} (${text.length} chars)`)
     
     // Clean up URL when audio ends
     audio.addEventListener('ended', () => {
