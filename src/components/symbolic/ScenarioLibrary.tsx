@@ -84,7 +84,7 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({ onRunScenario,
         {
           id: 'bulk_rail',
           name: 'Rail + Road Combination',
-          cost: { range: [14000, 16000], value: 15000, type: 'incomplete' as const },
+          cost: { range: [14000, 16000] as [number, number], value: 15000, type: 'incomplete' as const },
           time: { value: 12, uncertainty: 0.25, type: 'uncertain' as const },
           reliability: 0.82,
           risk: 0.20,
@@ -152,7 +152,7 @@ export const ScenarioLibrary: React.FC<ScenarioLibraryProps> = ({ onRunScenario,
         truth: rule.truth,
         indeterminacy: rule.indeterminacy,
         falsity: rule.falsity,
-        category: rule.category,
+        category: rule.category || 'general', // Provide default category
         weight: rule.weight
       }))
     };

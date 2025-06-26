@@ -112,17 +112,32 @@ const SymbolicDemo: React.FC = () => {
   };
 
   const handleRuleInjection = async (newRule: NeutrosophicRule) => {
-    const updatedRules = [...currentRules, newRule];
+    const ruleWithDefaults = {
+      ...newRule,
+      category: newRule.category || 'injected_rule',
+      weight: newRule.weight || 0.8
+    };
+    
+    const updatedRules = [...currentRules, ruleWithDefaults];
     setCurrentRules(updatedRules);
     
     // Re-run analysis with new rule
     const input: SymbolicInput = {
       alternatives: sampleAlternatives,
-      rules: updatedRules
+      rules: updatedRules.map(rule => ({
+        ...rule,
+        category: rule.category || 'general', // Ensure category is always present
+        weight: rule.weight || 0.8
+      }))
     };
 
     try {
-      setAllProcessedRules(updatedRules);
+      const processedRules = input.rules.map(rule => ({
+        ...rule,
+        category: rule.category || 'general',
+        weight: rule.weight || 0.8
+      }));
+      setAllProcessedRules(processedRules);
       await processSymbolicInput(input);
       await deepcalVoiceService.speakCustom(`New rule injected: ${newRule.rule}. Recalculating optimal solution.`);
     } catch (error) {
