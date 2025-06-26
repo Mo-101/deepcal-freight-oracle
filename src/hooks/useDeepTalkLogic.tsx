@@ -6,6 +6,7 @@ import { useEnhancedSpeech } from "@/hooks/useEnhancedSpeech"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import { getTrainingBufferStatus } from "@/services/aiTrainingBridge"
 import { useToast } from "@/hooks/use-toast"
+import { deepcalVoiceService } from "@/services/deepcalVoiceService"
 
 interface Message {
   id: string
@@ -34,8 +35,7 @@ export function useDeepTalkLogic() {
     {
       id: "1",
       type: "assistant",
-      content:
-        "🧠 DeepCAL AI Brain activated! I'm your enhanced logistics oracle with full Groq intelligence and live training integration. Ask me anything about shipments, routes, or the mysteries of African logistics!",
+      content: "🧠 DeepCAL Neural Mind activated. I am the first symbolic logistics intelligence, forged for African trade corridors. Speak, and I shall analyze with mathematical precision.",
       timestamp: new Date(),
     },
   ])
@@ -99,15 +99,14 @@ export function useDeepTalkLogic() {
     return () => clearInterval(statusInterval)
   }, [])
 
-  // Prevent page jumping when new messages are added
+  // Voice the initial message
   useEffect(() => {
-    const handleScroll = () => {
-      return false
+    if (messages.length === 1) {
+      setTimeout(() => {
+        deepcalVoiceService.speakPresentation("Neural interface");
+      }, 1000);
     }
-    
-    window.addEventListener('scroll', handleScroll, { passive: false })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  }, []);
 
   const processQuery = async (query: string, voiceConfig: any) => {
     setIsProcessing(true)
@@ -123,11 +122,11 @@ export function useDeepTalkLogic() {
 
     setMessages((prev) => [...prev, userMessage])
 
-    // Simulate processing delay for dramatic effect
-    await new Promise((resolve) => setTimeout(resolve, 1200))
+    // Simulate neural processing delay
+    await new Promise((resolve) => setTimeout(resolve, 800))
 
     try {
-      // Classify intent and generate dynamic response with Groq
+      // Classify intent and generate dynamic response
       const { intent, confidence, params } = classifyIntent(query)
       
       const dynamicContext = {
@@ -149,81 +148,61 @@ export function useDeepTalkLogic() {
         content: response,
         timestamp: new Date(),
         intent,
-        data: { confidence, params, groqPowered: true, trainingIntegrated: true },
+        data: { confidence, params, neuralPowered: true, symbolicReasoning: true },
       }
 
       setMessages((prev) => [...prev, assistantMessage])
       setIsProcessing(false)
 
-      // ENHANCED VOICE SYNTHESIS with provider support
-      console.log('🎯 DeepCAL preparing to speak...', { 
-        provider: voiceConfig?.provider,
-        hasConfig: !!voiceConfig,
+      // Use DeepCAL's neural voice
+      console.log('🧠 DeepCAL Neural Mind preparing response...', { 
+        intent,
+        confidence,
         responseLength: response.length 
       })
       
       try {
-        if (voiceConfig) {
-          console.log(`🎙️ Using ${voiceConfig.provider} voice synthesis`)
-          await speakText(response, voiceConfig)
-          
-          const providerName = voiceConfig.provider === 'elevenlabs' ? 
-            (voiceConfig.voiceId === 'onwK4e9ZLuTAKqWW03F9' ? 'Daniel' : 'ElevenLabs') :
-            voiceConfig.model?.toUpperCase() || 'Local'
-          
-          toast({
-            title: `🎤 DeepCAL Speaking`,
-            description: `Using ${providerName} voice`,
-            duration: 2000,
-          })
-        } else {
-          console.log('🔊 Using browser speech synthesis (no config)')
-          await speakText(response)
-          
-          toast({
-            title: "🔊 DeepCAL Speaking",
-            description: "Using browser voice synthesis",
-            duration: 2000,
-          })
-        }
+        // Use the enhanced DeepCAL voice service
+        await deepcalVoiceService.speakCustom(response);
+        
+        // Subtle toast for voice confirmation (not intrusive)
+        toast({
+          title: "🧠 Neural Voice Active",
+          description: "DeepCAL speaking with symbolic intelligence",
+          duration: 2000,
+        })
       } catch (voiceError) {
-        console.error('Voice synthesis failed:', voiceError)
+        console.error('Neural voice synthesis failed:', voiceError)
         
         try {
           await speakText(response)
           toast({
-            title: "🔊 Voice Fallback Active",
-            description: "Using browser synthesis due to provider issue",
-            duration: 3000,
+            title: "🔊 Voice Fallback",
+            description: "Using backup synthesis",
+            duration: 2000,
           })
         } catch (fallbackError) {
-          console.error('Even browser speech failed:', fallbackError)
-          toast({
-            title: "⚠️ Voice Unavailable", 
-            description: "Speech synthesis temporarily unavailable",
-            duration: 3000,
-            variant: "destructive"
-          })
+          console.error('All voice synthesis failed:', fallbackError)
         }
       }
       
     } catch (error) {
-      console.error('Error processing query:', error)
+      console.error('Neural processing error:', error)
       setIsProcessing(false)
       
-      // Error fallback message
+      // Error response with neural personality
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: "🔥 The Oracle experiences temporary interference... The data spirits are restless. Please try again in a moment.",
+        content: "🔥 Neural interference detected. Symbolic pathways temporarily disrupted. Recalibrating quantum logistics matrix...",
         timestamp: new Date(),
         intent: "error",
       }
       setMessages((prev) => [...prev, errorMessage])
       
-      // Try to speak the error message too
+      // Speak error with neural voice
       try {
-        await speakText(errorMessage.content)
+        await deepcalVoiceService.speakCustom("Neural interference detected. Recalibrating systems.");
       } catch (voiceError) {
         console.error('Could not speak error message:', voiceError)
       }

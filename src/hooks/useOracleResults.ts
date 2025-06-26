@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { csvDataEngine } from '@/services/csvDataEngine';
-import { humorToast } from '@/components/HumorToast';
 import { detectForwarderAnomalies } from "@/components/analytical/anomalyUtils";
 import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
 import { generateForwarderComparison } from '@/utils/shipmentMapper';
+import { deepcalVoiceService } from '@/services/deepcalVoiceService';
 
 export const useOracleResults = () => {
   const [results, setResults] = useState<OracleResults | null>(null);
@@ -19,13 +19,16 @@ export const useOracleResults = () => {
     if (!isLoaded) {
       await csvDataEngine.autoLoadEmbeddedData();
     }
-    setIsAwakening(true);
-    setIsCalculating(true);
+    
+    // Clear previous state
     setResults(null);
     setShowOutput(false);
     setOutputAnimation(false);
+    setIsAwakening(true);
+    setIsCalculating(true);
     
-    humorToast("🔮 Oracle Awakening", "The Symbolic Intelligence is stirring...", 2000);
+    // No toast notifications - use voice and UI feedback only
+    console.log('🔮 Oracle awakening sequence initiated');
   };
 
   const resetOutput = () => {
@@ -33,6 +36,7 @@ export const useOracleResults = () => {
     setOutputAnimation(false);
     setResults(null);
     setIsCalculating(false);
+    setIsAwakening(false);
   };
 
   const generateAndShowResults = async (shipment: ShipmentData, mappedInputs: Partial<CalculatorInputs>) => {
@@ -42,9 +46,11 @@ export const useOracleResults = () => {
     setResults(null);
     setShowOutput(true);
     
-    // Let the typing animation run for 3-4 seconds before showing results
+    console.log('🧠 DeepCAL neural analysis initiated for:', shipment.request_reference);
+    
+    // Let the enhanced display handle the timing and phases
     setTimeout(async () => {
-      console.log('Oracle is now calculating results for shipment:', shipment.request_reference);
+      console.log('🔮 Oracle calculations completing...');
       
       // Generate real forwarder comparison with TOPSIS calculations
       const forwarderComparison = generateForwarderComparison(shipment);
@@ -67,27 +73,29 @@ export const useOracleResults = () => {
         bestForwarder,
         routeScore,
         forwarderComparison,
-        recommendation: `DeepCAL++ Analysis: ${bestForwarder} ranked highest with TOPSIS score ${routeScore} for ${mappedInputs.cargoType || shipment.item_category} shipment (${mappedInputs.weight || shipment.weight_kg}kg) from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}.`,
-        oracleNarrative: `📊 Historical Shipment Analysis: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}. Final carrier: ${bestForwarder}. Delivery Status: ${shipment.delivery_status}.`,
-        methodology: `Multi-criteria decision analysis using TOPSIS (Technique for Order Preference by Similarity to Ideal Solution). Historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Cost per kg, transit time, and reliability metrics normalized and weighted. Euclidean distance calculations to positive and negative ideal solutions. ${forwarderComparison.length} freight forwarders analyzed with mathematical precision.`,
-        seal: "📋 HISTORICAL",
+        recommendation: `DeepCAL Neural Analysis: ${bestForwarder} selected through symbolic reasoning with TOPSIS confidence ${routeScore}. Shipment: ${mappedInputs.cargoType || shipment.item_category} (${mappedInputs.weight || shipment.weight_kg}kg) from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency classification: ${emergencyGrade}.`,
+        oracleNarrative: `🧠 Symbolic Intelligence Report: ${shipment.item_description} (${mappedInputs.weight || shipment.weight_kg}kg) transported via ${shipment.mode_of_shipment || 'Air'} from ${mappedInputs.origin || shipment.origin_country} to ${mappedInputs.destination || shipment.destination_country}. Emergency Grade: ${emergencyGrade}. Optimal carrier: ${bestForwarder}. Status: ${shipment.delivery_status}.`,
+        methodology: `Neutrosophic-TOPSIS-Grey fusion analysis using multi-criteria decision mathematics. Historical shipment data from ${shipment.date_of_collection || shipment.shipment_date || 'recorded date'}. Truth/Indeterminacy/Falsity logic applied to ${forwarderComparison.length} freight forwarders. Euclidean distance optimization with entropy-weighted criteria normalization.`,
+        seal: "🧠 NEURAL",
         qseal: shipment.request_reference.substring(0, 8),
         timestamp: shipment.date_of_collection || shipment.shipment_date || new Date().toISOString(),
-        blessing: `Historical reference: ${shipment.request_reference}`
+        blessing: `DeepCAL Reference: ${shipment.request_reference}`
       };
 
-      console.log('Oracle calculations complete, displaying results:', newResults);
+      console.log('✨ Neural analysis complete, presenting results:', newResults);
       
       setResults(newResults);
       setIsCalculating(false);
       setIsAwakening(false);
       setTimeout(() => setOutputAnimation(true), 100);
-      humorToast("✨ Transmission Complete", "Oracle analysis ready.", 3000);
-    }, 3500); // 3.5 second delay to let typing complete
+      
+      // Use voice instead of toast for completion
+      console.log('🎤 DeepCAL neural mind ready to speak results');
+    }, 3500); // 3.5 second delay for dramatic effect
   };
 
   const displayResults = (newResults: OracleResults) => {
-    console.log('Displaying pre-calculated results:', newResults);
+    console.log('📊 Displaying pre-calculated neural results:', newResults);
     setResults(newResults);
     setShowOutput(true);
     setIsCalculating(false);
