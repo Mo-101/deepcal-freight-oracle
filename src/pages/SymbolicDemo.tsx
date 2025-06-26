@@ -48,8 +48,8 @@ const SymbolicDemo: React.FC = () => {
     {
       id: 'route_c',
       name: 'Kampala → Juba (Local Carrier)',
-      cost: { min: 1600, max: 2000, estimate: 1800 }, // Grey value example
-      time: { estimate: 8, uncertainty: 0.2 }, // Grey value example
+      cost: { range: [1600, 2000], value: 1800, type: 'incomplete' as const }, // Grey value
+      time: { value: 8, uncertainty: 0.2, type: 'uncertain' as const }, // Grey value
       reliability: 0.75,
       risk: 0.20,
       carrier: 'Local Carrier',
@@ -201,13 +201,13 @@ const SymbolicDemo: React.FC = () => {
                   <div>
                     <div className="text-slate-400">Cost</div>
                     <div className="text-white font-semibold">
-                      ${typeof result.bestAlternative.cost === 'number' ? result.bestAlternative.cost : result.bestAlternative.cost?.estimate || 'N/A'}
+                      ${typeof result.bestAlternative.cost === 'number' ? result.bestAlternative.cost : (result.bestAlternative.cost as any)?.value || 'N/A'}
                     </div>
                   </div>
                   <div>
                     <div className="text-slate-400">Time</div>
                     <div className="text-white font-semibold">
-                      {typeof result.bestAlternative.time === 'number' ? result.bestAlternative.time : result.bestAlternative.time?.estimate || 'N/A'} days
+                      {typeof result.bestAlternative.time === 'number' ? result.bestAlternative.time : (result.bestAlternative.time as any)?.value || 'N/A'} days
                     </div>
                   </div>
                   <div>
