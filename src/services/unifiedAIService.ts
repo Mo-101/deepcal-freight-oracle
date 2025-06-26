@@ -50,6 +50,11 @@ class UnifiedAIService {
     }
   };
 
+  constructor() {
+    // Auto-load configuration on initialization
+    this.loadConfig();
+  }
+
   updateConfig(newConfig: Partial<AIConfig>) {
     this.config = { ...this.config, ...newConfig };
     localStorage.setItem('ai-config', JSON.stringify(this.config));
@@ -71,6 +76,12 @@ class UnifiedAIService {
     } else if (groqKey && this.config.provider === 'groq') {
       this.config.apiKey = groqKey;
     }
+
+    console.log('🤖 AI Service initialized with config:', {
+      provider: this.config.provider,
+      model: this.config.model,
+      hasApiKey: !!this.config.apiKey
+    });
   }
 
   async generateResponse(messages: any[], context?: any): Promise<AIResponse> {
@@ -99,7 +110,8 @@ class UnifiedAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`${provider.name} API error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`${provider.name} API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();

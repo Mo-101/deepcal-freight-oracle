@@ -121,8 +121,15 @@ export function EngineConfigTab({
       
       toast({
         title: '🔑 API Key Saved',
-        description: `${provider.toUpperCase()} API key configured`,
+        description: `${provider.toUpperCase()} API key configured successfully`,
       });
+
+      // Force a re-render by updating the key display
+      if (provider === 'openai') {
+        setOpenaiKey(key.trim());
+      } else {
+        setGroqKey(key.trim());
+      }
     }
   };
 
@@ -142,6 +149,7 @@ export function EngineConfigTab({
         description: 'Please check your API key and try again',
         variant: 'destructive'
       });
+      console.error('Connection test failed:', error);
     }
   };
 
@@ -184,13 +192,16 @@ export function EngineConfigTab({
                       type="password"
                       value={openaiKey}
                       onChange={(e) => setOpenaiKey(e.target.value)}
-                      placeholder="sk-..."
+                      placeholder="sk-proj-..."
                       className="bg-slate-700 border-slate-600 text-white text-sm"
                     />
                     <Button size="sm" onClick={() => handleSaveApiKey('openai')}>
                       Save
                     </Button>
                   </div>
+                  {openaiKey && (
+                    <p className="text-xs text-green-400">✓ API key configured</p>
+                  )}
                 </div>
               )}
 
@@ -209,6 +220,9 @@ export function EngineConfigTab({
                       Save
                     </Button>
                   </div>
+                  {groqKey && (
+                    <p className="text-xs text-green-400">✓ API key configured</p>
+                  )}
                 </div>
               )}
 
