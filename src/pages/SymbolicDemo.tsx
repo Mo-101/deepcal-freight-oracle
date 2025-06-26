@@ -1,13 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Play, RotateCcw, Sparkles } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Flame, Play, RotateCcw, Sparkles, Settings, Users, BookOpen } from 'lucide-react';
 import { useSymbolicIntelligence, SymbolicInput, LogisticsAlternative } from '@/hooks/useSymbolicIntelligence';
 import { SymbolicEngineDisplay } from '@/components/symbolic/SymbolicEngineDisplay';
+import { DecisionExplanationPanel } from '@/components/symbolic/DecisionExplanationPanel';
+import { RuleTransparencyPanel } from '@/components/symbolic/RuleTransparencyPanel';
+import { TOPSISMatrixDisplay } from '@/components/symbolic/TOPSISMatrixDisplay';
+import { ScenarioLibrary } from '@/components/symbolic/ScenarioLibrary';
+import { LiveRuleInjector } from '@/components/symbolic/LiveRuleInjector';
+import { PDFExporter } from '@/components/symbolic/PDFExporter';
 import { PresentationMode } from '@/components/presentation/PresentationMode';
 import { deepcalVoiceService } from '@/services/deepcalVoiceService';
+import { NeutrosophicRule } from '@/services/neutrosophicEngine';
 import symbolicRulesData from '@/data/symbolicRules.json';
 
 const SymbolicDemo: React.FC = () => {
@@ -22,6 +29,8 @@ const SymbolicDemo: React.FC = () => {
 
   const [presentationMode, setPresentationMode] = useState(false);
   const [engineDiagnostics, setEngineDiagnostics] = useState<any>(null);
+  const [currentRules, setCurrentRules] = useState(symbolicRulesData);
+  const [allProcessedRules, setAllProcessedRules] = useState<NeutrosophicRule[]>([]);
 
   // Sample logistics alternatives for demo
   const sampleAlternatives: LogisticsAlternative[] = [
@@ -74,7 +83,7 @@ const SymbolicDemo: React.FC = () => {
   const runSymbolicDemo = async () => {
     const input: SymbolicInput = {
       alternatives: sampleAlternatives,
-      rules: symbolicRulesData.map(rule => ({
+      rules: currentRules.map(rule => ({
         id: rule.id,
         rule: rule.rule,
         truth: rule.truth,
@@ -86,9 +95,38 @@ const SymbolicDemo: React.FC = () => {
     };
 
     try {
+      setAllProcessedRules(input.rules);
       await processSymbolicInput(input);
     } catch (error) {
       console.error('Demo processing failed:', error);
+    }
+  };
+
+  const handleScenarioRun = async (scenario: SymbolicInput) => {
+    try {
+      setAllProcessedRules(scenario.rules);
+      await processSymbolicInput(scenario);
+    } catch (error) {
+      console.error('Scenario processing failed:', error);
+    }
+  };
+
+  const handleRuleInjection = async (newRule: NeutrosophicRule) => {
+    const updatedRules = [...currentRules, newRule];
+    setCurrentRules(updatedRules);
+    
+    // Re-run analysis with new rule
+    const input: SymbolicInput = {
+      alternatives: sampleAlternatives,
+      rules: updatedRules
+    };
+
+    try {
+      setAllProcessedRules(updatedRules);
+      await processSymbolicInput(input);
+      await deepcalVoiceService.speakCustom(`New rule injected: ${newRule.rule}. Recalculating optimal solution.`);
+    } catch (error) {
+      console.error('Rule injection processing failed:', error);
     }
   };
 
@@ -115,7 +153,7 @@ const SymbolicDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
@@ -165,6 +203,8 @@ const SymbolicDemo: React.FC = () => {
                 Reset
               </Button>
 
+              <PDFExporter result={result} disabled={isProcessing} />
+
               <Button
                 onClick={startPresentation}
                 className="bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold"
@@ -176,109 +216,165 @@ const SymbolicDemo: React.FC = () => {
           </div>
         </Card>
 
-        {/* Symbolic Engine Display */}
-        <SymbolicEngineDisplay 
-          status={status}
-          isProcessing={isProcessing}
-          engineDiagnostics={engineDiagnostics}
-        />
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="engine" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-800/50">
+            <TabsTrigger value="engine" className="data-[state=active]:bg-purple-600/30">
+              <Settings className="w-4 h-4 mr-2" />
+              Engine
+            </TabsTrigger>
+            <TabsTrigger value="scenarios" className="data-[state=active]:bg-orange-600/30">
+              <Users className="w-4 h-4 mr-2" />
+              Demo Scenarios
+            </TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-cyan-600/30">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Analysis
+            </TabsTrigger>
+            <TabsTrigger value="transparency" className="data-[state=active]:bg-green-600/30">
+              <Flame className="w-4 h-4 mr-2" />
+              Transparency
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Results Display */}
-        {result && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Best Alternative */}
-            <Card className="glass-card shadow-glass border border-green-500/30 bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                  <Flame className="w-4 h-4 text-white" />
-                </div>
-                <h4 className="text-lg font-bold text-green-400">Optimal Solution</h4>
+          <TabsContent value="engine" className="space-y-6">
+            {/* Symbolic Engine Display */}
+            <SymbolicEngineDisplay 
+              status={status}
+              isProcessing={isProcessing}
+              engineDiagnostics={engineDiagnostics}
+            />
+
+            {/* Live Rule Injection */}
+            <LiveRuleInjector 
+              onInjectRule={handleRuleInjection}
+              disabled={isProcessing}
+            />
+          </TabsContent>
+
+          <TabsContent value="scenarios" className="space-y-6">
+            <ScenarioLibrary 
+              onRunScenario={handleScenarioRun}
+              isProcessing={isProcessing}
+            />
+          </TabsContent>
+
+          <TabsContent value="analysis" className="space-y-6">
+            {result && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DecisionExplanationPanel result={result} />
+                <TOPSISMatrixDisplay ranking={result.ranking} />
               </div>
-              
-              <div className="space-y-3">
-                <div className="text-xl font-bold text-white">{result.bestAlternative.name}</div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-slate-400">Cost</div>
-                    <div className="text-white font-semibold">
-                      ${typeof result.bestAlternative.cost === 'number' ? result.bestAlternative.cost : (result.bestAlternative.cost as any)?.value || 'N/A'}
+            )}
+
+            {/* Results Display */}
+            {result && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Best Alternative */}
+                <Card className="glass-card shadow-glass border border-green-500/30 bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                      <Flame className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-lg font-bold text-green-400">Optimal Solution</h4>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="text-xl font-bold text-white">{result.bestAlternative.name}</div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <div className="text-slate-400">Cost</div>
+                        <div className="text-white font-semibold">
+                          ${typeof result.bestAlternative.cost === 'number' ? result.bestAlternative.cost : (result.bestAlternative.cost as any)?.value || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Time</div>
+                        <div className="text-white font-semibold">
+                          {typeof result.bestAlternative.time === 'number' ? result.bestAlternative.time : (result.bestAlternative.time as any)?.value || 'N/A'} days
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Reliability</div>
+                        <div className="text-white font-semibold">{(Number(result.bestAlternative.reliability) * 100).toFixed(0)}%</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Risk Level</div>
+                        <div className="text-white font-semibold">{(Number(result.bestAlternative.risk) * 100).toFixed(0)}%</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-green-500/30 pt-3">
+                      <div className="text-sm text-slate-400">Symbolic Confidence</div>
+                      <div className="text-2xl font-bold text-green-400">{(result.confidence * 100).toFixed(1)}%</div>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-slate-400">Time</div>
-                    <div className="text-white font-semibold">
-                      {typeof result.bestAlternative.time === 'number' ? result.bestAlternative.time : (result.bestAlternative.time as any)?.value || 'N/A'} days
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400">Reliability</div>
-                    <div className="text-white font-semibold">{(Number(result.bestAlternative.reliability) * 100).toFixed(0)}%</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400">Risk Level</div>
-                    <div className="text-white font-semibold">{(Number(result.bestAlternative.risk) * 100).toFixed(0)}%</div>
-                  </div>
-                </div>
-                <div className="border-t border-green-500/30 pt-3">
-                  <div className="text-sm text-slate-400">Symbolic Confidence</div>
-                  <div className="text-2xl font-bold text-green-400">{(result.confidence * 100).toFixed(1)}%</div>
-                </div>
-              </div>
-            </Card>
+                </Card>
 
-            {/* Methodology */}
-            <Card className="glass-card shadow-glass border border-glassBorder p-6">
-              <h4 className="text-lg font-bold text-slate-200 mb-4">🧠 Symbolic Methodology</h4>
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-purple-400 font-semibold">Valid Rules</div>
-                  <div className="text-white">{result.validRules.length}/{symbolicRulesData.length} rules passed Neutrosophic validation</div>
-                </div>
-                <div>
-                  <div className="text-sm text-cyan-400 font-semibold">Processing Time</div>
-                  <div className="text-white">{result.processingTime}ms symbolic reasoning</div>
-                </div>
-                <div>
-                  <div className="text-sm text-slate-400 font-semibold">Explanation</div>
-                  <div className="text-xs text-slate-300 leading-relaxed">{result.methodology}</div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Alternative Rankings */}
-        {result && (
-          <Card className="glass-card shadow-glass border border-glassBorder p-6">
-            <h4 className="text-lg font-bold text-slate-200 mb-4">📊 Complete TOPSIS Ranking</h4>
-            <div className="space-y-3">
-              {result.ranking.map((item, index) => (
-                <div 
-                  key={item.alternative.id}
-                  className={`flex items-center justify-between p-3 rounded-lg ${
-                    index === 0 ? 'bg-green-900/30 border border-green-500/30' : 'bg-slate-800/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                      index === 0 ? 'bg-green-500 text-white' : 'bg-slate-600 text-slate-300'
-                    }`}>
-                      {item.rank}
+                {/* Methodology */}
+                <Card className="glass-card shadow-glass border border-glassBorder p-6">
+                  <h4 className="text-lg font-bold text-slate-200 mb-4">🧠 Symbolic Methodology</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-sm text-purple-400 font-semibold">Valid Rules</div>
+                      <div className="text-white">{result.validRules.length}/{symbolicRulesData.length} rules passed Neutrosophic validation</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-white">{item.alternative.name}</div>
-                      <div className="text-xs text-slate-400">Score: {item.score.toFixed(3)}</div>
+                      <div className="text-sm text-cyan-400 font-semibold">Processing Time</div>
+                      <div className="text-white">{result.processingTime}ms symbolic reasoning</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-slate-400 font-semibold">Explanation</div>
+                      <div className="text-xs text-slate-300 leading-relaxed">{result.methodology}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-slate-200">{(item.score * 100).toFixed(1)}%</div>
-                    <div className="text-xs text-slate-400">TOPSIS Score</div>
-                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* Alternative Rankings */}
+            {result && (
+              <Card className="glass-card shadow-glass border border-glassBorder p-6">
+                <h4 className="text-lg font-bold text-slate-200 mb-4">📊 Complete TOPSIS Ranking</h4>
+                <div className="space-y-3">
+                  {result.ranking.map((item, index) => (
+                    <div 
+                      key={item.alternative.id}
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        index === 0 ? 'bg-green-900/30 border border-green-500/30' : 'bg-slate-800/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                          index === 0 ? 'bg-green-500 text-white' : 'bg-slate-600 text-slate-300'
+                        }`}>
+                          {item.rank}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white">{item.alternative.name}</div>
+                          <div className="text-xs text-slate-400">Score: {item.score.toFixed(3)}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-slate-200">{(item.score * 100).toFixed(1)}%</div>
+                        <div className="text-xs text-slate-400">TOPSIS Score</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
-        )}
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="transparency" className="space-y-6">
+            {result && (
+              <RuleTransparencyPanel 
+                validRules={result.validRules}
+                allRules={allProcessedRules}
+                processingTime={result.processingTime}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* System Manifesto */}
         <Card className="glass-card shadow-glass border border-orange-500/30 bg-gradient-to-br from-orange-900/20 to-red-900/20 p-8 text-center">

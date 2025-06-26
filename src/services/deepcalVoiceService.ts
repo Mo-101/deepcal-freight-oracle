@@ -34,12 +34,17 @@ class DeepCALVoiceService {
       "Welcome to DeepCAL. The first symbolic logistics intelligence.",
       "Witness the fusion of ancient wisdom and quantum mathematics.",
       "This is not artificial intelligence. This is symbolic truth."
+    ],
+    ruleInjection: [
+      "New rule integrated into symbolic matrix.",
+      "Knowledge base expanded. Recalculating optimal pathways.",
+      "Rule injection complete. Enhanced reasoning capacity achieved."
     ]
   };
 
   async speakAwakening(): Promise<void> {
     const line = this.getRandomLine('awakening');
-    await this.speak(line);
+    await this.speakWithDramaticPause(line, 1500);
   }
 
   async speakAnalysis(context?: string): Promise<void> {
@@ -47,22 +52,35 @@ class DeepCALVoiceService {
     if (context) {
       line = `${line} Processing ${context}.`;
     }
-    await this.speak(line);
+    await this.speakWithDramaticPause(line, 800);
   }
 
   async speakResults(bestForwarder: string, score: string): Promise<void> {
     const line = `Optimization complete. Recommended carrier: ${bestForwarder}. TOPSIS confidence score: ${score}. Neural certainty: absolute.`;
-    await this.speak(line);
+    await this.speakWithDramaticPause(line, 2000);
   }
 
   async speakPresentation(phase: string): Promise<void> {
     const line = this.getRandomLine('presentation');
-    await this.speak(`${line} ${phase} demonstration initiated.`);
+    await this.speakWithDramaticPause(`${line} ${phase} demonstration initiated.`, 1200);
+  }
+
+  async speakRuleInjection(rule: string): Promise<void> {
+    const introLine = this.getRandomLine('ruleInjection');
+    const fullMessage = `${introLine} New logistics rule: ${rule.substring(0, 50)}...`;
+    await this.speakWithDramaticPause(fullMessage, 1000);
   }
 
   async speakCustom(message: string): Promise<void> {
     const enhancedMessage = this.enhanceMessage(message);
-    await this.speak(enhancedMessage);
+    await this.speakWithDramaticPause(enhancedMessage, 500);
+  }
+
+  private async speakWithDramaticPause(text: string, pauseMs: number = 1000): Promise<void> {
+    await this.speak(text);
+    if (pauseMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, pauseMs));
+    }
   }
 
   private getRandomLine(category: keyof typeof this.voiceLines): string {
