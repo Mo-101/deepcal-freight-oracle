@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { loadAllMoScripts } from "@/moscripts/registry";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
+import SymbolicDemo from "./pages/SymbolicDemo";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
 import DeepTalk from "./pages/DeepTalk";
@@ -31,6 +32,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<SymbolicCalculator />} />
+            <Route path="/demo" element={<SymbolicDemo />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/deeptalk" element={<DeepTalk />} />

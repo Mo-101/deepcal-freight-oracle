@@ -1,0 +1,93 @@
+
+[
+  {
+    "id": "logistics_001",
+    "rule": "If demand is high and supply is low then increase expedited shipping priority",
+    "truth": 0.91,
+    "indeterminacy": 0.05,
+    "falsity": 0.04,
+    "category": "demand_management",
+    "weight": 1.0
+  },
+  {
+    "id": "logistics_002", 
+    "rule": "If port congestion exceeds 75% then reroute to alternative port",
+    "truth": 0.87,
+    "indeterminacy": 0.08,
+    "falsity": 0.05,
+    "category": "route_optimization",
+    "weight": 0.9
+  },
+  {
+    "id": "logistics_003",
+    "rule": "If delivery window missed and customer priority is high then trigger expedited refund process",
+    "truth": 0.84,
+    "indeterminacy": 0.09,
+    "falsity": 0.07,
+    "category": "customer_service",
+    "weight": 0.8
+  },
+  {
+    "id": "logistics_004",
+    "rule": "If weather conditions deteriorate and cargo is fragile then select covered transport mode",
+    "truth": 0.89,
+    "indeterminacy": 0.06,
+    "falsity": 0.05,
+    "category": "risk_management",
+    "weight": 0.95
+  },
+  {
+    "id": "logistics_005",
+    "rule": "If fuel costs increase by more than 15% then adjust route calculations accordingly",
+    "truth": 0.93,
+    "indeterminacy": 0.04,
+    "falsity": 0.03,
+    "category": "cost_optimization",
+    "weight": 1.0
+  },
+  {
+    "id": "logistics_006",
+    "rule": "If customs clearance time exceeds 48 hours then activate priority processing",
+    "truth": 0.85,
+    "indeterminacy": 0.10,
+    "falsity": 0.05,
+    "category": "regulatory_compliance",
+    "weight": 0.85
+  },
+  {
+    "id": "logistics_007",
+    "rule": "If carrier reliability drops below 80% then reduce allocation weight",
+    "truth": 0.88,
+    "indeterminacy": 0.07,
+    "falsity": 0.05,
+    "category": "carrier_management",
+    "weight": 0.9
+  },
+  {
+    "id": "logistics_008",
+    "rule": "If African corridor disruption detected then activate continental backup routes",
+    "truth": 0.92,
+    "indeterminacy": 0.05,
+    "falsity": 0.03,
+    "category": "african_trade",
+    "weight": 1.0
+  },
+  {
+    "id": "logistics_009",
+    "rule": "If shipment value exceeds $50000 then mandate security escort protocols",
+    "truth": 0.90,
+    "indeterminacy": 0.06,
+    "falsity": 0.04,
+    "category": "security",
+    "weight": 0.95
+  },
+  {
+    "id": "logistics_010",
+    "rule": "If last-mile delivery fails twice then escalate to management intervention",
+    "truth": 0.86,
+    "indeterminacy": 0.08,
+    "falsity": 0.06,
+    "category": "delivery_management",
+    "weight": 0.8
+  }
+]

@@ -109,7 +109,6 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
         <div className="space-y-4">
           <ConfidenceMeter 
             score={parseFloat(results.routeScore || '0')} 
-            maxScore={1.0}
             label="TOPSIS Confidence"
           />
           
