@@ -1,4 +1,6 @@
 
+import mapboxgl from 'mapbox-gl';
+
 interface TrackingEvent {
   timestamp: string;
   location: [number, number];
@@ -130,9 +132,12 @@ export class ShipmentTrackingService {
 
   // Reverse geocoding helper (would use Mapbox Geocoding API in production)
   async reverseGeocode(coordinates: [number, number]): Promise<string> {
+    // Get access token from environment or a dedicated service
+    const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'your-mapbox-token';
+    
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${mapboxgl.accessToken}`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?access_token=${accessToken}`
       );
       const data = await response.json();
       return data.features[0]?.place_name || 'Unknown location';

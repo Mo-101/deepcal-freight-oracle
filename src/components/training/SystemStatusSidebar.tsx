@@ -12,6 +12,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { NeuralNetworkNodes } from './NeuralNetworkNodes';
+import { unifiedAIService } from '@/services/unifiedAIService';
 
 interface SystemStatus {
   neutroEngine: 'connected' | 'warning' | 'error';
@@ -49,6 +50,10 @@ export function SystemStatusSidebar({
     }
   };
 
+  // Get real AI status
+  const aiConfigured = unifiedAIService.isConfigured();
+  const aiStatus = aiConfigured ? 'connected' : 'warning';
+
   return (
     <div className="lg:col-span-1 space-y-6">
       {/* Enhanced Neural Engine Preview with Node Network */}
@@ -69,7 +74,7 @@ export function SystemStatusSidebar({
             />
           </div>
           <p className="text-indigo-300 mb-2">
-            {isTraining ? 'Neural Core Training...' : 'Neutrosophic Core Active'}
+            {isTraining ? 'Neural Core Training...' : aiConfigured ? 'Neutrosophic Core Active' : 'AI Not Configured'}
           </p>
           <p className="text-xs text-slate-400 mb-4">
             {trainingMetrics.samplesProcessed.toLocaleString()} samples processed
@@ -93,25 +98,27 @@ export function SystemStatusSidebar({
               <Settings className="w-5 h-5" />
               System Status
             </span>
-            <Badge className="bg-green-900 text-green-300">Operational</Badge>
+            <Badge className={aiConfigured ? "bg-green-900 text-green-300" : "bg-yellow-900 text-yellow-300"}>
+              {aiConfigured ? 'Operational' : 'Setup Required'}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
+            <span className="text-indigo-300">AI Engine</span>
+            {getStatusIcon(aiStatus)}
+          </div>
+          <div className="flex items-center justify-between">
             <span className="text-indigo-300">Neutro Engine</span>
-            {getStatusIcon(systemStatus.neutroEngine)}
+            {getStatusIcon(aiConfigured ? 'connected' : 'warning')}
           </div>
           <div className="flex items-center justify-between">
             <span className="text-indigo-300">Firestore</span>
             {getStatusIcon(systemStatus.firestore)}
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-indigo-300">Groq API</span>
-            {getStatusIcon(systemStatus.groqAPI)}
-          </div>
-          <div className="flex items-center justify-between">
             <span className="text-indigo-300">Training Pipeline</span>
-            {getStatusIcon(systemStatus.trainingPipeline)}
+            {getStatusIcon(aiConfigured && isTraining ? 'connected' : 'warning')}
           </div>
         </CardContent>
         <CardFooter>
@@ -146,6 +153,12 @@ export function SystemStatusSidebar({
           <div className="flex justify-between">
             <span className="text-indigo-300">Version</span>
             <span className="text-white font-mono">{trainingMetrics.modelVersion}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-indigo-300">AI Status</span>
+            <span className={`text-sm font-mono ${aiConfigured ? 'text-green-400' : 'text-yellow-400'}`}>
+              {unifiedAIService.getStatus()}
+            </span>
           </div>
         </CardContent>
       </Card>
