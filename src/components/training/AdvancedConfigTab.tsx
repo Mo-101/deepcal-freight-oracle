@@ -146,7 +146,8 @@ export function AdvancedConfigTab() {
                 className="bg-slate-700 border-slate-600 text-white"
               />
               <p className="text-xs text-slate-400 mt-1">
-                Symbols/rules require >{(neutrosophicConfig.truthThreshold * 100).toFixed(0)}% confidence to propagate
+                Symbols/rules require {'>'}
+                {(neutrosophicConfig.truthThreshold * 100).toFixed(0)}% confidence to propagate
               </p>
             </div>
 
@@ -170,7 +171,8 @@ export function AdvancedConfigTab() {
                 className="bg-slate-700 border-slate-600 text-white"
               />
               <p className="text-xs text-slate-400 mt-1">
-                Rejects symbols with >{(neutrosophicConfig.indeterminacyTolerance * 100).toFixed(0)}% ambiguity
+                Rejects symbols with {'>'}
+                {(neutrosophicConfig.indeterminacyTolerance * 100).toFixed(0)}% ambiguity
               </p>
             </div>
 
