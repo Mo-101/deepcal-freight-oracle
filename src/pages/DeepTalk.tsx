@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +8,6 @@ import { useSpeechToText } from "@/hooks/useSpeechToText"
 import { useTrainingBuffer } from "@/hooks/useTrainingBuffer"
 import DeepTalkMain from "@/components/deeptalk/DeepTalkMain"
 import VoiceConfigModal from "@/components/deeptalk/VoiceConfigModal"
-import { deepcalVoiceService } from "@/services/deepcalVoiceService"
 import { generateSymbolicResponse, generateGeneralSymbolicResponse } from '@/utils/deepcal/symbolicResponseAdapter';
 
 interface Message {
@@ -33,7 +33,14 @@ interface RouteOption {
 }
 
 const DeepTalk = () => {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      type: "assistant",
+      content: "🧠 DeepCAL Neural Mind activated. I am ready to analyze logistics with mathematical precision. What would you like to explore?",
+      timestamp: new Date(),
+    },
+  ])
   const [input, setInput] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [routeDatabase, setRouteDatabase] = useState<RouteOption[]>([])

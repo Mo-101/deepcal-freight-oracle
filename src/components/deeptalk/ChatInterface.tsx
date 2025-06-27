@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Bot, User, MessageSquare, Brain, Zap } from "lucide-react"
 import ChatInput from "./ChatInput"
+import DeepTalkVoice from "./DeepTalkVoice"
 
 interface Message {
   id: string
@@ -93,27 +94,36 @@ export default function ChatInterface({
                     )}
                   </div>
 
-                  <div
-                    className={`rounded-lg p-3 ${
-                      message.type === "user" 
-                        ? "bg-blue-600 text-white" 
-                        : "bg-slate-800/80 text-white border border-white/20 backdrop-filter backdrop-blur-8px"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {message.intent && (
-                        <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
-                          Intent: {message.intent}
-                        </Badge>
-                      )}
-                      {message.data?.groqPowered && (
-                        <Badge className="text-xs bg-purple-400/20 text-purple-300 border-purple-400/30">
-                          <Brain className="w-3 h-3 mr-1" />
-                          AI Enhanced
-                        </Badge>
-                      )}
+                  <div className="flex flex-col gap-2">
+                    <div
+                      className={`rounded-lg p-3 ${
+                        message.type === "user" 
+                          ? "bg-blue-600 text-white" 
+                          : "bg-slate-800/80 text-white border border-white/20 backdrop-filter backdrop-blur-8px"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {message.intent && (
+                          <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
+                            Intent: {message.intent}
+                          </Badge>
+                        )}
+                        {message.data?.groqPowered && (
+                          <Badge className="text-xs bg-purple-400/20 text-purple-300 border-purple-400/30">
+                            <Brain className="w-3 h-3 mr-1" />
+                            AI Enhanced
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Voice control for assistant messages only */}
+                    {message.type === "assistant" && (
+                      <div className="flex justify-start">
+                        <DeepTalkVoice message={message.content} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
