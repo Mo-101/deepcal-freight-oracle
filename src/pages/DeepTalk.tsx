@@ -78,7 +78,7 @@ const DeepTalk = () => {
   // Quick query handler
   const handleQuickQuery = (query: string) => {
     setInput(query)
-    handleSubmit(new Event("submit")) // Simulate form submission
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent)
   }
 
   // Start/stop listening
