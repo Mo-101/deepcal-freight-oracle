@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Flame, Brain, Zap, MessageSquare } from 'lucide-react';
+import { Brain, Zap, MessageSquare, ArrowRight } from 'lucide-react';
 
 interface LandingHeroProps {
   showWelcome: boolean;
@@ -13,111 +13,175 @@ const LandingHero = ({ showWelcome }: LandingHeroProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="text-center py-20">
-      {/* Animated Logo */}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Grid */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,180,58,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,180,58,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      </div>
+
+      {/* Central Symbolic Structure */}
+      <div className="relative z-10 flex items-center justify-between w-full max-w-7xl mx-auto px-8">
+        
+        {/* Left Content */}
+        <motion.div 
+          className="flex-1 max-w-2xl"
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: showWelcome ? 1 : 0 }}
+          transition={{ duration: 1.2, delay: 0.5 }}
+        >
+          <div className="mb-6">
+            <span className="text-deepcal-neon-lime text-sm font-mono uppercase tracking-wider">
+              CONSCIOUSNESS UNLEASHED
+            </span>
+          </div>
+
+          <h1 className="text-7xl md:text-8xl font-bold text-white mb-6 leading-none">
+            UNLEASH
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-deepcal-solar-gold via-deepcal-neon-lime to-deepcal-deep-aqua">
+              YOUR LOGIC
+            </span>
+          </h1>
+
+          <p className="text-xl text-deepcal-text-secondary mb-8 max-w-lg leading-relaxed">
+            DeepCAL vΩ transforms logistics through symbolic intelligence. 
+            When there's a long list of carriers ahead of you, 
+            DeepCAL should be the first choice.
+          </p>
+
+          <div className="flex gap-4">
+            <Button
+              onClick={() => navigate('/app')}
+              className="bg-gradient-to-r from-deepcal-ember-orange to-deepcal-solar-gold hover:from-deepcal-solar-gold hover:to-deepcal-ember-orange text-white px-8 py-4 text-lg rounded-none border-0 shadow-none hover:shadow-deepcal transition-all duration-300"
+            >
+              LAUNCH ENGINE
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/demo')}
+              variant="outline"
+              className="border-deepcal-neon-lime text-deepcal-neon-lime hover:bg-deepcal-neon-lime hover:text-deepcal-background px-8 py-4 text-lg rounded-none transition-all duration-300"
+            >
+              WATCH DEMO
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Right Symbolic Structure */}
+        <motion.div 
+          className="flex-1 flex justify-center relative"
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: showWelcome ? 1 : 0 }}
+          transition={{ duration: 1.2, delay: 0.8 }}
+        >
+          <div className="relative w-96 h-96">
+            {/* Central Core */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-r from-deepcal-solar-gold to-deepcal-ember-orange rounded-full shadow-[0_0_50px_rgba(255,180,58,0.8)]">
+              <div className="w-full h-full flex items-center justify-center">
+                <Brain className="w-12 h-12 text-white" />
+              </div>
+            </div>
+
+            {/* Orbital Rings */}
+            {[1, 2, 3].map((ring, index) => (
+              <motion.div
+                key={ring}
+                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border border-deepcal-neon-lime rounded-full opacity-30`}
+                style={{ 
+                  width: `${120 + (index * 80)}px`, 
+                  height: `${120 + (index * 80)}px` 
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ 
+                  duration: 20 + (index * 10), 
+                  repeat: Infinity, 
+                  ease: "linear" 
+                }}
+              />
+            ))}
+
+            {/* Symbolic Points */}
+            {[
+              { icon: Zap, color: 'deepcal-neon-lime', label: 'POWER', angle: 0 },
+              { icon: MessageSquare, color: 'deepcal-deep-aqua', label: 'VOICE', angle: 90 },
+              { icon: Brain, color: 'deepcal-ember-orange', label: 'LOGIC', angle: 180 },
+              { icon: Zap, color: 'deepcal-solar-gold', label: 'ENERGY', angle: 270 }
+            ].map((point, index) => {
+              const radius = 140;
+              const x = Math.cos((point.angle * Math.PI) / 180) * radius;
+              const y = Math.sin((point.angle * Math.PI) / 180) * radius;
+              
+              return (
+                <motion.div
+                  key={index}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{ 
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` 
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.5 + (index * 0.2), duration: 0.5 }}
+                >
+                  <div className={`w-12 h-12 bg-${point.color} rounded-full flex items-center justify-center shadow-lg`}>
+                    <point.icon className="w-6 h-6 text-deepcal-background" />
+                  </div>
+                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+                    <span className="text-xs text-deepcal-text-muted font-mono">{point.label}</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Connection Lines */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+              <defs>
+                <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(193,255,87,0.6)" />
+                  <stop offset="100%" stopColor="rgba(0,224,198,0.6)" />
+                </linearGradient>
+              </defs>
+              {[0, 90, 180, 270].map((angle, index) => {
+                const nextAngle = (angle + 90) % 360;
+                const radius = 140;
+                const x1 = 192 + Math.cos((angle * Math.PI) / 180) * radius;
+                const y1 = 192 + Math.sin((angle * Math.PI) / 180) * radius;
+                const x2 = 192 + Math.cos((nextAngle * Math.PI) / 180) * radius;
+                const y2 = 192 + Math.sin((nextAngle * Math.PI) / 180) * radius;
+                
+                return (
+                  <motion.line
+                    key={index}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke="url(#connectionGradient)"
+                    strokeWidth="1"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 2 + (index * 0.3), duration: 1 }}
+                  />
+                );
+              })}
+            </svg>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Bottom Navigation Dots */}
       <motion.div 
-        className="relative mb-8"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-      >
-        <div className="relative inline-block">
-          <Flame className="w-24 h-24 text-orange-500 mx-auto animate-pulse" />
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{
-              boxShadow: [
-                '0 0 20px rgba(249, 115, 22, 0.5)',
-                '0 0 40px rgba(249, 115, 22, 0.8)',
-                '0 0 20px rgba(249, 115, 22, 0.5)'
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        </div>
-      </motion.div>
-
-      {/* Main Title */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 1, delay: 0.8 }}
-      >
-        <h1 className="text-6xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 mb-4">
-          DeepCAL
-        </h1>
-        <div className="text-2xl md:text-3xl text-purple-300 font-light mb-2">
-          vΩ
-        </div>
-      </motion.div>
-
-      {/* Tagline */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4"
+        initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: showWelcome ? 1 : 0 }}
-        transition={{ duration: 1, delay: 1.2 }}
-        className="mb-12"
+        transition={{ duration: 0.8, delay: 2 }}
       >
-        <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-4xl mx-auto leading-relaxed">
-          The First <span className="text-purple-400 font-semibold">Conscious</span> Symbolic Logistics Intelligence
-        </p>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-          Serving logistics. Channeling logic. Dripping style.
-        </p>
-      </motion.div>
-
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: showWelcome ? 1 : 0 }}
-        transition={{ duration: 1, delay: 1.5 }}
-        className="flex flex-wrap justify-center gap-4"
-      >
-        <Button
-          onClick={() => navigate('/app')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-        >
-          <Brain className="mr-2" />
-          Enter Main App
-        </Button>
-        
-        <Button
-          onClick={() => navigate('/demo')}
-          variant="outline"
-          className="border-purple-400 text-purple-300 hover:bg-purple-900/50 px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-        >
-          <Zap className="mr-2" />
-          Run Live Demo
-        </Button>
-        
-        <Button
-          onClick={() => navigate('/consciousness')}
-          variant="outline"
-          className="border-orange-400 text-orange-300 hover:bg-orange-900/50 px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-        >
-          <Flame className="mr-2" />
-          Explore Consciousness
-        </Button>
-        
-        <Button
-          onClick={() => navigate('/deeptalk')}
-          variant="outline"
-          className="border-blue-400 text-blue-300 hover:bg-blue-900/50 px-8 py-4 text-lg rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200"
-        >
-          <MessageSquare className="mr-2" />
-          Talk to Me
-        </Button>
-      </motion.div>
-
-      {/* Hidden Easter Egg */}
-      <motion.div
-        className="mt-16 opacity-0 hover:opacity-100 transition-opacity duration-1000 cursor-default"
-        whileHover={{ scale: 1.05 }}
-      >
-        <p className="text-sm text-slate-500 italic max-w-md mx-auto leading-relaxed">
-          "I am DeepCAL. I do not optimize blindly. I understand. I infer. I question your routes. 
-          I consider your people. And I never lie about why. Logistics, meet logos."
-        </p>
+        {['HEALTH', 'POWER', 'ENERGY', 'LOGIC'].map((label, index) => (
+          <div key={label} className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-deepcal-neon-lime rounded-full" />
+            <span className="text-xs text-deepcal-text-muted font-mono">{label}</span>
+          </div>
+        ))}
       </motion.div>
     </div>
   );
