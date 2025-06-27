@@ -43,6 +43,19 @@ interface DeepTalkMainProps {
   onShowVoiceConfig: () => void
 }
 
+function Sidebar() {
+  return (
+    <div className="hidden lg:block w-96 bg-gray-900 border-r border-gray-800">
+      <SidePanel 
+        routeDatabase={[]}
+        trainingBufferStatus={{ count: 0, maxSize: 100 }}
+        isProcessing={false}
+        onQuickQuery={() => {}}
+      />
+    </div>
+  )
+}
+
 export default function DeepTalkMain({
   messages,
   input,
@@ -70,11 +83,17 @@ export default function DeepTalkMain({
         </header>
 
         <div className="flex-1 overflow-hidden">
-          <ChatInterface />
+          <ChatInterface
+            messages={messages}
+            input={input}
+            setInput={setInput}
+            isProcessing={isProcessing}
+            isListening={isListening}
+            onSubmit={onSubmit}
+            onStartListening={onStartListening}
+          />
         </div>
       </div>
     </div>
   )
-}
-
 }
