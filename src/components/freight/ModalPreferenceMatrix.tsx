@@ -48,19 +48,22 @@ const ModalPreferenceMatrix: React.FC<ModalPreferenceProps> = ({
       // Symbolic rule creation for each mode
       const rules = [
         {
-          condition: `${mode} suitable for cargo type ${cargoType}`,
+          id: `${mode}_cargo_compatibility`,
+          rule: `${mode} suitable for cargo type ${cargoType}`,
           truth: getCargoModeCompatibility(cargoType, mode),
           indeterminacy: 0.1,
           falsity: 0.1
         },
         {
-          condition: `${mode} meets urgency requirement ${urgency}`,
+          id: `${mode}_urgency_match`,
+          rule: `${mode} meets urgency requirement ${urgency}`,
           truth: getUrgencyCompatibility(urgency, mode),
           indeterminacy: 0.15,
           falsity: 0.1
         },
         {
-          condition: `${mode} acceptable environmental impact for sensitivity ${emissionSensitivity}`,
+          id: `${mode}_environmental_impact`,
+          rule: `${mode} acceptable environmental impact for sensitivity ${emissionSensitivity}`,
           truth: getEnvironmentalCompatibility(emissionSensitivity, mode),
           indeterminacy: 0.2,
           falsity: 0.1
