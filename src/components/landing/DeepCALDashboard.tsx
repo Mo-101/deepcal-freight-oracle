@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -52,7 +51,13 @@ const topsisOptimizationData = [
 
 const DEEPCAL_COLORS = ['#FFB43A', '#C1FF57', '#00E0C6', '#6254F3'];
 
-export function DeepCALDashboard() {
+const healthData = [
+  { name: 'Health', value: 80 },
+];
+
+const COLORS = ['#FFB43A', '#C1FF57', '#00E0C6', '#6254F3'];
+
+export default function DeepCALDashboard() {
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
   const [trainingStats, setTrainingStats] = useState({
     samplesProcessed: 0,
@@ -343,6 +348,26 @@ export function DeepCALDashboard() {
                       />
                       <Bar dataKey="value" fill="#FF7849" />
                     </BarChart>
+                  )}
+
+                  {activeWidget === 'health' && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={healthData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {healthData.map((entry, index) => (
+                            <Cell key={`health-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
                   )}
                 </ResponsiveContainer>
               </div>

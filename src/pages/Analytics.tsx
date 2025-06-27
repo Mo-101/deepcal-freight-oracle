@@ -425,9 +425,13 @@ const Analytics = () => {
                               paddingAngle={2}
                               dataKey="value"
                             >
-                              <Cell fill="#ec4899" />
-                              <Cell fill="#a855f7" />
-                              <Cell fill="#06b6d4" />
+                              {[
+                                { name: "Quantum", value: 35 },
+                                { name: "Hybrid", value: 45 },
+                                { name: "Classical", value: 20 },
+                              ].map((entry, index) => (
+                                <Cell key={`aol-cell-${index}`} fill={["#ec4899", "#a855f7", "#06b6d4"][index]} />
+                              ))}
                             </Pie>
                           </PieChart>
                         </ResponsiveContainer>
