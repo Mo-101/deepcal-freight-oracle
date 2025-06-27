@@ -46,10 +46,7 @@ const ValuePropositions = () => {
           whileHover={{ scale: 1.05, y: -10 }}
           className="group"
         >
-          <div className="glass-card p-6 h-full relative overflow-hidden">
-            {/* Animated border glow */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r ${value.color} blur-xl`} />
-            
+          <div className="morphic-border p-6 h-full relative">
             <div className="relative z-10">
               {/* Icon */}
               <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${value.color} p-3 mb-4 group-hover:scale-110 transition-transform duration-300`}>
@@ -57,23 +54,23 @@ const ValuePropositions = () => {
               </div>
 
               {/* Title */}
-              <h3 className="text-xl font-bold text-white mb-2">
+              <h3 className="text-xl font-bold text-deepcal-text-primary mb-2">
                 {value.title}
               </h3>
 
               {/* Subtitle (humorous) */}
-              <p className="text-sm font-medium text-purple-300 mb-3 italic">
+              <p className="text-sm font-medium text-deepcal-neon-lime mb-3 italic">
                 "{value.subtitle}"
               </p>
 
               {/* Description */}
-              <p className="text-slate-300 text-sm leading-relaxed">
+              <p className="text-deepcal-text-secondary text-sm leading-relaxed">
                 {value.description}
               </p>
 
               {/* Hover effect indicator */}
-              <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="w-full h-full bg-green-400 rounded-full animate-ping" />
+              <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-deepcal-neon-lime opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-full h-full bg-deepcal-neon-lime rounded-full animate-ping" />
               </div>
             </div>
           </div>

@@ -71,7 +71,7 @@ const PathwayCards = ({ onNavigate }: PathwayCardsProps) => {
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="text-4xl font-bold text-white mb-4"
+        className="text-4xl font-bold text-deepcal-text-primary mb-4"
       >
         Choose Your Experience
       </motion.h2>
@@ -80,7 +80,7 @@ const PathwayCards = ({ onNavigate }: PathwayCardsProps) => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="text-slate-300 text-lg mb-12"
+        className="text-deepcal-text-secondary text-lg mb-12"
       >
         Each pathway reveals a different facet of symbolic intelligence
       </motion.p>
@@ -97,13 +97,7 @@ const PathwayCards = ({ onNavigate }: PathwayCardsProps) => {
             onClick={() => onNavigate(pathway.path, pathway.description)}
             className="group cursor-pointer"
           >
-            <div className="glass-card p-6 h-full relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
-              {/* Animated glow effect */}
-              <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur-xl"
-                style={{ backgroundColor: pathway.glowColor }}
-              />
-              
+            <div className="morphic-border p-6 h-full relative">
               <div className="relative z-10">
                 {/* Icon */}
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${pathway.color} p-4 mb-4 mx-auto group-hover:scale-110 transition-transform duration-300`}>
@@ -111,26 +105,26 @@ const PathwayCards = ({ onNavigate }: PathwayCardsProps) => {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="text-xl font-bold text-deepcal-text-primary mb-2">
                   {pathway.title}
                 </h3>
 
                 {/* Subtitle */}
-                <p className="text-purple-300 text-sm mb-3 font-medium">
+                <p className="text-deepcal-neon-lime text-sm mb-3 font-medium">
                   {pathway.subtitle}
                 </p>
 
                 {/* Description */}
-                <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                <p className="text-deepcal-text-secondary text-sm leading-relaxed mb-4">
                   {pathway.description}
                 </p>
 
                 {/* Action indicator */}
                 <div className="flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-green-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-2">
-                    <div className="w-full h-full bg-green-400 rounded-full animate-ping" />
+                  <div className="w-2 h-2 rounded-full bg-deepcal-neon-lime opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-2">
+                    <div className="w-full h-full bg-deepcal-neon-lime rounded-full animate-ping" />
                   </div>
-                  <span className="text-xs text-slate-500 group-hover:text-green-400 transition-colors duration-300">
+                  <span className="text-xs text-deepcal-text-muted group-hover:text-deepcal-neon-lime transition-colors duration-300">
                     Click to explore
                   </span>
                 </div>

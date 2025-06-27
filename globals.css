@@ -113,6 +113,7 @@ body {
     --deepcal-card-warning: #3A1C1C;
     --deepcal-card-success: #1C3A2E;
     --font-elegant: 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif';
+    --font-script: 'Fira Code', 'Monaco', 'Consolas', 'monospace';
   }
   
   body {
@@ -136,6 +137,165 @@ body {
   .deepcal-card:hover {
     box-shadow: 0 12px 40px rgba(255, 180, 58, 0.25);
     border-color: var(--deepcal-solar-gold);
+  }
+  
+  .morphic-border {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background: linear-gradient(145deg, rgba(26, 31, 69, 0.8), rgba(17, 23, 67, 0.9));
+    backdrop-filter: blur(16px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .morphic-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(45deg, 
+      var(--deepcal-solar-gold), 
+      var(--deepcal-deep-aqua), 
+      var(--deepcal-neon-lime), 
+      var(--deepcal-ember-orange), 
+      var(--deepcal-solar-gold)
+    );
+    background-size: 300% 300%;
+    animation: morphic-gradient 6s ease infinite;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+  
+  .morphic-border:hover::before {
+    opacity: 1;
+    animation-duration: 3s;
+  }
+  
+  .morphic-border::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    transform: translate(-50%, -50%) rotate(0deg);
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(255, 180, 58, 0.1) 90deg,
+      rgba(0, 224, 198, 0.1) 180deg,
+      rgba(193, 255, 87, 0.1) 270deg,
+      transparent 360deg
+    );
+    animation: morphic-spin 12s linear infinite;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .morphic-border:hover::after {
+    opacity: 0.3;
+  }
+  
+  @keyframes morphic-gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes morphic-spin {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+  
+  .glass-card {
+    background: rgba(26, 31, 69, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 180, 58, 0.2);
+    border-radius: 1.25rem;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-card:hover {
+    border-color: rgba(255, 180, 58, 0.4);
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 180, 58, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .script-logo {
+    font-family: var(--font-script);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    position: relative;
+    background: linear-gradient(135deg, #FFB43A, #00E0C6, #C1FF57);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: script-shimmer 4s ease-in-out infinite;
+  }
+  
+  .script-logo::before {
+    content: '> ';
+    color: var(--deepcal-neon-lime);
+    opacity: 0.8;
+    animation: script-cursor 2s ease-in-out infinite;
+  }
+  
+  .script-logo::after {
+    content: '_';
+    color: var(--deepcal-solar-gold);
+    animation: script-blink 1.5s ease-in-out infinite;
+    margin-left: 2px;
+  }
+  
+  @keyframes script-shimmer {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes script-cursor {
+    0%, 50% {
+      opacity: 0.8;
+    }
+    75%, 100% {
+      opacity: 0.3;
+    }
+  }
+  
+  @keyframes script-blink {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
   }
   
   .deepcal-input {
