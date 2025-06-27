@@ -74,3 +74,6 @@ export const useSymbolicIntelligence = () => {
     getEngineDiagnostics
   };
 };
+
+// Re-export types for backward compatibility
+export type { SymbolicInput, SymbolicResult, LogisticsAlternative, EngineStatus } from '@/types/symbolicIntelligence';

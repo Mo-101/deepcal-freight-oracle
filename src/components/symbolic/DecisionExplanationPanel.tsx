@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Brain, TrendingUp, Shield, DollarSign, Clock, AlertTriangle } from 'lucide-react';
-import { SymbolicResult } from '@/hooks/useSymbolicIntelligence';
+import { SymbolicResult } from '@/types/symbolicIntelligence';
 
 interface DecisionExplanationPanelProps {
   result: SymbolicResult;

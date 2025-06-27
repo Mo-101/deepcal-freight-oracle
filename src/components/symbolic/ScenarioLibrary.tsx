@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Play, Zap, AlertTriangle, Truck, Ship, Plane } from 'lucide-react';
-import { LogisticsAlternative, SymbolicInput } from '@/hooks/useSymbolicIntelligence';
+import { LogisticsAlternative, SymbolicInput } from '@/types/symbolicIntelligence';
 import symbolicRulesData from '@/data/symbolicRules.json';
 
 interface ScenarioLibraryProps {

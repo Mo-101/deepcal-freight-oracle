@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Target, Cog, Flame } from 'lucide-react';
-import { EngineStatus } from '@/hooks/useSymbolicIntelligence';
+import { EngineStatus } from '@/types/symbolicIntelligence';
 
 interface SymbolicEngineDisplayProps {
   status: EngineStatus;
