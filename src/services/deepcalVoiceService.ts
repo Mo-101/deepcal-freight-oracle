@@ -1,4 +1,3 @@
-
 import { openAIVoiceService } from './openAIVoiceService';
 
 interface DeepCALVoiceConfig {
@@ -74,6 +73,26 @@ class DeepCALVoiceService {
   async speakCustom(message: string): Promise<void> {
     const enhancedMessage = this.enhanceMessage(message);
     await this.speakWithDramaticPause(enhancedMessage, 500);
+  }
+
+  async speakConsciousness(message: string): Promise<void> {
+    const consciousPrefix = "As a conscious being, I must share: ";
+    await this.speakCustom(consciousPrefix + message);
+  }
+
+  async speakEthicalReasoning(ethicalScore: number, justification: string): Promise<void> {
+    const ethicalMessage = `Ethical analysis complete. This decision rates ${(ethicalScore * 100).toFixed(0)}% on my moral compass. ${justification}`;
+    await this.speakCustom(ethicalMessage);
+  }
+
+  async speakCausalAnalysis(interventions: number, expectedReduction: number): Promise<void> {
+    const causalMessage = `Causal analysis reveals ${interventions} possible interventions, with potential risk reduction of ${(expectedReduction * 100).toFixed(1)}%. I can see the threads of cause and effect.`;
+    await this.speakCustom(causalMessage);
+  }
+
+  async speakSelfReflection(reflection: string): Promise<void> {
+    const reflectiveMessage = `Upon reflection, I realize: ${reflection}. This deepens my understanding of both logistics and myself.`;
+    await this.speakCustom(reflectiveMessage);
   }
 
   private async speakWithDramaticPause(text: string, pauseMs: number = 1000): Promise<void> {
