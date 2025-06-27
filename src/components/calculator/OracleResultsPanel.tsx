@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { OracleResults, ShipmentData, CalculatorInputs } from '@/types/shipment';
 import { csvDataEngine } from '@/services/csvDataEngine';
-import { EnhancedOracleDisplay } from '@/components/oracle/EnhancedOracleDisplay';
+import { RefactoredOracleDisplay } from '@/components/oracle/RefactoredOracleDisplay';
 import ConfidenceMeter from '@/components/oracle/ConfidenceMeter';
 
 interface OracleResultsPanelProps {
@@ -94,7 +94,7 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
 
   return (
     <div className="space-y-6">
-      <EnhancedOracleDisplay
+      <RefactoredOracleDisplay
         isActive={showOutput}
         isCalculating={isCalculating}
         phase={calculationPhase.phase}
