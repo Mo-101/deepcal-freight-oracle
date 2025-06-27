@@ -1,18 +1,18 @@
-
 import React, { useEffect, useState } from 'react';
-import DeepCALHeader from '@/components/DeepCALHeader';
+import DeepCALSymbolicHeader from '@/components/DeepCALSymbolicHeader';
 import CSVDataLoader from '@/components/CSVDataLoader';
 import FreightCalculator from '@/components/FreightCalculator';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import { humorToast } from '@/components/HumorToast';
 
 const FreightCalculatorPage = () => {
-  const [isDataLoaded, setIsDataLoaded] = useState(csvDataEngine.isDataLoaded());
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isAutoLoading, setIsAutoLoading] = useState(false);
 
   useEffect(() => {
     const autoLoadEmbeddedData = async () => {
-      if (!csvDataEngine.isDataLoaded() && !isAutoLoading) {
+      const isLoaded = await csvDataEngine.isDataLoaded();
+      if (!isLoaded && !isAutoLoading) {
         setIsAutoLoading(true);
         try {
           await csvDataEngine.autoLoadEmbeddedData();
@@ -20,10 +20,11 @@ const FreightCalculatorPage = () => {
           humorToast("🚀 DeepCAL Boot Complete", "Embedded dataset auto-loaded. No more locked features!", 3000);
         } catch (error) {
           console.error("Auto-load failed:", error);
-          // Let user manually load data
         } finally {
           setIsAutoLoading(false);
         }
+      } else {
+        setIsDataLoaded(isLoaded);
       }
     };
 
@@ -31,22 +32,22 @@ const FreightCalculatorPage = () => {
   }, [isAutoLoading]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-blue-50 to-white">
-      <DeepCALHeader />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
+      <DeepCALSymbolicHeader />
       <main className="container mx-auto pt-6 px-4 space-y-8">
         {!isDataLoaded ? (
           <>
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-4">DeepCAL Freight Calculator</h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <h1 className="text-4xl font-bold mb-4 text-white">DeepCAL Freight Calculator</h1>
+              <p className="text-xl text-indigo-200 max-w-2xl mx-auto">
                 Revolutionary freight optimization using AHP-TOPSIS multi-criteria decision analysis.
                 {isAutoLoading ? "Auto-loading embedded dataset..." : "Load your data to unlock the full power of DeepCAL."}
               </p>
             </div>
             {isAutoLoading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading embedded dataset...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-400 mx-auto mb-4"></div>
+                <p className="text-indigo-200">Loading embedded dataset...</p>
               </div>
             ) : (
               <CSVDataLoader onDataLoaded={() => setIsDataLoaded(true)} />

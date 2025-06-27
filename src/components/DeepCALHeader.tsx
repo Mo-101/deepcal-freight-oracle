@@ -1,20 +1,17 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Calculator } from "lucide-react";
+import { BrainCog, Dumbbell, Map, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// All main app pages
 const navLinks = [
   { label: "Dashboard", to: "/" },
-  { label: "Calculator", to: "/calculator", icon: Calculator },
-  { label: "Ranking", to: "/ranking" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
-];
-
-const logoJoke = [
-  "DeepCAL:",
-  <span key="slogan" className="text-primary font-semibold">Freight is Uncertain. Logic is Not.</span>,
+  { label: "Training", to: "/training", icon: Dumbbell },
+  { label: "Map", to: "/map", icon: Map },
+  { label: "About", to: "/about", icon: Info },
 ];
 
 const DeepCALHeader: React.FC = () => {
@@ -27,7 +24,7 @@ const DeepCALHeader: React.FC = () => {
             <BrainCog className="w-9 h-9 text-lime-400" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-end gap-2" title="DeepCAL">
-            {logoJoke}
+            DeepCAL
           </h1>
         </div>
         <nav className="flex gap-2">

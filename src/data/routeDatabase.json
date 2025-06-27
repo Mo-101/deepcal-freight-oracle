@@ -1,0 +1,63 @@
+
+[
+  {
+    "id": "route_001",
+    "carrier": "Maersk Line",
+    "route": "Mombasa-Juba",
+    "hub": "Nairobi",
+    "destination": "South Sudan",
+    "transitTime": 12,
+    "cost": 2450,
+    "reliability": 85,
+    "riskLevel": 15,
+    "overallScore": 0.82
+  },
+  {
+    "id": "route_002", 
+    "carrier": "CMA CGM",
+    "route": "Dakar-Juba",
+    "hub": "Dakar",
+    "destination": "South Sudan",
+    "transitTime": 8,
+    "cost": 2850,
+    "reliability": 78,
+    "riskLevel": 22,
+    "overallScore": 0.75
+  },
+  {
+    "id": "route_003",
+    "carrier": "MSC",
+    "route": "Lagos-Juba", 
+    "hub": "Lagos",
+    "destination": "South Sudan",
+    "transitTime": 10,
+    "cost": 2200,
+    "reliability": 90,
+    "riskLevel": 10,
+    "overallScore": 0.88
+  },
+  {
+    "id": "route_004",
+    "carrier": "Hapag-Lloyd",
+    "route": "Djibouti-Juba",
+    "hub": "Djibouti", 
+    "destination": "South Sudan",
+    "transitTime": 6,
+    "cost": 3100,
+    "reliability": 92,
+    "riskLevel": 8,
+    "overallScore": 0.85
+  },
+  {
+    "id": "route_005",
+    "carrier": "COSCO",
+    "route": "Port Sudan-Juba",
+    "hub": "Port Sudan",
+    "destination": "South Sudan", 
+    "transitTime": 4,
+    "cost": 1850,
+    "reliability": 70,
+    "riskLevel": 30,
+    "overallScore": 0.68
+  }
+]

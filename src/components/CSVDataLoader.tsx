@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Database, CheckCircle, AlertCircle, FileText } from 'lucide-react';
@@ -12,9 +11,28 @@ interface CSVDataLoaderProps {
 
 const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(csvDataEngine.isDataLoaded());
+  // Loader state is determined by presence of actual shipments in store now
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [dataStats, setDataStats] = useState<{ records: number; hash: string; source: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateDataLoadedState = async () => {
+    const shipments = csvDataEngine.listShipments();
+    setDataLoaded(Array.isArray(shipments) && shipments.length > 0);
+    if (shipments.length > 0) {
+      const lineageMeta = csvDataEngine.getLineageMeta?.();
+      setDataStats({
+        records: shipments.length,
+        hash: lineageMeta?.sha256.substring(0, 8) || 'unknown',
+        source: lineageMeta?.source || 'uploaded'
+      });
+    }
+  };
+
+  // On mount, check for rows
+  React.useEffect(() => {
+    updateDataLoadedState();
+  }, []);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,20 +48,18 @@ const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
 
     try {
       const text = await file.text();
-      await csvDataEngine.loadCSVData(text, 'uploaded');
+      // Create a blob URL for the file content to use with loadCSVData
+      const blob = new Blob([text], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
       
-      const shipments = csvDataEngine.getShipments();
-      const lineageMeta = csvDataEngine.getLineageMeta();
+      await csvDataEngine.loadCSVData(url);
       
-      setDataStats({
-        records: shipments.length,
-        hash: lineageMeta?.sha256.substring(0, 8) || 'unknown',
-        source: lineageMeta?.source || 'uploaded'
-      });
-      setDataLoaded(true);
+      // Clean up the blob URL
+      URL.revokeObjectURL(url);
+      
+      await updateDataLoadedState();
       onDataLoaded?.();
-      
-      humorToast("✅ Data Engine Online", `Successfully loaded ${shipments.length} shipment records!`, 3000);
+      humorToast("✅ Data Engine Online", `Successfully loaded shipment records!`, 3000);
     } catch (error) {
       humorToast("❌ Load Failed", (error as Error).message, 4000);
     } finally {
@@ -60,19 +76,9 @@ const CSVDataLoader = ({ onDataLoaded }: CSVDataLoaderProps) => {
 
     try {
       await csvDataEngine.autoLoadEmbeddedData();
-      
-      const shipments = csvDataEngine.getShipments();
-      const lineageMeta = csvDataEngine.getLineageMeta();
-      
-      setDataStats({
-        records: shipments.length,
-        hash: lineageMeta?.sha256.substring(0, 8) || 'unknown',
-        source: lineageMeta?.source || 'embedded'
-      });
-      setDataLoaded(true);
+      await updateDataLoadedState();
       onDataLoaded?.();
-      
-      humorToast("✅ Embedded Data Loaded", `DeepCAL is now operational with ${shipments.length} real shipment records!`, 3000);
+      humorToast("✅ Embedded Data Loaded", `DeepCAL is now operational with real shipment records!`, 3000);
     } catch (error) {
       humorToast("❌ Embedded Load Failed", (error as Error).message, 4000);
     } finally {

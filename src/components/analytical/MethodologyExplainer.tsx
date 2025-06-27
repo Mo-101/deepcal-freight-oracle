@@ -1,10 +1,19 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, BookOpen, Zap, Target } from 'lucide-react';
-import type { FreightCalculatorResult } from '@/services/csvDataEngine';
+// Inline type definition
+type FreightCalculatorResult = {
+  lineageMeta: {
+    records: number,
+    sha256: string,
+    timestamp: string,
+    source: string
+  };
+  forwarderComparison: any[];
+  rulesFired: string[];
+};
 
 interface MethodologyExplainerProps {
   result: FreightCalculatorResult;

@@ -1,0 +1,20 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Training jobs collection
+    match /training_jobs/{jobId} {
+      allow read, write: if true; // Adjust based on your auth requirements
+    }
+    
+    // Model weights collection
+    match /model_weights/{weightId} {
+      allow read, write: if true; // Adjust based on your auth requirements
+    }
+    
+    // Training metrics collection
+    match /training_metrics/{metricId} {
+      allow read, write: if true; // Adjust based on your auth requirements
+    }
+  }
+}

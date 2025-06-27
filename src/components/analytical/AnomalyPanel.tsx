@@ -1,6 +1,5 @@
 
 import React from "react";
-import type { ForwarderKPI } from '@/services/csvDataEngine';
 import type { ForwarderAnomalies } from './anomalyUtils';
 import { AlertTriangle } from "lucide-react";
 

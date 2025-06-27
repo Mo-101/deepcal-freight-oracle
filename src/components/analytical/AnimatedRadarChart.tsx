@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { ForwarderKPI } from '@/services/csvDataEngine';
 import { AlertTriangle } from "lucide-react";
 import type { ForwarderAnomalies } from "./anomalyUtils";
 

@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
-import type { FreightCalculatorResult } from '@/services/csvDataEngine';
+import type { OracleResults } from '@/types/shipment';
 
 interface ConfidenceVisualizationProps {
-  result: FreightCalculatorResult;
+  result: OracleResults;
   confidenceScore: number;
   revealLevel: 'novice' | 'expert' | 'phd';
 }
@@ -29,16 +28,16 @@ export const ConfidenceVisualization: React.FC<ConfidenceVisualizationProps> = (
   }, [confidenceScore]);
 
   // Calculate confidence breakdown
-  const dataQuality = Math.min((result.lineageMeta.records / 100) * 100, 100);
+  const dataQuality = Math.min((result.forwarderComparison?.length || 0 / 100) * 100, 100);
   const methodStrength = 92; // TOPSIS is a robust method
-  const sampleSize = Math.min((result.forwarderComparison.length / 5) * 100, 100);
+  const sampleSize = Math.min((result.forwarderComparison?.length || 0 / 5) * 100, 100);
   const varianceStability = 88; // Simulated based on cost variance
 
   const confidenceFactors = [
     {
       name: 'Data Quality',
       score: dataQuality,
-      description: `${result.lineageMeta.records} verified records`,
+      description: `${result.forwarderComparison?.length || 0} verified records`,
       icon: CheckCircle,
       color: 'text-green-400'
     },
@@ -52,7 +51,7 @@ export const ConfidenceVisualization: React.FC<ConfidenceVisualizationProps> = (
     {
       name: 'Sample Coverage',
       score: sampleSize,
-      description: `${result.forwarderComparison.length} forwarder comparison`,
+      description: `${result.forwarderComparison?.length || 0} forwarder comparison`,
       icon: AlertTriangle,
       color: 'text-amber-400'
     },
@@ -171,7 +170,7 @@ export const ConfidenceVisualization: React.FC<ConfidenceVisualizationProps> = (
                 </div>
                 <div className="flex justify-between">
                   <span>DoF:</span>
-                  <span className="font-mono">{result.lineageMeta.records - 1}</span>
+                  <span className="font-mono">{result.forwarderComparison?.length || 0 - 1}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>χ² critical:</span>

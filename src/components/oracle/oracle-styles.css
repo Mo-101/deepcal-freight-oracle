@@ -1,0 +1,44 @@
+
+/* 3D Card Flip Styles for ForwarderCardFlip */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Glow effects for Oracle components */
+.oracle-glow {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.oracle-pulse {
+  animation: oracle-pulse 2s infinite;
+}
+
+@keyframes oracle-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.4);
+  }
+}
+
+/* Sparkline animation for micro charts */
+.sparkline-bar {
+  transition: height 0.3s ease-in-out;
+}
+
+.sparkline-bar:hover {
+  height: 100% !important;
+}

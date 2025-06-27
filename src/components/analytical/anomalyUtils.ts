@@ -1,10 +1,7 @@
-
 /**
  * Utilities for detecting anomalies in forwarder KPIs.
  * Here, a value is flagged as anomalous if it is more than 1.5 standard deviations from the mean for its set.
  */
-
-import type { ForwarderKPI } from '@/services/csvDataEngine';
 
 type AnomalyField = 'costPerKg' | 'avgTransitDays' | 'onTimeRate';
 
