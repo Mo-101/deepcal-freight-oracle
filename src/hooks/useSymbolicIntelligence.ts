@@ -1,3 +1,4 @@
+
 // DeepCAL Symbolic Intelligence Hook
 // Integrates Neutrosophic + TOPSIS + Grey System engines
 
@@ -5,7 +6,7 @@ import { useState, useCallback } from 'react';
 import { neutrosophicEngine, NeutrosophicRule } from '@/services/neutrosophicEngine';
 import { createLogisticsTOPSIS, TOPSISAlternative, TOPSISResult } from '@/services/topsisEngine';
 import { greySystemEngine, GreyValue } from '@/services/greySystemEngine';
-import { deepcalVoiceService } from '@/services/deepcalVoiceService';
+import { handleDecisionVoice, handleRuleRejection, handleLowConfidence } from '@/services/deepcal_voice_core';
 import { symbolicResponseGenerator } from '@/services/symbolicResponseGenerator';
 import { contextualRuleEngine } from '@/services/contextualRuleEngine';
 
@@ -55,6 +56,7 @@ export const useSymbolicIntelligence = () => {
 
   const [result, setResult] = useState<SymbolicResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   // Core symbolic reasoning function
   const processSymbolicInput = useCallback(async (input: SymbolicInput): Promise<SymbolicResult> => {
@@ -77,6 +79,12 @@ export const useSymbolicIntelligence = () => {
       const contextualRules = contextualRuleEngine.getAllRules();
       const validRules = neutrosophicEngine.filterRules(contextualRules);
       const ruleWeights = neutrosophicEngine.generateRuleWeights(validRules);
+
+      // Tactical voice feedback for rule rejections
+      if (voiceEnabled && contextualRules.length - validRules.length > 0) {
+        const rejectedRules = contextualRules.filter(rule => !validRules.includes(rule));
+        rejectedRules.forEach(rule => handleRuleRejection(rule));
+      }
 
       // Phase 2: Grey System Processing
       setStatus({
@@ -138,6 +146,11 @@ export const useSymbolicIntelligence = () => {
       // Calculate overall confidence
       const confidence = (validRules.length / contextualRules.length) * ranking[0].score;
 
+      // Check for low confidence scenarios
+      if (confidence < 0.5 && voiceEnabled) {
+        handleLowConfidence();
+      }
+
       // Final phase
       setStatus({
         phase: 'complete',
@@ -161,17 +174,10 @@ export const useSymbolicIntelligence = () => {
 
       setResult(symbolicResult);
       
-      // Generate symbolic voice response instead of hardcoded announcement
-      const voiceResponse = symbolicResponseGenerator.generateResponse({
-        query: 'analysis_complete',
-        intent: 'recommendation',
-        data: {
-          recommendation: symbolicResult.bestAlternative.name,
-          confidence: symbolicResult.confidence
-        }
-      });
-
-      await deepcalVoiceService.speakCustom(voiceResponse);
+      // Tactical voice announcement only if enabled and high confidence
+      if (voiceEnabled && confidence >= 0.5) {
+        handleDecisionVoice(symbolicResult);
+      }
 
       return symbolicResult;
 
@@ -189,7 +195,7 @@ export const useSymbolicIntelligence = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [voiceEnabled]);
 
   // Reset engine state
   const resetEngine = useCallback(() => {
@@ -228,6 +234,8 @@ export const useSymbolicIntelligence = () => {
     status,
     result,
     isProcessing,
+    voiceEnabled,
+    setVoiceEnabled,
     
     // Diagnostics
     getEngineDiagnostics

@@ -1,6 +1,17 @@
 
 import axios from 'axios';
 
+const processTextForSpeech = (text: string): string => {
+  return text
+    .replace(/DeepCAL/g, 'Deep Cal')
+    .replace(/TOPSIS/g, 'TOP-SIS')
+    .replace(/neutrosophic/g, 'neutro-sophic')
+    .replace(/ontological/g, 'onto-logical')
+    .replace(/\b(\d+)%/g, '$1 percent')
+    .replace(/\b(\d+\.\d+)%/g, '$1 percent')
+    .replace(/🧠|🔥|⚡|🎯/g, ''); // Remove emojis for cleaner speech
+};
+
 export const speak = async (text: string, voice: "nova" | "shimmer" = "nova") => {
   try {
     const apiKey = localStorage.getItem("openai-api-key");
@@ -25,6 +36,9 @@ export const speak = async (text: string, voice: "nova" | "shimmer" = "nova") =>
     const url = URL.createObjectURL(audio);
     const audioElement = new Audio(url);
     
+    // Optimize playback for more natural sound
+    audioElement.playbackRate = 0.95;
+    
     await audioElement.play();
     
     // Clean up the URL after playing
@@ -42,17 +56,6 @@ export const speak = async (text: string, voice: "nova" | "shimmer" = "nova") =>
       speechSynthesis.speak(utterance);
     }
   }
-};
-
-const processTextForSpeech = (text: string): string => {
-  return text
-    .replace(/DeepCAL/g, 'Deep Cal')
-    .replace(/TOPSIS/g, 'TOP-SIS')
-    .replace(/neutrosophic/g, 'neutro-sophic')
-    .replace(/ontological/g, 'onto-logical')
-    .replace(/\b(\d+)%/g, '$1 percent')
-    .replace(/\b(\d+\.\d+)%/g, '$1 percent')
-    .replace(/🧠|🔥|⚡|🎯/g, ''); // Remove emojis for cleaner speech
 };
 
 export const generateNarration = (result: any): string => {
