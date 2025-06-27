@@ -1,26 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-
-export default function DeepCALSymbolicHeader() {
-  const navigate = useNavigate();
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-  };
-
-  return (
-    <header className="bg-slate-900/95 backdrop-blur-sm border-b border-lime-500/20 sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <h1 
-              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-lime-400 to-cyan-300 cursor-pointer hover:from-lime-300 hover:to-cyan-200 transition-all duration-300"
-              onClick={() => handleNavigate('/')}
-            >
-              DeepCAL++
-            </h1>
-            <span className="text-xs bg-lime-500 text-black px-2 py-1 rounded font-semibold">
-              NEURAL ACTIVE
-            </span>
           </div>
 
           <nav className="hidden md:flex items-center space-x-6">

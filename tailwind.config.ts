@@ -19,64 +19,25 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				background: '#0f172a',
+				surface: '#1e293b',
+				border: '#334155',
+				glass: 'rgba(255,255,255,0.07)',
+				glassBorder: 'rgba(126,34,206,0.3)',
+				cardShadow: 'rgba(126,34,206,0.2)',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
-				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
-				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#a855f7',
+					dark: '#581c87',
+					foreground: '#f8fafc'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
-				},
-				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
-				},
-				// Custom colors for MoStar Industries
-				mostar: {
-					'dark': '#0A0E17',
-					'blue': '#0039e6',
-					'light-blue': '#00a2ff',
-					'cyan': '#00ffff',
-					'purple': '#6b46c1',
-					'magenta': '#f81ce5',
-					'pink': '#ff00a0',
-					'green': '#00ff9d',
-					'yellow': '#ffca00',
-				},
-				// Our accent gradient colors
-				neon: {
-					'blue': '#33a1ff',
-					'cyan': '#00ffff',
-					'purple': '#9500ff',
-					'magenta': '#f81ce5',
-					'green': '#00ff9d',
-				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: '1rem',
+				glass: '16px'
 			},
 			fontFamily: {
 				'display': ['"Rajdhani"', 'sans-serif'],
