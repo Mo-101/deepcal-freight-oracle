@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { loadAllMoScripts } from "@/moscripts/registry";
+import LandingPage from "./pages/LandingPage";
 import SymbolicCalculator from "./pages/SymbolicCalculator";
 import SymbolicDemo from "./pages/SymbolicDemo";
 import Dashboard from "./pages/Dashboard";
@@ -32,7 +34,8 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              <Route path="/" element={<SymbolicCalculator />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/app" element={<SymbolicCalculator />} />
               <Route path="/demo" element={<SymbolicDemo />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/analytics" element={<Analytics />} />
@@ -42,7 +45,7 @@ function App() {
               <Route path="/tracking" element={<TrackingPage />} />
               <Route path="/about" element={<About />} />
               <Route path="/symbolic-demo" element={<SymbolicDemo />} />
-              <Route path="/symbolic-consciousness" element={<SymbolicConsciousness />} />
+              <Route path="/consciousness" element={<SymbolicConsciousness />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
