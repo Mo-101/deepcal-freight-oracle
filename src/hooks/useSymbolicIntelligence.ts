@@ -1,4 +1,3 @@
-
 // DeepCAL Symbolic Intelligence Hook
 // Integrates Neutrosophic + TOPSIS + Grey System engines
 
@@ -7,6 +6,8 @@ import { neutrosophicEngine, NeutrosophicRule } from '@/services/neutrosophicEng
 import { createLogisticsTOPSIS, TOPSISAlternative, TOPSISResult } from '@/services/topsisEngine';
 import { greySystemEngine, GreyValue } from '@/services/greySystemEngine';
 import { deepcalVoiceService } from '@/services/deepcalVoiceService';
+import { symbolicResponseGenerator } from '@/services/symbolicResponseGenerator';
+import { contextualRuleEngine } from '@/services/contextualRuleEngine';
 
 export interface SymbolicInput {
   alternatives: LogisticsAlternative[];
@@ -72,15 +73,9 @@ export const useSymbolicIntelligence = () => {
         greyProgress: 0
       });
 
-      await deepcalVoiceService.speakAnalysis('Neutrosophic rule validation');
-
-      // Simulate progressive neutrosophic filtering
-      for (let i = 0; i <= 100; i += 25) {
-        setStatus(prev => ({ ...prev, neutrosophicProgress: i }));
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      const validRules = neutrosophicEngine.filterRules(input.rules);
+      // Use contextual rules instead of static rules
+      const contextualRules = contextualRuleEngine.getAllRules();
+      const validRules = neutrosophicEngine.filterRules(contextualRules);
       const ruleWeights = neutrosophicEngine.generateRuleWeights(validRules);
 
       // Phase 2: Grey System Processing
@@ -128,7 +123,6 @@ export const useSymbolicIntelligence = () => {
 
       const topsisEngine = createLogisticsTOPSIS();
       
-      // Update TOPSIS weights based on neutrosophic rule confidence
       if (ruleWeights.length >= 4) {
         topsisEngine.updateWeights(ruleWeights.slice(0, 4));
       }
@@ -142,7 +136,7 @@ export const useSymbolicIntelligence = () => {
       const ranking = topsisEngine.rankAlternatives(topsisAlternatives);
 
       // Calculate overall confidence
-      const confidence = (validRules.length / input.rules.length) * ranking[0].score;
+      const confidence = (validRules.length / contextualRules.length) * ranking[0].score;
 
       // Final phase
       setStatus({
@@ -161,17 +155,23 @@ export const useSymbolicIntelligence = () => {
         ranking,
         confidence,
         validRules,
-        methodology: `Neutrosophic-TOPSIS-Grey fusion analysis using symbolic rule validation (${validRules.length}/${input.rules.length} rules), uncertainty modeling, and multi-criteria optimization. Processing time: ${processingTime}ms.`,
+        methodology: `Live symbolic reasoning using ${validRules.length}/${contextualRules.length} evolved rules. Processing time: ${processingTime}ms.`,
         processingTime
       };
 
       setResult(symbolicResult);
       
-      // Announce result via neural voice
-      await deepcalVoiceService.speakResults(
-        symbolicResult.bestAlternative.name,
-        (confidence * 100).toFixed(1)
-      );
+      // Generate symbolic voice response instead of hardcoded announcement
+      const voiceResponse = symbolicResponseGenerator.generateResponse({
+        query: 'analysis_complete',
+        intent: 'recommendation',
+        data: {
+          recommendation: symbolicResult.bestAlternative.name,
+          confidence: symbolicResult.confidence
+        }
+      });
+
+      await deepcalVoiceService.speakCustom(voiceResponse);
 
       return symbolicResult;
 

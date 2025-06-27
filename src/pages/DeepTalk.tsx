@@ -1,103 +1,188 @@
-
-"use client"
-
-import React, { useEffect } from "react"
-import DeepCALHeader from "@/components/DeepCALHeader"
-import DeepTalkHeader from "@/components/deeptalk/DeepTalkHeader"
+import React, { useState, useEffect, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Settings, Mic, Send, Loader } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { useSpeechToText } from "@/hooks/useSpeechToText"
+import { useTrainingBuffer } from "@/hooks/useTrainingBuffer"
 import DeepTalkMain from "@/components/deeptalk/DeepTalkMain"
-import VoiceConfig from "@/components/deeptalk/VoiceConfig"
-import { useDeepTalkLogic } from "@/hooks/useDeepTalkLogic"
-import { useVoiceConfig } from "@/hooks/useVoiceConfig"
+import VoiceConfigModal from "@/components/deeptalk/VoiceConfigModal"
+import { deepcalVoiceService } from "@/services/deepcalVoiceService"
+import { generateSymbolicResponse, generateGeneralSymbolicResponse } from '@/utils/deepcal/symbolicResponseAdapter';
+
+interface Message {
+  id: string
+  type: "user" | "assistant"
+  content: string
+  timestamp: Date
+  intent?: string
+  data?: any
+}
+
+interface RouteOption {
+  id: string
+  carrier: string
+  route: string
+  hub: string
+  destination: string
+  transitTime: number
+  cost: number
+  reliability: number
+  riskLevel: number
+  overallScore: number
+}
 
 const DeepTalk = () => {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [routeDatabase, setRouteDatabase] = useState<RouteOption[]>([])
+  const [context, setContext] = useState<any>({})
+  const [showVoiceConfig, setShowVoiceConfig] = useState(false)
+  const { toast } = useToast()
   const {
-    messages,
-    input,
-    setInput,
-    isProcessing,
     isListening,
-    routeDatabase,
-    trainingBufferStatus,
-    handleSubmit,
-    handleStartListening,
-    handleQuickQuery
-  } = useDeepTalkLogic()
+    startListening,
+    stopListening,
+    transcript,
+    resetTranscript
+  } = useSpeechToText()
+  const { trainingBufferStatus, addToTrainingBuffer } = useTrainingBuffer()
 
-  const {
-    voiceConfig,
-    showVoiceConfig,
-    setShowVoiceConfig,
-    handleVoiceConfigSave
-  } = useVoiceConfig()
-
+  // Load route database on mount
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
+    const loadRoutes = async () => {
+      try {
+        const routeData = await import("@/data/routeDatabase.json")
+        setRouteDatabase(routeData.default)
+      } catch (error) {
+        console.error("Failed to load route database:", error)
+        toast({
+          title: "Route Database Load Failed",
+          description: "Could not load route data. Some features may be unavailable.",
+          variant: "destructive"
+        })
+      }
+    }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    handleSubmit(e, voiceConfig)
+    loadRoutes()
+  }, [toast])
+
+  // Update input from speech-to-text
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript)
+    }
+  }, [transcript])
+
+  // Quick query handler
+  const handleQuickQuery = (query: string) => {
+    setInput(query)
+    handleSubmit(new Event("submit")) // Simulate form submission
   }
 
-  const handleQuickQueryWithConfig = (query: string) => {
-    handleQuickQuery(query, voiceConfig)
+  // Start/stop listening
+  const handleStartListening = () => {
+    if (isListening) {
+      stopListening()
+    } else {
+      startListening()
+    }
   }
+
+  // Voice config modal
+  const handleShowVoiceConfig = () => {
+    setShowVoiceConfig(true)
+  }
+
+  const handleCloseVoiceConfig = () => {
+    setShowVoiceConfig(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isProcessing) return;
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      type: "user", 
+      content: input,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setIsProcessing(true);
+
+    try {
+      // Use symbolic response generation instead of hardcoded responses
+      const response = generateSymbolicResponse(
+        'general', // Will be determined by the symbolic system
+        {},
+        input,
+        routeDatabase,
+        context,
+        setContext
+      );
+
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        type: "assistant",
+        content: response,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Add to training buffer for continuous learning
+      addToTrainingBuffer({
+        query: input,
+        response: response,
+        timestamp: new Date(),
+        confidence: 0.8 // This would come from the symbolic system
+      });
+
+    } catch (error) {
+      console.error('Symbolic response generation failed:', error);
+      
+      // Fallback to general symbolic response
+      const fallbackResponse = generateGeneralSymbolicResponse();
+      
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        type: "assistant", 
+        content: fallbackResponse,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900" style={{
-      fontFamily: "'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'",
-      overflow: 'auto'
-    }}>
-      {/* Header Section */}
-      <div className="w-full">
-        <DeepCALHeader />
-      </div>
-
-      {/* Mobile Header */}
-      <div className="w-full px-4 lg:px-6">
-        <DeepTalkHeader 
-          trainingBufferStatus={trainingBufferStatus}
-          onShowVoiceConfig={() => setShowVoiceConfig(true)}
-        />
-      </div>
-
-      {/* Main Content Container */}
-      <div className="flex-1 container max-w-7xl mx-auto px-4 lg:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-full">
-          {/* Main Chat Area */}
-          <div className="lg:col-span-12">
-            <DeepTalkMain
-              messages={messages}
-              input={input}
-              setInput={setInput}
-              isProcessing={isProcessing}
-              isListening={isListening}
-              routeDatabase={routeDatabase}
-              trainingBufferStatus={trainingBufferStatus}
-              onSubmit={handleFormSubmit}
-              onStartListening={handleStartListening}
-              onQuickQuery={handleQuickQueryWithConfig}
-              onShowVoiceConfig={() => setShowVoiceConfig(true)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Voice Config Modal */}
-      <VoiceConfig
-        isOpen={showVoiceConfig}
-        onClose={() => setShowVoiceConfig(false)}
-        onConfigSave={handleVoiceConfigSave}
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
+      <DeepTalkMain
+        messages={messages}
+        input={input}
+        setInput={setInput}
+        isProcessing={isProcessing}
+        isListening={isListening}
+        routeDatabase={routeDatabase}
+        trainingBufferStatus={trainingBufferStatus}
+        onSubmit={handleSubmit}
+        onStartListening={handleStartListening}
+        onQuickQuery={handleQuickQuery}
+        onShowVoiceConfig={handleShowVoiceConfig}
       />
 
-      <style>
-        {`
-        .oracle-card {
-          background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-        }
-        `}
-      </style>
+      <VoiceConfigModal
+        open={showVoiceConfig}
+        onClose={handleCloseVoiceConfig}
+      />
     </div>
   )
 }
 
-export default DeepTalk
+export default DeepTalk;

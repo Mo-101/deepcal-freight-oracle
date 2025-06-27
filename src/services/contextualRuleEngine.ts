@@ -1,271 +1,213 @@
-
-// Contextual Rule Evolution for DeepCAL Symbolic Mind
-// Makes rules adaptive to changing conditions and learning
+// Enhanced Contextual Rule Engine with Learning Capabilities
+// Rules evolve based on user feedback and outcomes
 
 import { NeutrosophicRule } from './neutrosophicEngine';
 
-export interface ContextualRule extends NeutrosophicRule {
-  context: {
-    timeOfDay: 'any' | 'morning' | 'afternoon' | 'evening' | 'night';
-    season: 'any' | 'spring' | 'summer' | 'fall' | 'winter';
-    region: 'any' | 'africa' | 'europe' | 'asia' | 'americas' | 'oceania';
-    urgency: 'any' | 'low' | 'medium' | 'high' | 'critical';
-    volume: 'any' | 'small' | 'medium' | 'large' | 'bulk';
-  };
-  temporalWeights: {
-    decay: number; // How quickly rule relevance decreases over time
-    learning: number; // How quickly rule adapts to new information
-    stability: number; // How resistant rule is to change
-  };
-  confidenceHistory: { timestamp: Date; confidence: number; outcome: 'success' | 'failure' | 'unknown' }[];
+interface RuleEvolution {
+  ruleId: string;
+  originalWeight: number;
+  currentWeight: number;
+  successCount: number;
+  failureCount: number;
   lastUpdated: Date;
-  applicationCount: number;
-  successRate: number;
-}
-
-export interface LogisticsContext {
-  currentTime: Date;
-  region: string;
-  urgency: 'low' | 'medium' | 'high' | 'critical';
-  volume: 'small' | 'medium' | 'large' | 'bulk';
-  historicalData?: any;
+  adaptationRate: number;
 }
 
 export class ContextualRuleEngine {
-  private contextualRules: ContextualRule[] = [];
-  private learningRate = 0.1;
-  private contextMatchThreshold = 0.7;
+  private rules: NeutrosophicRule[] = [];
+  private ruleEvolution: Map<string, RuleEvolution> = new Map();
+  private experienceMemory: Array<{
+    query: string;
+    usedRules: string[];
+    outcome: 'positive' | 'negative' | 'neutral';
+    timestamp: Date;
+  }> = [];
 
-  // Convert static rules to contextual rules
-  initializeFromStaticRules(staticRules: NeutrosophicRule[]): void {
-    this.contextualRules = staticRules.map(rule => this.enhanceRuleWithContext(rule));
-    console.log(`🧠 Contextual Rule Engine: Initialized ${this.contextualRules.length} contextual rules`);
-  }
+  initializeFromStaticRules(staticRules: any[]): void {
+    this.rules = staticRules.map(rule => ({
+      id: rule.id || crypto.randomUUID(),
+      rule: rule.rule || rule.description,
+      truth: rule.truth || 0.8,
+      indeterminacy: rule.indeterminacy || 0.1,
+      falsity: rule.falsity || 0.1,
+      weight: rule.weight || 0.8,
+      category: rule.category || 'general'
+    }));
 
-  // Get rules relevant to current context
-  getContextualRules(context: LogisticsContext): ContextualRule[] {
-    const relevantRules = this.contextualRules
-      .map(rule => ({
-        rule,
-        relevance: this.calculateContextRelevance(rule, context)
-      }))
-      .filter(({ relevance }) => relevance >= this.contextMatchThreshold)
-      .sort((a, b) => b.relevance - a.relevance)
-      .map(({ rule }) => this.adjustRuleForContext(rule, context));
-
-    console.log(`🎯 Context Match: ${relevantRules.length}/${this.contextualRules.length} rules relevant`);
-    return relevantRules;
-  }
-
-  // Learn from rule application outcome
-  learnFromOutcome(ruleId: string, context: LogisticsContext, outcome: 'success' | 'failure'): void {
-    const rule = this.contextualRules.find(r => r.id === ruleId);
-    if (!rule) return;
-
-    // Record confidence history
-    const currentConfidence = this.calculateRuleConfidence(rule);
-    rule.confidenceHistory.push({
-      timestamp: new Date(),
-      confidence: currentConfidence,
-      outcome
+    // Initialize evolution tracking
+    this.rules.forEach(rule => {
+      this.ruleEvolution.set(rule.id, {
+        ruleId: rule.id,
+        originalWeight: rule.weight || 0.8,
+        currentWeight: rule.weight || 0.8,
+        successCount: 0,
+        failureCount: 0,
+        lastUpdated: new Date(),
+        adaptationRate: 0.05
+      });
     });
 
-    // Update success rate
-    const recentOutcomes = rule.confidenceHistory
-      .filter(h => h.outcome !== 'unknown')
-      .slice(-10); // Last 10 applications
-    
-    rule.successRate = recentOutcomes.filter(h => h.outcome === 'success').length / recentOutcomes.length;
-
-    // Adapt rule weights based on outcome
-    this.adaptRuleWeights(rule, outcome, context);
-    
-    rule.applicationCount++;
-    rule.lastUpdated = new Date();
-
-    console.log(`📊 Rule Learning: ${ruleId} success rate now ${(rule.successRate * 100).toFixed(1)}%`);
+    console.log(`🧠 Contextual Rule Engine: Initialized ${this.rules.length} evolving rules`);
   }
 
-  // Evolve rules based on temporal patterns
-  evolveRules(): void {
-    const now = new Date();
+  getAllRules(): NeutrosophicRule[] {
+    return this.rules.map(rule => ({
+      ...rule,
+      weight: this.ruleEvolution.get(rule.id)?.currentWeight || rule.weight
+    }));
+  }
+
+  getRulesForContext(context: string): NeutrosophicRule[] {
+    const contextKeywords = context.toLowerCase().split(/\s+/);
     
-    for (const rule of this.contextualRules) {
-      // Apply temporal decay
-      const daysSinceUpdate = (now.getTime() - rule.lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
-      const decayFactor = Math.exp(-rule.temporalWeights.decay * daysSinceUpdate);
-      
-      // Adjust truth/indeterminacy/falsity based on recent performance
-      if (rule.successRate < 0.5 && rule.applicationCount > 5) {
-        // Decrease truth, increase indeterminacy for poorly performing rules
-        rule.truth *= (0.95 + rule.successRate * 0.05);
-        rule.indeterminacy = Math.min(1, rule.indeterminacy * 1.05);
-      } else if (rule.successRate > 0.8 && rule.applicationCount > 5) {
-        // Increase truth for well-performing rules
-        rule.truth = Math.min(1, rule.truth * 1.02);
-        rule.indeterminacy *= 0.98;
+    return this.rules
+      .filter(rule => {
+        const ruleText = rule.rule.toLowerCase();
+        return contextKeywords.some(keyword => 
+          ruleText.includes(keyword) || 
+          rule.category?.toLowerCase().includes(keyword.toLowerCase())
+        );
+      })
+      .map(rule => ({
+        ...rule,
+        weight: this.ruleEvolution.get(rule.id)?.currentWeight || rule.weight
+      }))
+      .sort((a, b) => (b.weight || 0) - (a.weight || 0));
+  }
+
+  updateRuleWeights(query: string, response: string, feedback?: 'positive' | 'negative' | 'neutral'): void {
+    if (!feedback) return;
+
+    // Identify which rules were likely used based on query context
+    const usedRules = this.identifyUsedRules(query, response);
+    
+    // Record the experience
+    this.experienceMemory.push({
+      query: query.substring(0, 200),
+      usedRules: usedRules.map(r => r.id),
+      outcome: feedback,
+      timestamp: new Date()
+    });
+
+    // Update rule weights based on feedback
+    usedRules.forEach(rule => {
+      const evolution = this.ruleEvolution.get(rule.id);
+      if (!evolution) return;
+
+      if (feedback === 'positive') {
+        evolution.successCount++;
+        evolution.currentWeight = Math.min(1.0, 
+          evolution.currentWeight + evolution.adaptationRate);
+      } else if (feedback === 'negative') {
+        evolution.failureCount++;
+        evolution.currentWeight = Math.max(0.1, 
+          evolution.currentWeight - evolution.adaptationRate);
       }
+
+      evolution.lastUpdated = new Date();
+      this.ruleEvolution.set(rule.id, evolution);
+    });
+
+    // Prune old experiences (keep last 1000)
+    if (this.experienceMemory.length > 1000) {
+      this.experienceMemory = this.experienceMemory.slice(-1000);
     }
 
-    // Remove rules with very low confidence
-    this.contextualRules = this.contextualRules.filter(rule => 
-      this.calculateRuleConfidence(rule) > 0.2
-    );
-
-    console.log(`🔄 Rule Evolution: ${this.contextualRules.length} rules remain after evolution`);
+    console.log(`🧠 Rule weights updated based on ${feedback} feedback for ${usedRules.length} rules`);
   }
 
-  // Add new rule based on observed patterns
-  addLearnedRule(pattern: string, context: LogisticsContext, initialConfidence: number): void {
-    const newRule: ContextualRule = {
-      id: `learned_${Date.now()}`,
-      rule: pattern,
-      truth: initialConfidence,
-      indeterminacy: 0.2,
-      falsity: 1 - initialConfidence - 0.2,
-      category: 'learned',
-      weight: 0.5,
-      context: this.extractContext(context),
-      temporalWeights: {
-        decay: 0.01,
-        learning: 0.2,
-        stability: 0.7
-      },
-      confidenceHistory: [],
+  private identifyUsedRules(query: string, response: string): NeutrosophicRule[] {
+    const queryTerms = this.extractKeyTerms(query.toLowerCase());
+    const responseTerms = this.extractKeyTerms(response.toLowerCase());
+    const allTerms = [...queryTerms, ...responseTerms];
+
+    return this.rules.filter(rule => {
+      const ruleTerms = this.extractKeyTerms(rule.rule.toLowerCase());
+      return ruleTerms.some(term => allTerms.includes(term));
+    });
+  }
+
+  private extractKeyTerms(text: string): string[] {
+    return text
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 3)
+      .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'been', 'will'].includes(word));
+  }
+
+  addRule(rule: Omit<NeutrosophicRule, 'id'>): string {
+    const newRule: NeutrosophicRule = {
+      ...rule,
+      id: crypto.randomUUID()
+    };
+
+    this.rules.push(newRule);
+    
+    this.ruleEvolution.set(newRule.id, {
+      ruleId: newRule.id,
+      originalWeight: rule.weight || 0.8,
+      currentWeight: rule.weight || 0.8,
+      successCount: 0,
+      failureCount: 0,
       lastUpdated: new Date(),
-      applicationCount: 0,
-      successRate: 0.5
-    };
+      adaptationRate: 0.05
+    });
 
-    this.contextualRules.push(newRule);
-    console.log(`🌟 New Rule Learned: ${pattern}`);
+    console.log(`🧠 New rule added: ${rule.rule}`);
+    return newRule.id;
   }
 
-  private enhanceRuleWithContext(staticRule: NeutrosophicRule): ContextualRule {
-    return {
-      ...staticRule,
-      context: {
-        timeOfDay: 'any',
-        season: 'any',
-        region: 'any',
-        urgency: 'any',
-        volume: 'any'
-      },
-      temporalWeights: {
-        decay: 0.005, // Very slow decay for established rules
-        learning: 0.05, // Moderate learning rate
-        stability: 0.9 // High stability
-      },
-      confidenceHistory: [],
-      lastUpdated: new Date(),
-      applicationCount: 0,
-      successRate: 0.7 // Assume decent initial performance
-    };
+  getRuleEvolutionStats(): Array<{
+    ruleId: string;
+    rule: string;
+    category?: string;
+    originalWeight: number;
+    currentWeight: number;
+    successRate: number;
+    totalInteractions: number;
+    lastUpdated: Date;
+  }> {
+    return Array.from(this.ruleEvolution.entries()).map(([ruleId, evolution]) => {
+      const rule = this.rules.find(r => r.id === ruleId);
+      const totalInteractions = evolution.successCount + evolution.failureCount;
+      
+      return {
+        ruleId,
+        rule: rule?.rule || 'Unknown rule',
+        category: rule?.category,
+        originalWeight: evolution.originalWeight,
+        currentWeight: evolution.currentWeight,
+        successRate: totalInteractions > 0 ? evolution.successCount / totalInteractions : 0,
+        totalInteractions,
+        lastUpdated: evolution.lastUpdated
+      };
+    });
   }
 
-  private calculateContextRelevance(rule: ContextualRule, context: LogisticsContext): number {
-    let relevance = 0;
-    let factors = 0;
-
-    // Time of day relevance
-    const hour = context.currentTime.getHours();
-    const timeOfDay = hour < 6 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-    if (rule.context.timeOfDay === 'any' || rule.context.timeOfDay === timeOfDay) {
-      relevance += 1;
-    }
-    factors++;
-
-    // Season relevance
-    const month = context.currentTime.getMonth();
-    const season = month < 3 || month === 11 ? 'winter' : month < 6 ? 'spring' : month < 9 ? 'summer' : 'fall';
-    if (rule.context.season === 'any' || rule.context.season === season) {
-      relevance += 1;
-    }
-    factors++;
-
-    // Region relevance
-    if (rule.context.region === 'any' || context.region.toLowerCase().includes(rule.context.region)) {
-      relevance += 1;
-    }
-    factors++;
-
-    // Urgency relevance
-    if (rule.context.urgency === 'any' || rule.context.urgency === context.urgency) {
-      relevance += 1;
-    }
-    factors++;
-
-    // Volume relevance
-    if (rule.context.volume === 'any' || rule.context.volume === context.volume) {
-      relevance += 1;
-    }
-    factors++;
-
-    return relevance / factors;
+  getExperienceMemory(): typeof this.experienceMemory {
+    return [...this.experienceMemory];
   }
 
-  private adjustRuleForContext(rule: ContextualRule, context: LogisticsContext): ContextualRule {
-    // Create a copy with context-adjusted values
-    const adjustedRule = { ...rule };
+  // Simulate rule evolution for demonstration
+  simulateRuleEvolution(steps: number = 100): void {
+    console.log(`🧪 Simulating ${steps} steps of rule evolution...`);
     
-    // Adjust based on success history in similar contexts
-    const contextAdjustment = rule.successRate > 0.5 ? 1.1 : 0.9;
-    adjustedRule.truth *= contextAdjustment;
-    adjustedRule.weight = (rule.weight || 0.5) * contextAdjustment;
+    const sampleQueries = [
+      'optimize route cost',
+      'analyze delivery time',
+      'evaluate risk factors',
+      'recommend best carrier',
+      'explain decision logic'
+    ];
 
-    return adjustedRule;
-  }
-
-  private adaptRuleWeights(rule: ContextualRule, outcome: 'success' | 'failure', context: LogisticsContext): void {
-    const learningRate = rule.temporalWeights.learning;
-    
-    if (outcome === 'success') {
-      rule.truth = Math.min(1, rule.truth + learningRate * (1 - rule.truth));
-      rule.indeterminacy *= (1 - learningRate * 0.1);
-      rule.falsity *= (1 - learningRate * 0.2);
-    } else {
-      rule.truth *= (1 - learningRate * 0.1);
-      rule.indeterminacy = Math.min(1, rule.indeterminacy + learningRate * 0.1);
-      rule.falsity = Math.min(1, rule.falsity + learningRate * 0.1);
+    for (let i = 0; i < steps; i++) {
+      const query = sampleQueries[Math.floor(Math.random() * sampleQueries.length)];
+      const feedback = Math.random() > 0.3 ? 'positive' : (Math.random() > 0.5 ? 'negative' : 'neutral');
+      
+      this.updateRuleWeights(query, `Response for ${query}`, feedback as any);
     }
 
-    // Normalize to maintain neutrosophic constraints
-    const sum = rule.truth + rule.indeterminacy + rule.falsity;
-    if (sum > 1.2) {
-      rule.truth /= sum;
-      rule.indeterminacy /= sum;
-      rule.falsity /= sum;
-    }
-  }
-
-  private calculateRuleConfidence(rule: ContextualRule): number {
-    return rule.truth - rule.indeterminacy - rule.falsity;
-  }
-
-  private extractContext(context: LogisticsContext): ContextualRule['context'] {
-    const hour = context.currentTime.getHours();
-    const timeOfDay = hour < 6 ? 'night' : hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-    
-    const month = context.currentTime.getMonth();
-    const season = month < 3 || month === 11 ? 'winter' : month < 6 ? 'spring' : month < 9 ? 'summer' : 'fall';
-
-    return {
-      timeOfDay: timeOfDay as any,
-      season: season as any,
-      region: context.region.toLowerCase() as any,
-      urgency: context.urgency,
-      volume: context.volume
-    };
-  }
-
-  getEngineStatus() {
-    return {
-      totalRules: this.contextualRules.length,
-      averageSuccessRate: this.contextualRules.reduce((sum, r) => sum + r.successRate, 0) / this.contextualRules.length,
-      learnedRulesCount: this.contextualRules.filter(r => r.category === 'learned').length,
-      engineType: 'Contextual Rule Engine v1.0',
-      status: 'LEARNING'
-    };
+    console.log('🧠 Rule evolution simulation complete');
   }
 }
 

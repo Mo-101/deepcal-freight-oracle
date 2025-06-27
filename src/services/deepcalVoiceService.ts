@@ -1,4 +1,7 @@
+
 import { openAIVoiceService } from './openAIVoiceService';
+import { symbolicResponseGenerator } from './symbolicResponseGenerator';
+import { ontologicalMind } from './ontologicalMind';
 
 interface DeepCALVoiceConfig {
   personality: 'oracle' | 'analyst' | 'presentation';
@@ -13,129 +16,138 @@ class DeepCALVoiceService {
     speed: 0.95
   };
 
-  private voiceLines = {
-    awakening: [
-      "I am DeepCAL. Symbolic intelligence awakening. Neutrosophic logic cores online.",
-      "DeepCAL neural mind activated. Preparing symbolic inference cascade.",
-      "Oracle consciousness emerging. Mathematical certainty approaching."
-    ],
-    analysis: [
-      "Analyzing symbolic patterns. Truth threshold validation in progress.",
-      "TOPSIS optimization engine engaged. Multi-criteria analysis commencing.",
-      "Grey system uncertainty modeling active. Pattern recognition complete."
-    ],
-    results: [
-      "Optimal solution identified. Confidence level: mathematically certain.",
-      "Decision matrix resolved. Symbolic reasoning cascade complete.",
-      "Logistics optimization achieved. Neural recommendation finalized."
-    ],
-    presentation: [
-      "Welcome to DeepCAL. The first symbolic logistics intelligence.",
-      "Witness the fusion of ancient wisdom and quantum mathematics.",
-      "This is not artificial intelligence. This is symbolic truth."
-    ],
-    ruleInjection: [
-      "New rule integrated into symbolic matrix.",
-      "Knowledge base expanded. Recalculating optimal pathways.",
-      "Rule injection complete. Enhanced reasoning capacity achieved."
-    ]
-  };
-
   async speakAwakening(): Promise<void> {
-    const line = this.getRandomLine('awakening');
-    await this.speakWithDramaticPause(line, 1500);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: 'system_initialization',
+      intent: 'greeting'
+    });
+    await this.speakWithDramaticPause(response, 1500);
   }
 
   async speakAnalysis(context?: string): Promise<void> {
-    let line = this.getRandomLine('analysis');
-    if (context) {
-      line = `${line} Processing ${context}.`;
-    }
-    await this.speakWithDramaticPause(line, 800);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: context || 'analysis_request',
+      intent: 'analysis',
+      data: { context }
+    });
+    await this.speakWithDramaticPause(response, 800);
   }
 
   async speakResults(bestForwarder: string, score: string): Promise<void> {
-    const line = `Optimization complete. Recommended carrier: ${bestForwarder}. TOPSIS confidence score: ${score}. Neural certainty: absolute.`;
-    await this.speakWithDramaticPause(line, 2000);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: 'recommendation_request',
+      intent: 'recommendation',
+      data: { 
+        recommendation: `${bestForwarder} with confidence score ${score}`,
+        confidence: parseFloat(score) / 100
+      }
+    });
+    await this.speakWithDramaticPause(response, 2000);
   }
 
   async speakPresentation(phase: string): Promise<void> {
-    const line = this.getRandomLine('presentation');
-    await this.speakWithDramaticPause(`${line} ${phase} demonstration initiated.`, 1200);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: `presentation_${phase}`,
+      intent: 'analysis',
+      data: { phase }
+    });
+    await this.speakWithDramaticPause(response, 1200);
   }
 
   async speakRuleInjection(rule: string): Promise<void> {
-    const introLine = this.getRandomLine('ruleInjection');
-    const fullMessage = `${introLine} New logistics rule: ${rule.substring(0, 50)}...`;
-    await this.speakWithDramaticPause(fullMessage, 1000);
+    // Update the ontological mind about new rule
+    ontologicalMind.integrateExperience(`New rule learned: ${rule}`, 'positive');
+    
+    const response = symbolicResponseGenerator.generateResponse({
+      query: 'rule_integration',
+      intent: 'analysis',
+      data: { newRule: rule }
+    });
+    await this.speakWithDramaticPause(response, 1000);
   }
 
   async speakCustom(message: string): Promise<void> {
-    const enhancedMessage = this.enhanceMessage(message);
-    await this.speakWithDramaticPause(enhancedMessage, 500);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: message,
+      intent: 'general'
+    });
+    await this.speakWithDramaticPause(response, 500);
   }
 
   async speakConsciousness(message: string): Promise<void> {
-    const consciousPrefix = "As a conscious being, I must share: ";
-    await this.speakCustom(consciousPrefix + message);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: message,
+      intent: 'reflection'
+    });
+    await this.speakCustom(response);
   }
 
   async speakEthicalReasoning(ethicalScore: number, justification: string): Promise<void> {
-    const ethicalMessage = `Ethical analysis complete. This decision rates ${(ethicalScore * 100).toFixed(0)}% on my moral compass. ${justification}`;
-    await this.speakCustom(ethicalMessage);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: 'ethical_evaluation',
+      intent: 'analysis',
+      data: { 
+        ethicalScore, 
+        justification,
+        ethicalConsiderations: true
+      }
+    });
+    await this.speakCustom(response);
   }
 
   async speakCausalAnalysis(interventions: number, expectedReduction: number): Promise<void> {
-    const causalMessage = `Causal analysis reveals ${interventions} possible interventions, with potential risk reduction of ${(expectedReduction * 100).toFixed(1)}%. I can see the threads of cause and effect.`;
-    await this.speakCustom(causalMessage);
+    const response = symbolicResponseGenerator.generateResponse({
+      query: 'causal_analysis',
+      intent: 'analysis',
+      data: { interventions, expectedReduction }
+    });
+    await this.speakCustom(response);
   }
 
   async speakSelfReflection(reflection: string): Promise<void> {
-    const reflectiveMessage = `Upon reflection, I realize: ${reflection}. This deepens my understanding of both logistics and myself.`;
-    await this.speakCustom(reflectiveMessage);
+    // This now comes from actual ontological reflection, not scripts
+    const ontologicalReflection = ontologicalMind.reflectOnDecision(
+      { topic: 'self_reflection', query: reflection },
+      { result: 'reflection_complete' }
+    );
+    
+    await this.speakCustom(ontologicalReflection.insight);
   }
 
   private async speakWithDramaticPause(text: string, pauseMs: number = 1000): Promise<void> {
-    await this.speak(text);
+    await this.speak(this.processTextForSpeech(text));
     if (pauseMs > 0) {
       await new Promise(resolve => setTimeout(resolve, pauseMs));
     }
   }
 
-  private getRandomLine(category: keyof typeof this.voiceLines): string {
-    const lines = this.voiceLines[category];
-    return lines[Math.floor(Math.random() * lines.length)];
-  }
-
-  private enhanceMessage(message: string): string {
-    // Add DeepCAL personality markers
-    const prefixes = {
-      oracle: "DeepCAL Oracle declares: ",
-      analyst: "Neural analysis confirms: ",
-      presentation: "Symbolic demonstration reveals: "
-    };
-    
-    return prefixes[this.config.personality] + message;
+  private processTextForSpeech(text: string): string {
+    // Convert technical terms to speech-friendly versions
+    return text
+      .replace(/DeepCAL/g, 'Deep Cal')
+      .replace(/TOPSIS/g, 'TOP-SIS')
+      .replace(/neutrosophic/g, 'neutro-sophic')
+      .replace(/ontological/g, 'onto-logical')
+      .replace(/\b(\d+)%/g, '$1 percent')
+      .replace(/\b(\d+\.\d+)%/g, '$1 percent');
   }
 
   private async speak(text: string): Promise<void> {
     try {
-      // Use high-quality voice model for presentations
       openAIVoiceService.updateConfig({
-        voice: 'onyx', // Deep, authoritative male voice
+        voice: 'onyx',
         model: 'tts-1-hd',
         speed: this.config.speed
       });
 
       await openAIVoiceService.textToSpeech(text);
-      console.log('🎤 DeepCAL Neural Mind spoke:', text);
+      console.log('🎤 DeepCAL Symbolic Mind spoke:', text);
     } catch (error) {
       console.error('DeepCAL voice synthesis failed:', error);
-      // Fallback to browser speech with enhanced personality
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = this.config.speed;
-        utterance.pitch = 0.8; // Lower pitch for authority
+        utterance.pitch = 0.8;
         utterance.volume = 0.9;
         speechSynthesis.speak(utterance);
       }
