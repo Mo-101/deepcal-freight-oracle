@@ -59,7 +59,10 @@ export default function DeepTalkMain({
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
       {/* Header */}
-      <DeepTalkHeader onShowVoiceConfig={onShowVoiceConfig} />
+      <DeepTalkHeader 
+        trainingBufferStatus={trainingBufferStatus}
+        onShowVoiceConfig={onShowVoiceConfig} 
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex gap-6 p-6 min-h-0">
@@ -78,6 +81,7 @@ export default function DeepTalkMain({
         <SidePanel
           routeDatabase={routeDatabase}
           trainingBufferStatus={trainingBufferStatus}
+          isProcessing={isProcessing}
           onQuickQuery={onQuickQuery}
         />
       </div>

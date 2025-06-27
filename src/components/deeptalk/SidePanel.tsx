@@ -19,11 +19,12 @@ interface RouteOption {
 
 interface SidePanelProps {
   routeDatabase: RouteOption[]
+  trainingBufferStatus: { count: number; maxSize: number }
   isProcessing: boolean
   onQuickQuery: (query: string) => void
 }
 
-export default function SidePanel({ routeDatabase, isProcessing, onQuickQuery }: SidePanelProps) {
+export default function SidePanel({ routeDatabase, trainingBufferStatus, isProcessing, onQuickQuery }: SidePanelProps) {
   const quickQueries = [
     "What's the fastest way to ship to South Sudan?",
     "Compare Nairobi vs Dakar routes",
@@ -34,6 +35,24 @@ export default function SidePanel({ routeDatabase, isProcessing, onQuickQuery }:
 
   return (
     <aside className="w-full lg:w-96 space-y-6">
+      {/* Training Buffer Status */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden border border-white/20">
+        <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Zap className="text-yellow-400" />
+            Training Buffer
+          </h3>
+        </div>
+        <div className="p-6">
+          <div className="text-center p-4 bg-white/20 rounded-lg">
+            <div className="text-yellow-400 font-mono text-xl">
+              {trainingBufferStatus.count}/{trainingBufferStatus.maxSize}
+            </div>
+            <div className="text-white text-sm">Training Samples</div>
+          </div>
+        </div>
+      </div>
+
       {/* Quick Queries */}
       <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden border border-white/20">
         <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20">
