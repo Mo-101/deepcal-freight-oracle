@@ -100,9 +100,9 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
     <div className="space-y-6">
       {/* Header with connection status */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white flex items-center">
+        <h2 className="text-2xl font-bold text-textPrimary flex items-center">
           🧠 DeepCAL Freight Intelligence
-          <span className="ml-2 text-sm text-slate-400">
+          <span className="ml-2 text-sm text-textSecondary">
             Live Symbolic Analysis
           </span>
         </h2>
@@ -110,9 +110,9 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
             {freightData.isConnected ? (
-              <><Wifi className="w-4 h-4 text-green-400" /> Live Data</>
+              <><Wifi className="w-4 h-4 text-neonLime" /> <span className="text-textPrimary">Live Data</span></>
             ) : (
-              <><WifiOff className="w-4 h-4 text-red-400" /> Offline</>
+              <><WifiOff className="w-4 h-4 text-emberOrange" /> <span className="text-textSecondary">Offline</span></>
             )}
           </div>
           
@@ -120,7 +120,7 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
             onClick={refreshData}
             variant="outline"
             size="sm"
-            className="border-blue-400/50 text-blue-300 hover:bg-blue-900/30"
+            className="border-deepAqua/50 text-deepAqua hover:bg-deepAqua/10 hover:border-deepAqua"
           >
             <RefreshCw className="w-4 h-4 mr-1" />
             Refresh
@@ -130,11 +130,11 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
 
       {/* Real-time data status */}
       {(freightData.lastUpdate || marketData.lastUpdate) && (
-        <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-600">
+        <div className="bg-cardStandard rounded-xl p-4 border border-deepPurple/50 shadow-deepcal">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-slate-400">Freight Data:</span>
-              <span className="ml-2 text-green-300">
+              <span className="text-textSecondary">Freight Data:</span>
+              <span className="ml-2 text-neonLime">
                 {freightData.lastUpdate ? 
                   `Updated ${freightData.lastUpdate.toLocaleTimeString()}` : 
                   'No data'
@@ -142,8 +142,8 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
               </span>
             </div>
             <div>
-              <span className="text-slate-400">Market Data:</span>
-              <span className="ml-2 text-blue-300">
+              <span className="text-textSecondary">Market Data:</span>
+              <span className="ml-2 text-deepAqua">
                 {marketData.lastUpdate ? 
                   `Updated ${marketData.lastUpdate.toLocaleTimeString()}` : 
                   'No data'
@@ -151,9 +151,9 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
               </span>
             </div>
             <div>
-              <span className="text-slate-400">Data Freshness:</span>
+              <span className="text-textSecondary">Data Freshness:</span>
               <span className={`ml-2 ${
-                freightData.isDataFresh() ? 'text-green-300' : 'text-yellow-300'
+                freightData.isDataFresh() ? 'text-neonLime' : 'text-solarGold'
               }`}>
                 {freightData.isDataFresh() ? 'Fresh' : 'Stale'}
               </span>
@@ -185,23 +185,23 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
 
       {/* Live Market Context */}
       {marketData.data?.market && (
-        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-4 rounded-lg border border-purple-500/30">
-          <h4 className="text-lg font-semibold text-purple-300 mb-3">
+        <div className="bg-gradient-to-r from-deepPurple/50 to-surface/50 p-4 rounded-xl border border-solarGold/30 shadow-deepcal">
+          <h4 className="text-lg font-semibold text-solarGold mb-3">
             📈 Live Market Context
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="text-slate-400">Fuel Costs:</span>
-              <span className="ml-2 text-yellow-300">
+              <span className="text-textSecondary">Fuel Costs:</span>
+              <span className="ml-2 text-textAccent">
                 ${marketData.data.market.fuel_costs?.toFixed(2) || 'N/A'}
               </span>
             </div>
             {marketData.data.market.port_congestion && Object.entries(marketData.data.market.port_congestion).map(([port, level]) => (
               <div key={port}>
-                <span className="text-slate-400">{port} Port:</span>
+                <span className="text-textSecondary">{port} Port:</span>
                 <span className={`ml-2 ${
-                  (level as number) > 0.7 ? 'text-red-300' : 
-                  (level as number) > 0.4 ? 'text-yellow-300' : 'text-green-300'
+                  (level as number) > 0.7 ? 'text-emberOrange' : 
+                  (level as number) > 0.4 ? 'text-solarGold' : 'text-neonLime'
                 }`}>
                   {((level as number) * 100).toFixed(0)}% congested
                 </span>
@@ -213,10 +213,10 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
 
       {/* Debug info for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="bg-slate-900/80 p-4 rounded-lg border border-slate-700 text-xs">
+        <div className="bg-background/90 p-4 rounded-xl border border-deepPurple text-xs">
           <details>
-            <summary className="text-slate-400 cursor-pointer">Debug Info</summary>
-            <pre className="text-slate-300 mt-2 overflow-auto">
+            <summary className="text-textSecondary cursor-pointer">Debug Info</summary>
+            <pre className="text-textPrimary mt-2 overflow-auto">
               {JSON.stringify({
                 freightConnected: freightData.isConnected,
                 marketConnected: marketData.isConnected,

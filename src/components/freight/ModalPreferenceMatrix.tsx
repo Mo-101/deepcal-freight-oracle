@@ -127,36 +127,36 @@ const ModalPreferenceMatrix: React.FC<ModalPreferenceProps> = ({
   const bestMode = analyses[0];
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-slate-600">
-      <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center">
+    <div className="bg-gradient-to-br from-surface to-deepPurple p-6 rounded-xl border border-solarGold/30 shadow-deepcal">
+      <h3 className="text-xl font-bold text-solarGold mb-4 flex items-center">
         🧠 Modal Preference Matrix
-        <span className="ml-2 text-sm text-slate-300">Live Symbolic Analysis</span>
+        <span className="ml-2 text-sm text-textSecondary">Live Symbolic Analysis</span>
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {analyses.map((analysis, index) => (
           <div 
             key={analysis.mode}
-            className={`p-4 rounded-lg border-2 transition-all ${
+            className={`p-4 rounded-xl border-2 transition-all ${
               index === 0 
-                ? 'border-green-400 bg-green-900/20 shadow-lg shadow-green-400/20' 
-                : 'border-slate-500 bg-slate-800/50'
+                ? 'border-neonLime bg-cardSuccess/30 shadow-lg shadow-neonLime/20' 
+                : 'border-deepPurple bg-cardStandard/50'
             }`}
           >
             <div className="flex justify-between items-center mb-3">
               <h4 className={`font-bold text-lg ${
-                index === 0 ? 'text-green-300' : 'text-slate-300'
+                index === 0 ? 'text-neonLime' : 'textPrimary'
               }`}>
                 {analysis.mode}
-                {index === 0 && <span className="ml-2 text-xs bg-green-500 text-black px-2 py-1 rounded">RECOMMENDED</span>}
+                {index === 0 && <span className="ml-2 text-xs bg-neonLime text-background px-2 py-1 rounded">RECOMMENDED</span>}
               </h4>
               <div className="text-right">
                 <div className={`text-lg font-bold ${
-                  index === 0 ? 'text-green-300' : 'text-slate-300'
+                  index === 0 ? 'text-neonLime' : 'text-textPrimary'
                 }`}>
                   {(analysis.symbolicScore * 100).toFixed(1)}%
                 </div>
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-textSecondary">
                   Confidence: {(analysis.confidence * 100).toFixed(1)}%
                 </div>
               </div>
@@ -164,35 +164,35 @@ const ModalPreferenceMatrix: React.FC<ModalPreferenceProps> = ({
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Neutrosophic Truth:</span>
-                <span className="text-blue-300">{(analysis.neutrosophicTruth * 100).toFixed(1)}%</span>
+                <span className="text-textSecondary">Neutrosophic Truth:</span>
+                <span className="text-deepAqua">{(analysis.neutrosophicTruth * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Time Efficiency:</span>
-                <span className="text-green-300">{(analysis.timeEfficiency * 100).toFixed(1)}%</span>
+                <span className="text-textSecondary">Time Efficiency:</span>
+                <span className="text-neonLime">{(analysis.timeEfficiency * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Cost Efficiency:</span>
-                <span className="text-yellow-300">{(analysis.costEfficiency * 100).toFixed(1)}%</span>
+                <span className="text-textSecondary">Cost Efficiency:</span>
+                <span className="text-solarGold">{(analysis.costEfficiency * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Risk Level:</span>
-                <span className={analysis.riskLevel > 0.5 ? 'text-red-300' : 'text-green-300'}>
+                <span className="text-textSecondary">Risk Level:</span>
+                <span className={analysis.riskLevel > 0.5 ? 'text-emberOrange' : 'text-neonLime'}>
                   {(analysis.riskLevel * 100).toFixed(1)}%
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Ethical Score:</span>
-                <span className="text-purple-300">{(analysis.ethicalScore * 100).toFixed(1)}%</span>
+                <span className="text-textSecondary">Ethical Score:</span>
+                <span className="text-textAccent">{(analysis.ethicalScore * 100).toFixed(1)}%</span>
               </div>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-slate-600">
-              <div className="text-xs text-slate-400 mb-1">Symbolic Reasoning:</div>
-              <ul className="text-xs text-slate-300 space-y-1">
+            <div className="mt-3 pt-3 border-t border-deepPurple/50">
+              <div className="text-xs text-textSecondary mb-1">Symbolic Reasoning:</div>
+              <ul className="text-xs text-textPrimary space-y-1">
                 {analysis.reasons.map((reason, i) => (
                   <li key={i} className="flex items-start">
-                    <span className="text-yellow-400 mr-1">•</span>
+                    <span className="text-solarGold mr-1">•</span>
                     {reason}
                   </li>
                 ))}
@@ -202,9 +202,9 @@ const ModalPreferenceMatrix: React.FC<ModalPreferenceProps> = ({
         ))}
       </div>
 
-      <div className="mt-6 p-4 bg-slate-700/50 rounded-lg">
-        <div className="text-sm text-slate-300">
-          <strong className="text-yellow-400">Symbolic Decision:</strong> {bestMode.mode} selected with {(bestMode.confidence * 100).toFixed(1)}% confidence
+      <div className="mt-6 p-4 bg-cardStandard/70 rounded-xl border border-deepPurple/30">
+        <div className="text-sm text-textPrimary">
+          <strong className="text-solarGold">Symbolic Decision:</strong> {bestMode.mode} selected with {(bestMode.confidence * 100).toFixed(1)}% confidence
           based on {bestMode.reasons.length} validated symbolic rules and multi-criteria optimization.
         </div>
       </div>
