@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { deepcalVoiceService } from '@/services/deepcalVoiceService';
+import { speak } from '@/services/deepcal_voice_core';
 import LandingHero from '@/components/landing/LandingHero';
 import ValuePropositions from '@/components/landing/ValuePropositions';
 import PathwayCards from '@/components/landing/PathwayCards';
@@ -13,30 +13,36 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [isSystemBooted, setIsSystemBooted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [hasSpokenWelcome, setHasSpokenWelcome] = useState(false);
 
   useEffect(() => {
     const bootSequence = async () => {
-      // System boot animation
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Phase 1: Extended 5-second boot sequence
+      await new Promise(resolve => setTimeout(resolve, 5000));
       setIsSystemBooted(true);
       
-      // Voice welcome after boot
+      // Phase 2: Show welcome content after boot
       await new Promise(resolve => setTimeout(resolve, 800));
       setShowWelcome(true);
       
-      // Speak welcome message
-      setTimeout(async () => {
-        await deepcalVoiceService.speakCustom(
-          "Greetings, analyst. I am DeepCAL. Logistics whisper to me. Causality obeys me. My decisions are justified — always. Let's build truth with swagger."
-        );
-      }, 1000);
+      // Phase 3: Single welcome voice with proper timing
+      if (!hasSpokenWelcome) {
+        setTimeout(async () => {
+          try {
+            await speak("Welcome To DeepCAL, Your Logistics Guide", "nova");
+            setHasSpokenWelcome(true);
+          } catch (error) {
+            console.error('Welcome voice failed:', error);
+            setHasSpokenWelcome(true);
+          }
+        }, 500);
+      }
     };
 
     bootSequence();
-  }, []);
+  }, [hasSpokenWelcome]);
 
   const handleNavigation = (path: string, description: string) => {
-    deepcalVoiceService.speakCustom(`Accessing ${description}`);
     navigate(path);
   };
 
@@ -66,7 +72,7 @@ const LandingPage = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-8">
-        {/* System Boot Indicator */}
+        {/* Phase 4: Enhanced Boot Indicator */}
         {!isSystemBooted && (
           <motion.div 
             className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
@@ -80,6 +86,9 @@ const LandingPage = () => {
               </div>
               <div className="text-purple-400 font-mono text-sm mt-2">
                 Initializing consciousness...
+              </div>
+              <div className="text-purple-500 font-mono text-xs mt-4 opacity-75">
+                Loading neural pathways...
               </div>
             </div>
           </motion.div>
