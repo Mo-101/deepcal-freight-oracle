@@ -1,7 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import ModalPreferenceMatrix from './ModalPreferenceMatrix';
 import VoiceJustification from '../voice/VoiceJustification';
+import SymbolicTOPSISMatrix from './SymbolicTOPSISMatrix';
+import DisruptionHeatmap from './DisruptionHeatmap';
+import GreyLogicDisplay from './GreyLogicDisplay';
+import RuleAuditPanel from './RuleAuditPanel';
 import { useRealTimeFreightData, useRealTimeMarketData } from '@/hooks/useRealTimeInputAdapter';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -62,6 +65,126 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
 
     setDistanceKm(calculateDistance());
   }, [origin, destination]);
+
+  // Generate mock data for symbolic intelligence components
+  const generateSymbolicData = () => {
+    // Mock TOPSIS data
+    const topsisScores = [
+      {
+        name: 'Kuehne+Nagel',
+        score: 0.8547,
+        rank: 1,
+        criteria: { cost: 0.75, time: 0.90, reliability: 0.95, risk: 0.20 }
+      },
+      {
+        name: 'DHL Global',
+        score: 0.7823,
+        rank: 2,
+        criteria: { cost: 0.65, time: 0.85, reliability: 0.88, risk: 0.25 }
+      },
+      {
+        name: 'Scan Global',
+        score: 0.6891,
+        rank: 3,
+        criteria: { cost: 0.80, time: 0.70, reliability: 0.82, risk: 0.30 }
+      }
+    ];
+
+    const topsisWeights = {
+      cost: budgetConstraint,
+      time: urgency,
+      reliability: reliabilityRequired,
+      risk: 1 - (budgetConstraint + urgency + reliabilityRequired) / 3
+    };
+
+    // Mock corridor data
+    const corridors = [
+      {
+        name: 'East Africa - Europe Corridor',
+        origin,
+        destination,
+        riskLevel: urgency > 0.7 ? 8 : 4,
+        status: 'open' as const,
+        notes: 'Standard maritime route with seasonal weather considerations',
+        factors: ['Weather', 'Port Congestion', 'Fuel Costs']
+      },
+      {
+        name: 'Alternative Air Route',
+        origin,
+        destination,
+        riskLevel: urgency > 0.5 ? 3 : 6,
+        status: 'congested' as const,
+        notes: 'Higher cost but faster delivery option',
+        factors: ['High Demand', 'Limited Capacity']
+      }
+    ];
+
+    // Mock grey inferences
+    const greyInferences = weight < 100 || !cargoType ? [
+      {
+        field: 'Transit Time',
+        originalValue: null,
+        estimatedValue: `${Math.ceil(distanceKm / 500)} days`,
+        confidence: 0.75,
+        source: 'Historical route data',
+        method: 'fusion' as const,
+        reasoning: 'Calculated from distance and average speed patterns'
+      },
+      {
+        field: 'Handling Requirements',
+        originalValue: cargoType || 'Unknown',
+        estimatedValue: 'Standard handling',
+        confidence: 0.60,
+        source: 'Cargo category inference',
+        method: 'exponential' as const,
+        reasoning: 'Inferred from weight and volume characteristics'
+      }
+    ] : [];
+
+    // Mock rule audit
+    const rules = [
+      {
+        id: 'R001',
+        text: 'High urgency shipments require air transport when distance > 3000km',
+        category: 'Transport Mode',
+        values: { truth: 0.85, indeterminacy: 0.10, falsity: 0.05 },
+        applied: urgency > 0.7 && distanceKm > 3000,
+        weight: 0.25,
+        rejectionReason: urgency <= 0.7 ? 'Urgency threshold not met' : undefined
+      },
+      {
+        id: 'R002',
+        text: 'Temperature-controlled cargo requires specialized handling',
+        category: 'Cargo Handling',
+        values: { truth: 0.95, indeterminacy: 0.03, falsity: 0.02 },
+        applied: temperatureRequired,
+        weight: 0.20,
+        rejectionReason: !temperatureRequired ? 'Temperature control not required' : undefined
+      },
+      {
+        id: 'R003',
+        text: 'High emission sensitivity favors sea freight over air',
+        category: 'Environmental',
+        values: { truth: 0.80, indeterminacy: 0.15, falsity: 0.05 },
+        applied: emissionSensitivity > 0.6,
+        weight: 0.15,
+        rejectionReason: emissionSensitivity <= 0.6 ? 'Low emission sensitivity' : undefined
+      },
+      {
+        id: 'R004',
+        text: 'Budget constraints eliminate premium carriers',
+        category: 'Cost Optimization',
+        values: { truth: 0.70, indeterminacy: 0.25, falsity: 0.05 },
+        applied: budgetConstraint > 0.7,
+        weight: 0.30,
+        rejectionReason: budgetConstraint <= 0.7 ? 'Budget constraint not severe' : undefined
+      }
+    ];
+
+    return { topsisScores, topsisWeights, corridors, greyInferences, rules };
+  };
+
+  const symbolicData = generateSymbolicData();
 
   // Generate voice justification data
   const generateVoiceDecision = () => {
@@ -162,6 +285,26 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
         </div>
       )}
 
+      {/* Core Symbolic Intelligence Components */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* TOPSIS Decision Matrix */}
+        <SymbolicTOPSISMatrix 
+          scores={symbolicData.topsisScores}
+          weights={symbolicData.topsisWeights}
+        />
+
+        {/* Rule Audit Panel */}
+        <RuleAuditPanel rules={symbolicData.rules} />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* Disruption Heatmap */}
+        <DisruptionHeatmap corridors={symbolicData.corridors} />
+
+        {/* Grey Logic Display */}
+        <GreyLogicDisplay inferences={symbolicData.greyInferences} />
+      </div>
+
       {/* Modal Preference Matrix */}
       <ModalPreferenceMatrix
         cargoType={cargoType}
@@ -222,9 +365,11 @@ const FreightIntelligenceDashboard: React.FC<FreightIntelligenceDashboardProps> 
                 marketConnected: marketData.isConnected,
                 selectedMode,
                 analysisResults,
-                realTimeData: {
-                  freight: !!freightData.data?.freight,
-                  market: !!marketData.data?.market
+                symbolicData: {
+                  topsisScores: symbolicData.topsisScores.length,
+                  corridors: symbolicData.corridors.length,
+                  greyInferences: symbolicData.greyInferences.length,
+                  appliedRules: symbolicData.rules.filter(r => r.applied).length
                 }
               }, null, 2)}
             </pre>
