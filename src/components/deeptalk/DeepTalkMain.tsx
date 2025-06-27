@@ -57,34 +57,24 @@ export default function DeepTalkMain({
   onShowVoiceConfig,
 }: DeepTalkMainProps) {
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
-      {/* Header */}
-      <DeepTalkHeader 
-        trainingBufferStatus={trainingBufferStatus}
-        onShowVoiceConfig={onShowVoiceConfig} 
-      />
+    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
+      <Sidebar />
 
-      {/* Main Content */}
-      <div className="flex-1 flex gap-6 p-6 min-h-0">
-        {/* Chat Interface - Full Height */}
-        <ChatInterface
-          messages={messages}
-          input={input}
-          setInput={setInput}
-          isProcessing={isProcessing}
-          isListening={isListening}
-          onSubmit={onSubmit}
-          onStartListening={onStartListening}
-        />
+      <div className="flex-1 flex flex-col">
+        <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 p-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
+             DeepTalk - Symbolic Mouthpiece
+            </h1>
+          </div>
+        </header>
 
-        {/* Side Panel */}
-        <SidePanel
-          routeDatabase={routeDatabase}
-          trainingBufferStatus={trainingBufferStatus}
-          isProcessing={isProcessing}
-          onQuickQuery={onQuickQuery}
-        />
+        <div className="flex-1 overflow-hidden">
+          <ChatInterface />
+        </div>
       </div>
     </div>
   )
+}
+
 }
