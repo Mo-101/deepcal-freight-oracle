@@ -2,7 +2,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Weights, Database, Shuffle, Settings, Activity } from "lucide-react";
+import { Brain, Weight, Database, Shuffle, Settings, Activity } from "lucide-react";
 
 interface TrainingTabsProps {
   activeTab: string;
@@ -12,7 +12,7 @@ interface TrainingTabsProps {
 export function TrainingTabs({ activeTab, onTabChange }: TrainingTabsProps) {
   const tabs = [
     { id: 'engine', label: 'AI Engine', icon: Brain },
-    { id: 'weights', label: 'Weight Matrix', icon: Weights },
+    { id: 'weights', label: 'Weight Matrix', icon: Weight },
     { id: 'database', label: 'PostgreSQL + AI', icon: Database },
     { id: 'synthetic', label: 'Synthetic Data', icon: Shuffle },
     { id: 'advanced', label: 'Advanced Config', icon: Settings },

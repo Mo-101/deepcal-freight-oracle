@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,8 @@ import { deepcalDatabaseIntegration } from '@/services/deepcalDatabaseIntegratio
 
 export function DatabaseStatusPanel() {
   const [systemHealth, setSystemHealth] = useState({
-    postgres: { status: 'connected' as const, latency: 0 },
-    mostlyAI: { status: 'connected' as const },
+    postgres: { status: 'connected' as 'connected' | 'disconnected', latency: 0 },
+    mostlyAI: { status: 'connected' as 'connected' | 'disconnected' },
     activePipelines: 0
   });
 
