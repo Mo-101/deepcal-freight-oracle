@@ -14,6 +14,7 @@ const SymbolicCalculator = lazy(() => import('./pages/SymbolicCalculator'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const About = lazy(() => import('./pages/About'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const NewShipments = lazy(() => import('./pages/NewShipments'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function App() {
                 <Route path="/symbolic" element={<SymbolicCalculator />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/new-shipment" element={<NewShipments />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
