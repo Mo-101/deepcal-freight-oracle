@@ -1,56 +1,53 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { loadAllMoScripts } from "@/moscripts/registry";
-import LandingPage from "./pages/LandingPage";
-import SymbolicCalculator from "./pages/SymbolicCalculator";
-import SymbolicDemo from "./pages/SymbolicDemo";
-import Dashboard from "./pages/Dashboard";
-import Analytics from "./pages/Analytics";
-import DeepTalk from "./pages/DeepTalk";
-import Training from "./pages/Training";
-import MapPage from "./pages/MapPage";
-import TrackingPage from "./pages/TrackingPage";
-import About from "./pages/About";
-import NotFound from "./pages/NotFound";
-import SymbolicConsciousness from './pages/SymbolicConsciousness';
+import { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './theme-provider';
+import { Toaster } from '@/components/ui/toaster';
+import Loading from './loading';
 
-const queryClient = new QueryClient();
+// Lazy load pages to avoid potential circular dependencies
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const DeepTalk = lazy(() => import('./pages/DeepTalk'));
+const FreightCalculator = lazy(() => import('./pages/FreightCalculator'));
+const SymbolicCalculator = lazy(() => import('./pages/SymbolicCalculator'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const About = lazy(() => import('./pages/About'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 function App() {
-  useEffect(() => {
-    loadAllMoScripts();
-  }, []);
-
+  console.log('App component initializing');
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+      <ThemeProvider defaultTheme="dark" storageKey="deepcal-ui-theme">
         <Router>
-          <div className="App">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/app" element={<SymbolicCalculator />} />
-              <Route path="/demo" element={<SymbolicDemo />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/deeptalk" element={<DeepTalk />} />
-              <Route path="/training" element={<Training />} />
-              <Route path="/map" element={<MapPage />} />
-              <Route path="/tracking" element={<TrackingPage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/symbolic-demo" element={<SymbolicDemo />} />
-              <Route path="/consciousness" element={<SymbolicConsciousness />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+          <div className="min-h-screen bg-background">
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/app" element={<DeepTalk />} />
+                <Route path="/demo" element={<DeepTalk />} />
+                <Route path="/calculator" element={<FreightCalculator />} />
+                <Route path="/symbolic" element={<SymbolicCalculator />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/about" element={<About />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+            <Toaster />
           </div>
         </Router>
-      </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -1,13 +1,5 @@
 
 import React from "react";
-// Insert local type definition
-type ForwarderKPI = {
-  name: string,
-  avgTransitDays: number,
-  costPerKg: number,
-  onTimeRate: number,
-  totalShipments: number,
-};
 import type { ForwarderAnomalies } from './anomalyUtils';
 import { AlertTriangle } from "lucide-react";
 
