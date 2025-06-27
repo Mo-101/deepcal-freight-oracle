@@ -1,9 +1,11 @@
 
 import React from "react"
-import { Button } from "@/components/ui/button"
-import { Settings, Brain, Zap } from "lucide-react"
-import ChatInterface from "@/components/deeptalk/ChatInterface"
-import SidePanel from "@/components/deeptalk/SidePanel"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Settings } from "lucide-react"
+import ChatInterface from "./ChatInterface"
+import SidePanel from "./SidePanel"
+import DeepTalkHeader from "./DeepTalkHeader"
 
 interface Message {
   id: string
@@ -52,57 +54,33 @@ export default function DeepTalkMain({
   onSubmit,
   onStartListening,
   onQuickQuery,
-  onShowVoiceConfig
+  onShowVoiceConfig,
 }: DeepTalkMainProps) {
   return (
-    <main className="flex-1 container mx-auto py-8 px-2 sm:px-6 flex flex-col lg:flex-row gap-6">
-      <ChatInterface
-        messages={messages}
-        input={input}
-        setInput={setInput}
-        isProcessing={isProcessing}
-        isListening={isListening}
-        onSubmit={onSubmit}
-        onStartListening={onStartListening}
-      />
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
+      {/* Header */}
+      <DeepTalkHeader onShowVoiceConfig={onShowVoiceConfig} />
 
-      <div className="space-y-4">
-        <div className="hidden lg:flex justify-end gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-purple-400/50 bg-purple-900/20 text-purple-300 hover:bg-purple-800/30"
-            disabled
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            AI Brain Active
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-yellow-400/50 bg-yellow-900/20 text-yellow-300 hover:bg-yellow-800/30"
-            disabled
-          >
-            <Zap className="w-4 h-4 mr-2" />
-            Training: {trainingBufferStatus.count}/{trainingBufferStatus.maxSize}
-          </Button>
-          <Button
-            onClick={onShowVoiceConfig}
-            variant="outline"
-            size="sm"
-            className="border-white/30 text-white hover:bg-white/10"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Voice Settings
-          </Button>
-        </div>
-        
+      {/* Main Content */}
+      <div className="flex-1 flex gap-6 p-6 min-h-0">
+        {/* Chat Interface - Full Height */}
+        <ChatInterface
+          messages={messages}
+          input={input}
+          setInput={setInput}
+          isProcessing={isProcessing}
+          isListening={isListening}
+          onSubmit={onSubmit}
+          onStartListening={onStartListening}
+        />
+
+        {/* Side Panel */}
         <SidePanel
           routeDatabase={routeDatabase}
-          isProcessing={isProcessing}
+          trainingBufferStatus={trainingBufferStatus}
           onQuickQuery={onQuickQuery}
         />
       </div>
-    </main>
+    </div>
   )
 }
