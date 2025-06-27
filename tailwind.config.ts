@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -37,7 +36,23 @@ export default {
 				deepcal: {
 					purple: '#7e22ce',
 					light: '#a855f7',
-					dark: '#581c87'
+					dark: '#581c87',
+					gold: '#FFB43A',
+					orange: '#FF6E3B',
+					lime: '#C1FF57',
+					aqua: '#00E0C6',
+					text: {
+						primary: '#E8EBF9',
+						secondary: '#B5B8CC',
+						accent: '#FCD265',
+						muted: '#7C809F'
+					},
+					card: {
+						standard: '#1A1F45',
+						active: '#2F2B62',
+						success: '#1C3A2E',
+						warning: '#3A1C1C'
+					}
 				}
 			},
 			borderRadius: {
