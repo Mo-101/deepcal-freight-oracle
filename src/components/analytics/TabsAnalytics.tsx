@@ -4,7 +4,6 @@ import { Package, Globe, Truck, MapPin, Map } from 'lucide-react';
 import { KpiCard } from './KpiCard';
 import { RouteBarChart } from './RouteBarChart';
 import { SavingsTrendLine } from './SavingsTrendLine';
-import { AlertTicker } from './AlertTicker';
 import { csvDataEngine } from '@/services/csvDataEngine';
 import type { ShipmentData } from '@/types/shipment';
 
@@ -70,6 +69,27 @@ export const TabsAnalytics: React.FC = () => {
 
   const metrics = calculateMetrics();
   const deliveryRate = metrics.totalShipments > 0 ? (metrics.deliveredShipments / metrics.totalShipments) * 100 : 0;
+
+  // Simple alert ticker component inline
+  const AlertTicker = () => (
+    <div className="bg-slate-800/30 rounded-lg border border-slate-700 p-4">
+      <h4 className="text-sm font-semibold text-slate-300 mb-3">System Alerts</h4>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <span className="text-slate-400">All systems operational</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+          <span className="text-slate-400">{metrics.totalShipments} shipments processed</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+          <span className="text-slate-400">Analytics engine active</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -143,7 +163,7 @@ export const TabsAnalytics: React.FC = () => {
               <SavingsTrendLine shipmentData={shipmentData} />
             </div>
             <div className="space-y-6">
-              <AlertTicker shipmentData={shipmentData} />
+              <AlertTicker />
             </div>
           </div>
         </TabsContent>

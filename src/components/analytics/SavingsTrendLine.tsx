@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card } from '@/components/ui/card';
 import type { ShipmentData } from '@/types/shipment';
 
 interface SavingsTrendLineProps {
@@ -10,159 +9,74 @@ interface SavingsTrendLineProps {
 }
 
 export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData }) => {
-  const [showCost, setShowCost] = useState(true);
-  const [showTime, setShowTime] = useState(true);
-
-  // Calculate real trend data from shipment data
-  const calculateTrendData = () => {
-    if (!shipmentData || shipmentData.length === 0) return [];
-
-    // Group shipments by month
-    const monthlyStats: Record<string, {
-      totalCost: number;
-      count: number;
-      avgDeliveryDays: number;
-      deliveryDaysCount: number;
-    }> = {};
-
-    shipmentData.forEach(shipment => {
-      const date = new Date(shipment.date_of_collection || '');
-      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
-      
-      if (!monthlyStats[monthKey]) {
-        monthlyStats[monthKey] = {
-          totalCost: 0,
-          count: 0,
-          avgDeliveryDays: 0,
-          deliveryDaysCount: 0
-        };
-      }
-      
-      const cost = parseFloat(shipment['carrier+cost'] || '0');
-      monthlyStats[monthKey].totalCost += cost;
-      monthlyStats[monthKey].count++;
-
-      // Calculate delivery days if both dates are available
-      if (shipment.date_of_arrival_destination) {
-        const collectionDate = new Date(shipment.date_of_collection || '');
-        const arrivalDate = new Date(shipment.date_of_arrival_destination);
-        const deliveryDays = Math.round((arrivalDate.getTime() - collectionDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (deliveryDays > 0 && deliveryDays < 60) { // Reasonable delivery time
-          monthlyStats[monthKey].avgDeliveryDays += deliveryDays;
-          monthlyStats[monthKey].deliveryDaysCount++;
-        }
-      }
-    });
-
-    // Calculate baseline costs and times for comparison
-    const allCosts = Object.values(monthlyStats).map(stat => stat.count > 0 ? stat.totalCost / stat.count : 0);
-    const allTimes = Object.values(monthlyStats).map(stat => 
-      stat.deliveryDaysCount > 0 ? stat.avgDeliveryDays / stat.deliveryDaysCount : 0
-    ).filter(time => time > 0);
+  // Process data to create monthly trends
+  const monthlyData = shipmentData.reduce((acc, shipment) => {
+    const date = new Date(shipment.date_of_collection || Date.now());
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     
-    const baselineCost = allCosts.length > 0 ? Math.max(...allCosts) : 1000;
-    const baselineTime = allTimes.length > 0 ? Math.max(...allTimes) : 14;
-
-    // Convert to chart format
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    return months.map(month => {
-      const stats = monthlyStats[month];
-      if (!stats || stats.count === 0) {
-        return {
-          month,
-          costSavings: 0,
-          timeReduction: 0
-        };
-      }
-
-      const avgCost = stats.totalCost / stats.count;
-      const avgTime = stats.deliveryDaysCount > 0 ? stats.avgDeliveryDays / stats.deliveryDaysCount : baselineTime;
-      
-      const costSavings = Math.max(0, Math.round(((baselineCost - avgCost) / baselineCost) * 100));
-      const timeReduction = Math.max(0, Math.round(((baselineTime - avgTime) / baselineTime) * 100));
-
-      return {
-        month,
-        costSavings,
-        timeReduction
+    if (!acc[monthKey]) {
+      acc[monthKey] = {
+        month: monthKey,
+        totalCost: 0,
+        shipmentCount: 0,
+        totalWeight: 0
       };
-    });
+    }
+    
+    acc[monthKey].totalCost += shipment['carrier+cost'] || 0;
+    acc[monthKey].shipmentCount += 1;
+    acc[monthKey].totalWeight += shipment.weight_kg || 0;
+    
+    return acc;
+  }, {} as Record<string, any>);
+
+  // Convert to array and sort by month
+  const chartData = Object.values(monthlyData)
+    .sort((a: any, b: any) => a.month.localeCompare(b.month))
+    .slice(-12) // Last 12 months
+    .map((data: any) => ({
+      month: data.month,
+      avgCostPerKg: data.totalWeight > 0 ? data.totalCost / data.totalWeight : 0,
+      totalCost: data.totalCost,
+      shipmentCount: data.shipmentCount
+    }));
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-800 border border-slate-600 rounded-lg p-3 shadow-lg">
+          <p className="text-cyan-400 font-medium">{label}</p>
+          <p className="text-white">
+            Avg Cost/kg: <span className="text-green-400">${String(payload[0].value)}</span>
+          </p>
+          <p className="text-white">
+            Total Cost: <span className="text-yellow-400">${String(payload[1]?.value || 0)}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
-  const trendData = calculateTrendData();
-
   return (
-    <Card className="glass-card shadow-glass border border-glassBorder">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
-          📈 Performance Efficiency Trends
-        </CardTitle>
-        <div className="flex gap-2">
-          <Button
-            variant={showCost ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowCost(!showCost)}
-            className="text-xs"
-          >
-            💰 Cost Efficiency
-          </Button>
-          <Button
-            variant={showTime ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowTime(!showTime)}
-            className="text-xs"
-          >
-            ⏱️ Time Efficiency
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {trendData.length > 0 ? (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
-                <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                <YAxis domain={[0, 100]} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(30, 41, 59, 0.9)', 
-                    border: '1px solid rgba(148, 163, 184, 0.2)',
-                    borderRadius: '8px',
-                    color: 'white'
-                  }}
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, '']}
-                />
-                <Legend />
-                {showCost && (
-                  <Line 
-                    type="monotone" 
-                    dataKey="costSavings" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    name="Cost Efficiency %"
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                  />
-                )}
-                {showTime && (
-                  <Line 
-                    type="monotone" 
-                    dataKey="timeReduction" 
-                    stroke="#3b82f6" 
-                    strokeWidth={3}
-                    name="Time Efficiency %"
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                  />
-                )}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="h-64 flex items-center justify-center text-indigo-300">
-            No trend data available
-          </div>
-        )}
-      </CardContent>
+    <Card className="p-6 bg-slate-800/90 border border-slate-600">
+      <h3 className="text-lg font-semibold text-green-400 mb-4">Cost Trend Analysis</h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis dataKey="month" stroke="#9CA3AF" />
+          <YAxis stroke="#9CA3AF" />
+          <Tooltip content={<CustomTooltip />} />
+          <Line 
+            type="monotone" 
+            dataKey="avgCostPerKg" 
+            stroke="#10B981" 
+            strokeWidth={2}
+            dot={{ fill: '#10B981', strokeWidth: 2 }}
+            name="Avg Cost/kg"
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </Card>
   );
 };
