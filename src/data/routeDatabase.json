@@ -1,92 +1,63 @@
-const routes = [
+
+[
   {
-    id: "route_001",
-    carrier: "Maersk Line",
-    route: "Mombasa-Juba",
-    hub: "Nairobi",
-    destination: "South Sudan",
-    transitTime: 12,
-    cost: 2450,
-    reliability: 85,
-    riskLevel: 15
+    "id": "route_001",
+    "carrier": "Maersk Line",
+    "route": "Mombasa-Juba",
+    "hub": "Nairobi",
+    "destination": "South Sudan",
+    "transitTime": 12,
+    "cost": 2450,
+    "reliability": 85,
+    "riskLevel": 15,
+    "overallScore": 0.82
   },
   {
-    id: "route_002",
-    carrier: "CMA CGM",
-    route: "Dakar-Juba",
-    hub: "Dakar",
-    destination: "South Sudan",
-    transitTime: 8,
-    cost: 2850,
-    reliability: 78,
-    riskLevel: 22
+    "id": "route_002", 
+    "carrier": "CMA CGM",
+    "route": "Dakar-Juba",
+    "hub": "Dakar",
+    "destination": "South Sudan",
+    "transitTime": 8,
+    "cost": 2850,
+    "reliability": 78,
+    "riskLevel": 22,
+    "overallScore": 0.75
   },
   {
-    id: "route_003",
-    carrier: "MSC",
-    route: "Lagos-Juba",
-    hub: "Lagos",
-    destination: "South Sudan",
-    transitTime: 10,
-    cost: 2200,
-    reliability: 90,
-    riskLevel: 10
+    "id": "route_003",
+    "carrier": "MSC",
+    "route": "Lagos-Juba", 
+    "hub": "Lagos",
+    "destination": "South Sudan",
+    "transitTime": 10,
+    "cost": 2200,
+    "reliability": 90,
+    "riskLevel": 10,
+    "overallScore": 0.88
   },
   {
-    id: "route_004",
-    carrier: "Hapag-Lloyd",
-    route: "Djibouti-Juba",
-    hub: "Djibouti",
-    destination: "South Sudan",
-    transitTime: 6,
-    cost: 3100,
-    reliability: 92,
-    riskLevel: 8
+    "id": "route_004",
+    "carrier": "Hapag-Lloyd",
+    "route": "Djibouti-Juba",
+    "hub": "Djibouti", 
+    "destination": "South Sudan",
+    "transitTime": 6,
+    "cost": 3100,
+    "reliability": 92,
+    "riskLevel": 8,
+    "overallScore": 0.85
   },
   {
-    id: "route_005",
-    carrier: "COSCO",
-    route: "Port Sudan-Juba",
-    hub: "Port Sudan",
-    destination: "South Sudan",
-    transitTime: 4,
-    cost: 1850,
-    reliability: 70,
-    riskLevel: 30
+    "id": "route_005",
+    "carrier": "COSCO",
+    "route": "Port Sudan-Juba",
+    "hub": "Port Sudan",
+    "destination": "South Sudan", 
+    "transitTime": 4,
+    "cost": 1850,
+    "reliability": 70,
+    "riskLevel": 30,
+    "overallScore": 0.68
   }
-];
-
-// Normalize and compute overallScore dynamically
-const normalize = (val, min, max) => (val - min) / (max - min);
-
-const costRange = [Math.min(...routes.map(r => r.cost)), Math.max(...routes.map(r => r.cost))];
-const timeRange = [Math.min(...routes.map(r => r.transitTime)), Math.max(...routes.map(r => r.transitTime))];
-const reliabilityRange = [Math.min(...routes.map(r => r.reliability)), Math.max(...routes.map(r => r.reliability))];
-const riskRange = [Math.min(...routes.map(r => r.riskLevel)), Math.max(...routes.map(r => r.riskLevel))];
-
-const weighted = {
-  cost: 0.4,
-  transitTime: 0.2,
-  reliability: 0.3,
-  riskLevel: 0.1
-};
-
-const updatedRoutes = routes.map(route => {
-  const normCost = 1 - normalize(route.cost, costRange[0], costRange[1]);
-  const normTime = 1 - normalize(route.transitTime, timeRange[0], timeRange[1]);
-  const normReliability = normalize(route.reliability, reliabilityRange[0], reliabilityRange[1]);
-  const normRisk = 1 - normalize(route.riskLevel, riskRange[0], riskRange[1]);
-
-  const score =
-    normCost * weighted.cost +
-    normTime * weighted.transitTime +
-    normReliability * weighted.reliability +
-    normRisk * weighted.riskLevel;
-
-  return {
-    ...route,
-    overallScore: parseFloat(score.toFixed(3))
-  };
-});
-
-console.log(updatedRoutes);
+]

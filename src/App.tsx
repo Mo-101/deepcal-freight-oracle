@@ -1,56 +1,61 @@
-import { Suspense, lazy } from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from './theme-provider';
-import { Toaster } from '@/components/ui/toaster';
-import Loading from './loading';
+import { Toaster } from '@/components/ui/sonner';
+import LandingPage from '@/pages/LandingPage';
+import About from '@/pages/About';
+import FreightCalculator from '@/pages/FreightCalculator';
+import SymbolicCalculator from '@/pages/SymbolicCalculator';
+import SymbolicDemo from '@/pages/SymbolicDemo';
+import Analytics from '@/pages/Analytics';
+import DeepTalk from '@/pages/DeepTalk';
+import MapPage from '@/pages/MapPage';
+import RFQPage from '@/pages/RFQPage';
+import NewShipments from '@/pages/NewShipments';
+import SymbolicConsciousness from '@/pages/SymbolicConsciousness';
+import SymbolicTrainingPage from '@/pages/SymbolicTrainingPage';
+import NotFound from '@/pages/NotFound';
 
-// Lazy load pages
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const DeepTalk = lazy(() => import('./pages/DeepTalk'));
-const FreightCalculator = lazy(() => import('./pages/FreightCalculator'));
-const SymbolicCalculator = lazy(() => import('./pages/SymbolicCalculator'));
-const Analytics = lazy(() => import('./pages/Analytics'));
-const About = lazy(() => import('./pages/About'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const NewShipments = lazy(() => import('./pages/NewShipments'));
+// DeepCAL Engine Pages
+import DeepCALCore from '@/pages/deepcal/index';
+import DeepCALRanking from '@/pages/deepcal/ranking';
+import ConsciousnessInterface from '@/pages/deepcal/consciousness';
+import TrainingLaboratory from '@/pages/deepcal/training';
+import EngineSettings from '@/pages/deepcal/settings';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 1,
-    },
-  },
-});
-
-console.log('App component initializing...');
+const queryClient = new QueryClient();
 
 function App() {
-  console.log('App component rendering...');
-  
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="deepcal-ui-theme">
-        <Router>
-          <div className="min-h-screen bg-background">
-            <Suspense fallback={<Loading />}>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/app" element={<DeepTalk />} />
-                <Route path="/demo" element={<DeepTalk />} />
-                <Route path="/calculator" element={<FreightCalculator />} />
-                <Route path="/symbolic" element={<SymbolicCalculator />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/new-shipment" element={<NewShipments />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-            <Toaster />
-          </div>
-        </Router>
-      </ThemeProvider>
+      <Router>
+        <div className="min-h-screen bg-background">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/freight-calculator" element={<FreightCalculator />} />
+            <Route path="/symbolic-calculator" element={<SymbolicCalculator />} />
+            <Route path="/symbolic-demo" element={<SymbolicDemo />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/deep-talk" element={<DeepTalk />} />
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/rfq" element={<RFQPage />} />
+            <Route path="/new-shipments" element={<NewShipments />} />
+            <Route path="/symbolic-consciousness" element={<SymbolicConsciousness />} />
+            <Route path="/symbolic-training" element={<SymbolicTrainingPage />} />
+            
+            {/* DeepCAL Engine Routes */}
+            <Route path="/deepcal" element={<DeepCALCore />} />
+            <Route path="/deepcal/ranking" element={<DeepCALRanking />} />
+            <Route path="/deepcal/consciousness" element={<ConsciousnessInterface />} />
+            <Route path="/deepcal/training" element={<TrainingLaboratory />} />
+            <Route path="/deepcal/settings" element={<EngineSettings />} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </Router>
+      <Toaster />
     </QueryClientProvider>
   );
 }

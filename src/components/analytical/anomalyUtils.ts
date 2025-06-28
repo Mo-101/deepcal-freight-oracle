@@ -3,6 +3,8 @@
  * Here, a value is flagged as anomalous if it is more than 1.5 standard deviations from the mean for its set.
  */
 
+type ForwarderKPI = any; // TODO: replace after @deepcal/core-mcdm migration
+
 type AnomalyField = 'costPerKg' | 'avgTransitDays' | 'onTimeRate';
 
 export interface ForwarderAnomalies {

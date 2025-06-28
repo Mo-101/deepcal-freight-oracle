@@ -1,3 +1,4 @@
+
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { spawn } from 'child_process';
@@ -30,10 +31,9 @@ interface TrainingJob {
   config: TrainingConfig;
 }
 
-// Start Training Job
 export const startTrainingJob = functions.https.onCall(async (data: TrainingConfig, context) => {
   const jobId = admin.firestore().collection('training_jobs').doc().id;
-
+  
   const job: TrainingJob = {
     id: jobId,
     status: 'pending',
@@ -43,7 +43,10 @@ export const startTrainingJob = functions.https.onCall(async (data: TrainingConf
     config: data
   };
 
+  // Save job to Firestore
   await admin.firestore().collection('training_jobs').doc(jobId).set(job);
+
+  // Start the training process
   runTrainingProcess(jobId, data);
 
   return job;
@@ -51,16 +54,17 @@ export const startTrainingJob = functions.https.onCall(async (data: TrainingConf
 
 async function runTrainingProcess(jobId: string, config: TrainingConfig) {
   const jobRef = admin.firestore().collection('training_jobs').doc(jobId);
-
+  
   try {
+    // Update job status to running
     await jobRef.update({
       status: 'running',
-      stage: 'Starting training process',
+      stage: 'Starting Python training script',
       progress: 10
     });
 
-    const scriptPath = path.resolve(__dirname, '../../training/firebase_training_bridge.py');
-    const args = [
+    // Prepare training script arguments
+    const scriptArgs = [
       '--data-source', config.dataSource,
       '--model-type', config.modelType,
       '--epochs', config.epochs.toString(),
@@ -68,74 +72,75 @@ async function runTrainingProcess(jobId: string, config: TrainingConfig) {
       '--job-id', jobId
     ];
 
-    const pythonProcess = spawn('python3', [scriptPath, ...args]);
+    // Spawn Python training process
+    const pythonProcess = spawn('python', [
+      path.join(__dirname, '../../training/firebase_training_bridge.py'),
+      ...scriptArgs
+    ]);
 
+    // Handle process output
     pythonProcess.stdout.on('data', async (data) => {
       const output = data.toString();
       console.log(`Training output: ${output}`);
-
-      try {
-        if (output.includes('PROGRESS:')) {
-          const match = output.match(/PROGRESS:(\d+)/);
-          if (match) {
-            await jobRef.update({ progress: parseInt(match[1]) });
-          }
+      
+      // Parse progress updates from Python script
+      if (output.includes('PROGRESS:')) {
+        const progressMatch = output.match(/PROGRESS:(\d+)/);
+        if (progressMatch) {
+          await jobRef.update({ progress: parseInt(progressMatch[1]) });
         }
-
-        if (output.includes('STAGE:')) {
-          const match = output.match(/STAGE:(.+)/);
-          if (match) {
-            await jobRef.update({ stage: match[1].trim() });
-          }
+      }
+      
+      // Parse stage updates
+      if (output.includes('STAGE:')) {
+        const stageMatch = output.match(/STAGE:(.+)/);
+        if (stageMatch) {
+          await jobRef.update({ stage: stageMatch[1].trim() });
         }
-
-        if (output.includes('METRICS:')) {
-          const match = output.match(/METRICS:(\{.*\})/);
-          if (match) {
-            const metrics = JSON.parse(match[1]);
-            await jobRef.update({ metrics });
-          }
+      }
+      
+      // Parse metrics updates
+      if (output.includes('METRICS:')) {
+        const metricsMatch = output.match(/METRICS:(.+)/);
+        if (metricsMatch) {
+          const metrics = JSON.parse(metricsMatch[1]);
+          await jobRef.update({ metrics });
         }
-
-      } catch (innerError) {
-        console.error('Failed to update training status:', innerError);
       }
     });
 
     pythonProcess.stderr.on('data', (data) => {
-      console.error(`Python stderr: ${data}`);
+      console.error(`Training error: ${data}`);
     });
 
     pythonProcess.on('close', async (code) => {
-      const completedAt = new Date().toISOString();
       if (code === 0) {
         await jobRef.update({
           status: 'completed',
           progress: 100,
-          stage: 'Training complete',
-          completedAt
+          completedAt: new Date().toISOString(),
+          stage: 'Training completed successfully'
         });
       } else {
         await jobRef.update({
           status: 'failed',
-          error: `Exited with code ${code}`,
-          completedAt
+          error: `Training process exited with code ${code}`,
+          completedAt: new Date().toISOString()
         });
       }
     });
 
-  } catch (err: any) {
-    console.error('Unhandled training error:', err);
+  } catch (error) {
+    console.error('Training process error:', error);
     await jobRef.update({
       status: 'failed',
-      error: err.message || 'Unknown error',
+      error: error.message,
       completedAt: new Date().toISOString()
     });
   }
 }
 
-// Get Training Status
 export const getTrainingStatus = functions.https.onCall(async (data: { jobId: string }, context) => {
-  const snapshot = await admin.firestore().collection('training_jobs').doc(data.jobId).get();
-  return snapshot.exists ? snapshot.data() : { error: 'Job not found' };
+  const jobDoc = await admin.firestore().collection('training_jobs').doc(data.jobId).get();
+  return jobDoc.exists ? jobDoc.data() : null;
 });

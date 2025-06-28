@@ -100,6 +100,64 @@ const FreightCalculator = () => {
           </div>
         )}
       </div>
+
+      {/* OLD SHIPMENT SELECTION - DASHBOARD STYLE */}
+      <Card className="glass-card border border-border bg-white/85 shadow-lg mb-6">
+        <CardHeader className="flex flex-row items-center gap-3 pb-1">
+          <Package className="w-6 h-6 text-accent" />
+          <CardTitle className="text-lg font-semibold tracking-tight">
+            Select an Existing Shipment (Reference)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            <div className="w-full md:w-96">
+              <Label htmlFor="old-shipment-select" className="block text-sm font-bold mb-2 text-blue-900">
+                Load by Request Reference
+              </Label>
+              <Select
+                value={selectedReference || ""}
+                onValueChange={val => setSelectedReference(val)}
+                disabled={oldShipments.length === 0}
+              >
+                <SelectTrigger
+                  id="old-shipment-select"
+                  className="border border-accent/50 rounded-lg px-4 py-2 text-base font-medium bg-white focus:ring-accent shadow transition-all"
+                >
+                  <SelectValue placeholder="Select previous shipment..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white shadow-2xl border border-accent/40 z-50">
+                  {oldShipments.length > 0 ? (
+                    oldShipments.map((s) => (
+                      <SelectItem
+                        value={s.request_reference}
+                        key={s.request_reference}
+                        className="hover:bg-accent/10 text-black font-normal"
+                      >
+                        <span className="font-mono font-medium text-primary">{s.request_reference}</span>
+                        <span className="ml-2 text-gray-600">
+                          {s.origin_country} → {s.destination_country} <span className="text-xs text-muted-foreground">({s.item_category})</span>
+                        </span>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    // Use a non-empty value; this item is disabled and will never be selected.
+                    <SelectItem value="__no_shipments__" disabled>
+                      <span className="italic text-muted-foreground">No shipments available</span>
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedReference && (
+              <Button onClick={clearForm} variant="outline" className="border-primary px-3">
+                Clear Selection
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* INPUT GRID */}
       <Card className="glass-card shadow-glass">
         <CardHeader>
@@ -136,7 +194,6 @@ const FreightCalculator = () => {
                   value={inputs.destination}
                   onChange={(e) => setInputs({...inputs, destination: e.target.value})}
                   required
-
                 />
               </div>
               <div>
@@ -180,6 +237,7 @@ const FreightCalculator = () => {
               </div>
               <div>
                 <Label htmlFor="urgency" className="input-label">Priority Level</Label>
+                <Select value={inputs.urgency} onValueChange={(value: 'medium' | 'high') => setInputs({...inputs, urgency: value})}>
                   <SelectTrigger className="elegant-input mt-1">
                     <SelectValue placeholder="Choose priority" />
                   </SelectTrigger>
@@ -196,6 +254,7 @@ const FreightCalculator = () => {
               <Button 
                 type="submit"
                 className="glass-button"
+                disabled={calculating || !dataLoaded}
               >
                 {calculating ? "Calculating..." : "Calculate Best Route"}
               </Button>
@@ -217,6 +276,11 @@ const FreightCalculator = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              <Calculator className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Enter shipment details and click Calculate to see recommendations</p>
+              <p className="text-xs mt-2">All calculations use real data - no mock values!</p>
+            </div>
           </CardContent>
         </Card>
       </div>
