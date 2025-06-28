@@ -26,7 +26,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
     }> = {};
 
     shipmentData.forEach(shipment => {
-      const date = new Date(shipment.date_of_collection);
+      const date = new Date(shipment.date_of_collection || '');
       const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
       
       if (!monthlyStats[monthKey]) {
@@ -44,7 +44,7 @@ export const SavingsTrendLine: React.FC<SavingsTrendLineProps> = ({ shipmentData
 
       // Calculate delivery days if both dates are available
       if (shipment.date_of_arrival_destination) {
-        const collectionDate = new Date(shipment.date_of_collection);
+        const collectionDate = new Date(shipment.date_of_collection || '');
         const arrivalDate = new Date(shipment.date_of_arrival_destination);
         const deliveryDays = Math.round((arrivalDate.getTime() - collectionDate.getTime()) / (1000 * 60 * 60 * 24));
         

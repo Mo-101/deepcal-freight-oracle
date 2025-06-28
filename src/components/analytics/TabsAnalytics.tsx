@@ -42,11 +42,11 @@ export const TabsAnalytics: React.FC = () => {
     };
 
     const totalShipments = shipmentData.length;
-    const totalCost = shipmentData.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] || '0')), 0);
+    const totalCost = shipmentData.reduce((sum, s) => sum + parseFloat(s['carrier+cost'] || '0'), 0);
     const avgCost = totalCost / totalShipments;
     const totalWeight = shipmentData.reduce((sum, s) => sum + parseFloat(s.weight_kg || '0'), 0);
     const totalValue = shipmentData.reduce((sum, s) => sum + parseFloat(s.item_value || '0'), 0);
-    const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_Carrier).filter(Boolean)).size;
+    const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_carrier).filter(Boolean)).size;
     const uniqueDestinations = new Set(shipmentData.map(s => s.destination_country).filter(Boolean)).size;
     const deliveredShipments = shipmentData.filter(s => s.delivery_status === 'Delivered').length;
 
