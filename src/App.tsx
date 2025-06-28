@@ -6,7 +6,7 @@ import { ThemeProvider } from './theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import Loading from './loading';
 
-// Lazy load pages to avoid potential circular dependencies
+// Lazy load pages
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const DeepTalk = lazy(() => import('./pages/DeepTalk'));
 const FreightCalculator = lazy(() => import('./pages/FreightCalculator'));
@@ -14,19 +14,18 @@ const SymbolicCalculator = lazy(() => import('./pages/SymbolicCalculator'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const About = lazy(() => import('./pages/About'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const NewShipments = lazy(() => import('./pages/NewShipments'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: 1,
     },
   },
 });
 
 function App() {
-  console.log('App component initializing');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="deepcal-ui-theme">
@@ -41,6 +40,7 @@ function App() {
                 <Route path="/symbolic" element={<SymbolicCalculator />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/new-shipment" element={<NewShipments />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
