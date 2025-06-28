@@ -20,15 +20,15 @@ export interface ShipmentData {
   origin?: string;
   destination_country?: string;
   destination?: string;
-  weight_kg?: string;
+  weight_kg?: number; // Changed from string to number
   weight?: string;
-  volume_cbm?: string;
+  volume_cbm?: number; // Changed from string to number
   volume?: string;
   item_category?: string;
   cargo_description?: string;
   cargo_type?: string;
   item_description?: string;
-  item_value?: string;
+  item_value?: number; // Changed from string to number
   date_of_collection?: string;
   date_of_arrival_destination?: string;
   shipment_date?: string;
@@ -38,7 +38,7 @@ export interface ShipmentData {
   final_quote_awarded_freight_forwader_Carrier?: string;
   initial_quote_awarded?: string;
   awarded_forwarder?: string;
-  'carrier+cost'?: string;
+  'carrier+cost'?: number; // Changed from string to number
   kuehne_nagel?: number;
   'kuehne+nagel'?: number;
   dhl_global?: number;

@@ -15,8 +15,18 @@ export const useShipmentData = () => {
     setRefreshingData(true);
     try {
       await csvDataEngine.forceReloadEmbeddedData();
-      const freshShipments = await csvDataEngine.listShipments();
-      setShipments(freshShipments);
+      const freshRecords = await csvDataEngine.listShipments();
+      
+      // Convert ShipmentRecord[] to ShipmentData[]
+      const convertedData: ShipmentData[] = freshRecords.map(record => ({
+        ...record,
+        weight_kg: record.weight_kg || 0,
+        volume_cbm: record.volume_cbm || 0,
+        item_value: typeof record.item_value === 'string' ? parseFloat(record.item_value) || 0 : (record.item_value || 0),
+        'carrier+cost': typeof record['carrier+cost'] === 'string' ? parseFloat(record['carrier+cost']) || 0 : (record['carrier+cost'] || 0)
+      }));
+      
+      setShipments(convertedData);
       setDataStale(false);
       
       // Clear selection
@@ -33,8 +43,18 @@ export const useShipmentData = () => {
   // Load shipments effect
   useEffect(() => {
     const fetchShipments = async () => {
-      const shipmentData = await csvDataEngine.listShipments();
-      setShipments(shipmentData);
+      const shipmentRecords = await csvDataEngine.listShipments();
+      
+      // Convert ShipmentRecord[] to ShipmentData[]
+      const convertedData: ShipmentData[] = shipmentRecords.map(record => ({
+        ...record,
+        weight_kg: record.weight_kg || 0,
+        volume_cbm: record.volume_cbm || 0,
+        item_value: typeof record.item_value === 'string' ? parseFloat(record.item_value) || 0 : (record.item_value || 0),
+        'carrier+cost': typeof record['carrier+cost'] === 'string' ? parseFloat(record['carrier+cost']) || 0 : (record['carrier+cost'] || 0)
+      }));
+      
+      setShipments(convertedData);
       
       const isStale = await csvDataEngine.isDataStale();
       setDataStale(isStale);

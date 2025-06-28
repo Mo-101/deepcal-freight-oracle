@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, Globe, Truck, MapPin, Map } from 'lucide-react';
@@ -18,7 +17,15 @@ export const TabsAnalytics: React.FC = () => {
     const loadData = async () => {
       try {
         const data = await csvDataEngine.listShipments();
-        setShipmentData(Array.isArray(data) ? data : []);
+        // Convert ShipmentRecord[] to ShipmentData[]
+        const convertedData: ShipmentData[] = data.map(record => ({
+          ...record,
+          weight_kg: record.weight_kg || 0,
+          volume_cbm: record.volume_cbm || 0,
+          item_value: typeof record.item_value === 'string' ? parseFloat(record.item_value) || 0 : (record.item_value || 0),
+          'carrier+cost': typeof record['carrier+cost'] === 'string' ? parseFloat(record['carrier+cost']) || 0 : (record['carrier+cost'] || 0)
+        }));
+        setShipmentData(convertedData);
       } catch (error) {
         console.error('Failed to load shipment data:', error);
         setShipmentData([]);
@@ -42,10 +49,10 @@ export const TabsAnalytics: React.FC = () => {
     };
 
     const totalShipments = shipmentData.length;
-    const totalCost = shipmentData.reduce((sum, s) => sum + parseFloat(s['carrier+cost'] || '0'), 0);
+    const totalCost = shipmentData.reduce((sum, s) => sum + (s['carrier+cost'] || 0), 0);
     const avgCost = totalCost / totalShipments;
-    const totalWeight = shipmentData.reduce((sum, s) => sum + parseFloat(s.weight_kg || '0'), 0);
-    const totalValue = shipmentData.reduce((sum, s) => sum + parseFloat(s.item_value || '0'), 0);
+    const totalWeight = shipmentData.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
+    const totalValue = shipmentData.reduce((sum, s) => sum + (s.item_value || 0), 0);
     const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_carrier).filter(Boolean)).size;
     const uniqueDestinations = new Set(shipmentData.map(s => s.destination_country).filter(Boolean)).size;
     const deliveredShipments = shipmentData.filter(s => s.delivery_status === 'Delivered').length;
