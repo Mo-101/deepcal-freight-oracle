@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Progress } from '../components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Eye, Brain, Zap, Target, TrendingUp, Calculator } from 'lucide-react';
 import { AnimatedRadarChart } from './analytical/AnimatedRadarChart';
 import { TOPSISMatrix } from './analytical/TOPSISMatrix';
@@ -11,20 +11,47 @@ import { ConfidenceVisualization } from './analytical/ConfidenceVisualization';
 import { SymbolicDecisionSeal } from './analytical/SymbolicDecisionSeal';
 import { RouteVisualization } from './analytical/RouteVisualization';
 import { MethodologyExplainer } from './analytical/MethodologyExplainer';
+interface ForwarderComparison {
+  name: string;
+  cost: number;
+  time: number;
+  risk: number;
+  score: number;
+  // Allow other potential keys but prefer known ones
+  [key: string]: unknown;
+}
+
+interface LineageMeta {
+  sha256: string;
+  records: number;
+  source: string;
+  timestamp: string;
+}
+
+interface PowerAnalyticalEngineResult {
+  forwarderComparison: ForwarderComparison[];
+  recommendation: string;
+  lineageMeta: LineageMeta;
+  routeScore: number;
+  rulesFired: string[];
+  confidence: number;
+}
+
+interface PowerAnalyticalEngineInputs {
+  origin: string;
+  destination: string;
+  priorities: {
+    time: number;
+    cost: number;
+    risk: number;
+  };
+  weight: number;
+  volume: number;
+}
 
 interface PowerAnalyticalEngineProps {
-  result: any;
-  inputs: {
-    origin: string;
-    destination: string;
-    weight: number;
-    volume: number;
-    priorities: {
-      time: number;
-      cost: number;
-      risk: number;
-    };
-  };
+  result: PowerAnalyticalEngineResult;
+  inputs: PowerAnalyticalEngineInputs;
 }
 
 export const PowerAnalyticalEngine: React.FC<PowerAnalyticalEngineProps> = ({ result, inputs }) => {
@@ -51,7 +78,7 @@ export const PowerAnalyticalEngine: React.FC<PowerAnalyticalEngineProps> = ({ re
   }, []);
 
   const topForwarder = result.forwarderComparison[0];
-  const confidenceScore = 0.89 + Math.random() * 0.1; // Simulated confidence
+  const confidenceScore = result.confidence;
 
   if (isCalculating) {
     return (
@@ -90,7 +117,6 @@ export const PowerAnalyticalEngine: React.FC<PowerAnalyticalEngineProps> = ({ re
               <Brain className="w-6 h-6 text-deepcal-light" />
               <div>
                 <CardTitle className="text-xl glow-text">🔱 SYMBOLIC LOGISTICS TRANSMISSION</CardTitle>
-                <p className="text-sm text-purple-200">DeepCAL++ vΩ POWER ANALYTICAL ENGINE</p>
               </div>
             </div>
             
