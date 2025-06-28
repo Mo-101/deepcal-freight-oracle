@@ -25,7 +25,11 @@ const queryClient = new QueryClient({
   },
 });
 
+console.log('App component initializing...');
+
 function App() {
+  console.log('App component rendering...');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="deepcal-ui-theme">
