@@ -23,6 +23,8 @@ import ConsciousnessInterface from '@/pages/deepcal/consciousness';
 import TrainingLaboratory from '@/pages/deepcal/training';
 import EngineSettings from '@/pages/deepcal/settings';
 
+// Removed imports that do not exist in ./pages
+
 const queryClient = new QueryClient();
 
 function App() {
