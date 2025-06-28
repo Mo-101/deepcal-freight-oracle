@@ -1,5 +1,4 @@
 
-import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader"
 import NewShipmentForm from "@/components/NewShipmentForm"
@@ -23,24 +22,18 @@ export default function NewShipments() {
   const navigate = useNavigate()
 
   const handleSubmit = (data: ShipmentEntry) => {
-    // Here you would integrate with your data storage system
-    // For now, we'll just log the data and show a success message
     console.log("📦 New Shipment Submitted:", data)
-    
-    // Simulate adding to your shipment database or CSV engine
-    // csvDataEngine.appendShipment(data) or similar integration
     
     toast({
       title: "Shipment Captured",
       description: `DeepCAL received shipment ${data.request_reference}`
     })
     
-    // Navigate back to analytics or dashboard
     navigate("/analytics")
   }
 
   const handleCancel = () => {
-    navigate(-1) // Go back to previous page
+    navigate(-1)
   }
 
   return (
