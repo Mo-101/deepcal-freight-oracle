@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Bot, User, MessageSquare, Brain, Zap } from "lucide-react"
 import ChatInput from "./ChatInput"
-import DeepTalkVoice from "./DeepTalkVoice"
 
 interface Message {
   id: string
@@ -35,30 +34,15 @@ export default function ChatInterface({
   onStartListening,
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const chatContainerRef = useRef<HTMLDivElement>(null)
 
-  // Only scroll to bottom on user messages, not assistant responses
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      // Only auto-scroll for user messages to prevent page jumping
-      if (lastMessage.type === "user") {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-      }
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Ensure chat container doesn't cause page jumping
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    }
-  }, [isProcessing])
-
   return (
-    <div className="flex-1 lg:max-w-3xl h-full flex flex-col">
-      <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col oracle-card border border-white/20 h-full">
-        <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20 flex justify-between items-center flex-shrink-0">
+    <div className="flex-1 lg:max-w-3xl">
+      <div className="bg-white/10 backdrop-blur-lg rounded-xl shadow-md overflow-hidden flex flex-col oracle-card border border-white/20 h-[600px]">
+        <div className="bg-slate-800/50 px-6 py-4 border-b border-white/20 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <MessageSquare className="text-blue-400" />
             DeepTalk AI Conversation
@@ -69,21 +53,16 @@ export default function ChatInterface({
           </div>
         </div>
 
-        <div 
-          ref={chatContainerRef}
-          className="flex-1 p-6 overflow-y-auto flex flex-col scroll-smooth min-h-0" 
-          id="chatContainer"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          <div className="space-y-4 flex-1">
+        <div className="flex-1 p-6 overflow-y-auto flex flex-col" id="chatContainer">
+          <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}
               >
-                <div className={`flex gap-3 max-w-[85%] ${message.type === "user" ? "flex-row-reverse" : ""}`}>
+                <div className={`flex gap-3 max-w-[80%] ${message.type === "user" ? "flex-row-reverse" : ""}`}>
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       message.type === "user" ? "bg-blue-600" : "bg-lime-400"
                     }`}
                   >
@@ -94,36 +73,27 @@ export default function ChatInterface({
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2 min-w-0 flex-1">
-                    <div
-                      className={`rounded-lg p-4 break-words ${
-                        message.type === "user" 
-                          ? "bg-blue-600 text-white" 
-                          : "bg-slate-800/80 text-white border border-white/20 backdrop-filter backdrop-blur-8px"
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {message.intent && (
-                          <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
-                            Intent: {message.intent}
-                          </Badge>
-                        )}
-                        {message.data?.groqPowered && (
-                          <Badge className="text-xs bg-purple-400/20 text-purple-300 border-purple-400/30">
-                            <Brain className="w-3 h-3 mr-1" />
-                            AI Enhanced
-                          </Badge>
-                        )}
-                      </div>
+                  <div
+                    className={`rounded-lg p-3 ${
+                      message.type === "user" 
+                        ? "bg-blue-600 text-white" 
+                        : "bg-slate-800/80 text-white border border-white/20 backdrop-filter backdrop-blur-8px"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {message.intent && (
+                        <Badge className="text-xs bg-lime-400/20 text-lime-300 border-lime-400/30">
+                          Intent: {message.intent}
+                        </Badge>
+                      )}
+                      {message.data?.groqPowered && (
+                        <Badge className="text-xs bg-purple-400/20 text-purple-300 border-purple-400/30">
+                          <Brain className="w-3 h-3 mr-1" />
+                          AI Enhanced
+                        </Badge>
+                      )}
                     </div>
-                    
-                    {/* Voice control for assistant messages only */}
-                    {message.type === "assistant" && (
-                      <div className="flex justify-start">
-                        <DeepTalkVoice message={message.content} />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -131,10 +101,10 @@ export default function ChatInterface({
 
             {isProcessing && (
               <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-lime-400 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-lime-400 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-slate-900" />
                 </div>
-                <div className="bg-slate-800/80 text-white rounded-lg p-4 border border-white/20">
+                <div className="bg-slate-800/80 text-white rounded-lg p-3 border border-white/20">
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-400"></div>
                     <Zap className="w-4 h-4 text-purple-400 animate-pulse" />
@@ -147,16 +117,14 @@ export default function ChatInterface({
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="flex-shrink-0">
-          <ChatInput
-            input={input}
-            setInput={setInput}
-            onSubmit={onSubmit}
-            onStartListening={onStartListening}
-            isProcessing={isProcessing}
-            isListening={isListening}
-          />
-        </div>
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          onSubmit={onSubmit}
+          onStartListening={onStartListening}
+          isProcessing={isProcessing}
+          isListening={isListening}
+        />
       </div>
     </div>
   )

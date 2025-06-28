@@ -1,2 +1,0 @@
-2025-06-17 20:58:01 Script not found: auto_symbolic_training.py
-2025-06-17 20:58:01 Script not found: ultimate_symbolic_power_script.py

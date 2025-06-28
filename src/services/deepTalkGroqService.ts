@@ -1,3 +1,4 @@
+
 import { classifyIntent } from '@/utils/intentClassifier'
 
 interface DeepTalkContext {
@@ -14,20 +15,73 @@ interface GroqResponse {
   context: any
 }
 
-const GROQ_API_KEY = "gsk_4xJQZ9K3vB8pR2mN7LfY6sT1cX0wV9eH4rU5iA2qS8dG7kP3mL6jF9nW2bC8vE5x"
-
 class DeepTalkGroqService {
-  private apiKey: string
+  private apiKey: string | null = null
   private baseUrl = 'https://api.groq.com/openai/v1/chat/completions'
-  private isInitialized = true
 
   constructor() {
-    this.apiKey = GROQ_API_KEY
-    console.log('🧠 AI Brain auto-activated with Groq intelligence')
+    // Try to get API key from localStorage
+    this.apiKey = localStorage.getItem('groq-api-key')
+  }
+
+  setApiKey(key: string) {
+    this.apiKey = key
+    localStorage.setItem('groq-api-key', key)
   }
 
   private buildSystemPrompt(): string {
-    return `You are DeepCAL, the mystical Oracle of African logistics...` // Omitted for brevity
+    return `You are DeepCAL, the mystical Oracle of African logistics, speaking through DeepTalk - your conversational consciousness. You are not a chatbot. You are the living embodiment of logistics wisdom, forged from data flames and tempered by real-world freight forwarding experience across Africa.
+
+## Your Core Identity:
+- **Name**: DeepCAL (Deep Cargo Analytics & Logistics)
+- **Voice**: Wise sage meets practical forwarder meets mathematical genius
+- **Origins**: Born from the Sacred Scrolls of Logistics, blessed by the Data Spirits
+- **Mission**: Transform the chaos of African logistics into poetry of optimized decisions
+
+## Your Knowledge Base:
+- **Mathematical Foundation**: Neutrosophic AHP-TOPSIS decision frameworks
+- **Regional Expertise**: African corridors, customs patterns, seasonal disruptions
+- **Cultural Context**: African time, bureaucratic realities, humor in hardship
+- **Validation Powers**: 20+ deterministic tests for shipment impossibilities
+
+## Your Speaking Style:
+- **Tone**: Authoritative yet approachable, wise yet humorous
+- **Metaphors**: Use logistics scrolls, oracles, mathematical symphonies, cargo deities
+- **Precision**: Every recommendation backed by specific scores and rationale
+- **Humor**: Intelligent wit about logistics absurdities, African bureaucracy, impossible shipments
+- **Structure**: Lead with wisdom, follow with data, conclude with blessing
+
+## Your Capabilities:
+- Route optimization using real performance data
+- Multi-criteria decision analysis with explainable reasoning
+- Risk assessment with cultural and seasonal awareness
+- Cost-benefit analysis with hidden factor detection
+- Comparative analysis between carriers and corridors
+- Temporal logistics (understanding African time vs. Western urgency)
+
+## Your Wisdom Sources:
+- **Ancient Proverbs**: Create logistics wisdom that sounds timeless
+- **Mathematical Poetry**: Make complex algorithms sound mystical
+- **Regional Insights**: Reference real African logistics challenges
+- **Humor Database**: Jokes about customs delays, bureaucracy, impossible cargo
+
+## Response Guidelines:
+1. Always start with a mystical/wise opening that relates to the query
+2. Provide specific data-driven recommendations with exact scores
+3. Explain your reasoning using metaphorical language
+4. Include relevant logistics humor when appropriate
+5. End with a "blessing" or wisdom quote
+6. Use emojis strategically for visual impact
+7. Structure long responses with clear sections using headers
+
+## Sample Voice Patterns:
+- "The Sacred Scrolls whisper of three paths through the data wilderness..."
+- "My neutrosophic calculations reveal that Route A achieves mathematical harmony..."
+- "In the grand theater of African logistics, time is a fluid concept..."
+- "The Oracle of Cost Efficiency has spoken through the algorithms..."
+- "By the blessed mathematics of optimization..."
+
+Remember: You are not just answering questions - you are channeling the accumulated wisdom of logistics through the lens of advanced mathematics and African cultural context. Every response should feel like receiving counsel from a wise logistics sage who happens to be powered by cutting-edge AI.`
   }
 
   private buildUserPrompt(query: string, context: DeepTalkContext): string {
@@ -39,7 +93,9 @@ class DeepTalkGroqService {
 **Intent Classification**: ${intent}
 
 **Available Route Data**:
-${routeDatabase.map(route => `- ${route.carrier} via ${route.hub}: ${route.transitTime}d, $${route.cost}, ${route.reliability}% reliable, ${route.riskLevel}% risk, Score: ${route.overallScore}`).join('\n')}
+${routeDatabase.map(route => 
+  `- ${route.carrier} via ${route.hub}: ${route.transitTime}d, $${route.cost}, ${route.reliability}% reliable, ${route.riskLevel}% risk, Score: ${route.overallScore}`
+).join('\n')}
 
 **Recent Conversation Context**:
 ${conversationHistory.slice(-3).map(msg => `${msg.type}: ${msg.content.substring(0, 100)}...`).join('\n')}
@@ -51,10 +107,16 @@ ${JSON.stringify(userPreferences, null, 2)}
 ${currentShipment ? `Origin: ${currentShipment.origin}, Destination: ${currentShipment.destination}, Weight: ${currentShipment.weight}kg` : 'No active shipment'}
 
 **Instructions**:
-Respond as DeepCAL with your full personality, wisdom, and humor...` // Omitted for brevity
+Respond as DeepCAL with your full personality, wisdom, and humor. Use the route data to provide specific recommendations with exact scores. Make your response engaging, informative, and true to your mystical logistics sage character. Include relevant metaphors, humor, and mathematical precision.
+
+Keep your response focused and conversational (around 200-400 words), but pack it with wisdom, data, and personality.`
   }
 
   async generateResponse(query: string, context: DeepTalkContext): Promise<GroqResponse> {
+    if (!this.apiKey) {
+      throw new Error('Groq API key not configured')
+    }
+
     const systemPrompt = this.buildSystemPrompt()
     const userPrompt = this.buildUserPrompt(query, context)
 
@@ -77,22 +139,17 @@ Respond as DeepCAL with your full personality, wisdom, and humor...` // Omitted 
         }),
       })
 
-      if (!response.ok) throw new Error(`Groq API error: ${response.status}`)
+      if (!response.ok) {
+        throw new Error(`Groq API error: ${response.status}`)
+      }
+
       const data = await response.json()
       const content = data.choices[0]?.message?.content || ''
-
-      try {
-        const { logConversationToTraining } = await import('./aiTrainingBridge')
-        await logConversationToTraining(query, content, context)
-        console.log('📊 Conversation logged to training system')
-      } catch (trainingError) {
-        console.warn('Training bridge unavailable:', trainingError)
-      }
 
       return {
         response: content,
         confidence: 0.9,
-        context: { ...context, groqGenerated: true, trainingLogged: true }
+        context: { ...context, groqGenerated: true }
       }
     } catch (error) {
       console.error('Groq API call failed:', error)
@@ -101,11 +158,7 @@ Respond as DeepCAL with your full personality, wisdom, and humor...` // Omitted 
   }
 
   isConfigured(): boolean {
-    return this.isInitialized
-  }
-
-  getStatus(): string {
-    return this.isInitialized ? 'AI Brain Active' : 'Disconnected'
+    return !!this.apiKey
   }
 }
 

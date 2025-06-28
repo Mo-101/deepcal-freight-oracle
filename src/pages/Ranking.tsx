@@ -1,5 +1,5 @@
 
-import DeepCALSymbolicHeader from "@/components/DeepCALSymbolicHeader";
+import DeepCALHeader from "@/components/DeepCALHeader";
 import { BarChart2, BadgeCheck } from "lucide-react";
 
 const demo = [
@@ -10,8 +10,8 @@ const demo = [
 
 const Ranking = () => (
   <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900">
-    <DeepCALSymbolicHeader />
-    <main className="container max-w-3xl mx-auto pt-5 px-6">
+    <DeepCALHeader />
+    <main className="container max-w-3xl mx-auto pt-5">
       <h2 className="text-2xl font-bold mb-4 flex items-center gap-3 text-white">
         <BarChart2 className="w-7 h-7 text-lime-400" />
         Route/Forwarder Rankings (TOPSIS)

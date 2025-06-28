@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Sliders } from 'lucide-react';
-import { WeightVector } from '@/types/training';
+import { WeightVector } from '@/pages/Training';
 
 interface WeightsConfigTabProps {
   weights: WeightVector;
@@ -12,23 +12,11 @@ interface WeightsConfigTabProps {
 }
 
 export function WeightsConfigTab({ weights, setWeights }: WeightsConfigTabProps) {
-  const handleSlider = (criterion: keyof WeightVector, value: number) => {
-    const newValue = value / 100;
-    const otherKeys = (Object.keys(weights) as Array<keyof WeightVector>).filter(k => k !== criterion);
-    const otherSum = otherKeys.reduce((sum, key) => sum + weights[key], 0);
-    const remaining = 1 - newValue;
-    
-    if (remaining < 0 || otherSum === 0) return;
-    
-    const scaleFactor = remaining / otherSum;
-    const newWeights = { ...weights };
-    newWeights[criterion] = newValue;
-    
-    otherKeys.forEach(key => {
-      newWeights[key] = weights[key] * scaleFactor;
-    });
-    
-    setWeights(newWeights);
+  const handleSlider = (k: keyof WeightVector, v: number) => {
+    const next = { ...weights, [k]: v / 100 } as WeightVector;
+    const sum = Object.values(next).reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - 1) > 0.0001) return;
+    setWeights(next);
   };
 
   return (
@@ -44,7 +32,7 @@ export function WeightsConfigTab({ weights, setWeights }: WeightsConfigTabProps)
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(['cost', 'time', 'reliability', 'risk'] as Array<keyof WeightVector>).map((criterion) => (
+          {(['cost', 'time', 'reliability', 'risk'] as (keyof WeightVector)[]).map((criterion) => (
             <div key={criterion} className="space-y-3">
               <Label className="text-indigo-300 text-lg capitalize">
                 {criterion} Priority
@@ -86,13 +74,6 @@ export function WeightsConfigTab({ weights, setWeights }: WeightsConfigTabProps)
               <div className="text-lime-400 font-mono text-lg">{(weights.risk * 100).toFixed(0)}%</div>
               <div className="text-indigo-300">Risk</div>
             </div>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <span className="text-sm text-indigo-300">Total: </span>
-            <span className="text-lime-400 font-mono">
-              {((weights.cost + weights.time + weights.reliability + weights.risk) * 100).toFixed(1)}%
-            </span>
           </div>
         </div>
       </CardContent>

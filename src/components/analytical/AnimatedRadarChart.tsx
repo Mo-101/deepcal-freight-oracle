@@ -1,6 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+// Insert local type definition
+type ForwarderKPI = {
+  name: string,
+  avgTransitDays: number,
+  costPerKg: number,
+  onTimeRate: number,
+  totalShipments: number,
+};
 import { AlertTriangle } from "lucide-react";
 import type { ForwarderAnomalies } from "./anomalyUtils";
 

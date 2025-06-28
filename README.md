@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: <https://lovable.dev/projects/26c2536c-8acb-4797-a939-fae124db9d3a>
+**URL**: https://lovable.dev/projects/26c2536c-8acb-4797-a939-fae124db9d3a
 
 ## How can I edit this code?
 
@@ -54,7 +54,7 @@ npm run dev
 
 This project is built with:
 
-- Next.js
+- Vite
 - TypeScript
 - React
 - shadcn-ui

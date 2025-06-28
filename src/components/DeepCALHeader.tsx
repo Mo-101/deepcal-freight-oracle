@@ -1,7 +1,9 @@
 
+// Unified header for all pages, with navigation buttons to every primary route
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BrainCog, Dumbbell, Map, Info } from "lucide-react";
+import { BrainCog, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // All main app pages
@@ -10,8 +12,6 @@ const navLinks = [
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
   { label: "Training", to: "/training", icon: Dumbbell },
-  { label: "Map", to: "/map", icon: Map },
-  { label: "About", to: "/about", icon: Info },
 ];
 
 const DeepCALHeader: React.FC = () => {

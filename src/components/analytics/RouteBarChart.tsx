@@ -45,10 +45,8 @@ export const RouteBarChart: React.FC<RouteBarChartProps> = ({ shipmentData }) =>
       }
       
       routeStats[route].count++;
-      const costField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
-      routeStats[route].totalCost += costNum;
-      routeStats[route].totalWeight += parseFloat(String(shipment.weight_kg || '0')) || 0;
+      routeStats[route].totalCost += parseFloat(shipment['carrier+cost'] || '0');
+      routeStats[route].totalWeight += parseFloat(shipment.weight_kg || '0');
       if (shipment.delivery_status === 'Delivered') {
         routeStats[route].deliveredCount++;
       }

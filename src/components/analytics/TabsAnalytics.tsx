@@ -1,219 +1,250 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Package, MapPin, Clock } from 'lucide-react';
+import { Package, Globe, Truck, MapPin, Map } from 'lucide-react';
+import { KpiCard } from './KpiCard';
+import { RouteBarChart } from './RouteBarChart';
+import { SavingsTrendLine } from './SavingsTrendLine';
+import { AlertTicker } from './AlertTicker';
+import { csvDataEngine } from '@/services/csvDataEngine';
 import type { ShipmentData } from '@/types/shipment';
 
-interface TabsAnalyticsProps {
-  shipmentData: ShipmentData[];
-}
+export const TabsAnalytics: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('shipments');
+  const [shipmentData, setShipmentData] = useState<ShipmentData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export const TabsAnalytics: React.FC<TabsAnalyticsProps> = ({ shipmentData }) => {
-  // Calculate analytics data from real shipment data
-  const calculateAnalytics = () => {
-    if (!shipmentData || shipmentData.length === 0) {
-      return {
-        costAnalysis: [],
-        routeAnalysis: [],
-        timeAnalysis: [],
-        carrierAnalysis: []
-      };
-    }
-
-    // Cost analysis by month
-    const monthlyCosts: Record<string, number> = {};
-    const routePerformance: Record<string, { count: number; avgCost: number; totalCost: number }> = {};
-    const carrierPerformance: Record<string, { count: number; avgCost: number; totalCost: number }> = {};
-
-    shipmentData.forEach(shipment => {
-      const dateStr = shipment.pickup_date || shipment.delivery_date || shipment.date_of_collection || '2024-01-01';
-      const month = new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-      
-      const costField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
-      
-      // Monthly costs
-      monthlyCosts[month] = (monthlyCosts[month] || 0) + costNum;
-      
-      // Route analysis
-      const route = `${shipment.origin_country || 'Unknown'} → ${shipment.destination_country || 'Unknown'}`;
-      if (!routePerformance[route]) {
-        routePerformance[route] = { count: 0, avgCost: 0, totalCost: 0 };
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await csvDataEngine.listShipments();
+        setShipmentData(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to load shipment data:', error);
+        setShipmentData([]);
+      } finally {
+        setIsLoading(false);
       }
-      routePerformance[route].count++;
-      routePerformance[route].totalCost += costNum;
-      
-      // Carrier analysis
-      const carrier = shipment.carrier || shipment.final_quote_awarded_freight_forwader_carrier || 'Unknown';
-      if (!carrierPerformance[carrier]) {
-        carrierPerformance[carrier] = { count: 0, avgCost: 0, totalCost: 0 };
-      }
-      carrierPerformance[carrier].count++;
-      const carrierCostField = shipment['carrier+cost'] || shipment.carrier_cost || 0;
-      const carrierCostNum = typeof carrierCostField === 'string' ? parseFloat(carrierCostField.toString().replace(/[^0-9.-]/g, '')) : Number(carrierCostField) || 0;
-      carrierPerformance[carrier].totalCost += carrierCostNum;
-    });
+    };
+    loadData();
+  }, []);
 
-    // Convert monthly costs to chart data
-    const costAnalysis = Object.entries(monthlyCosts)
-      .map(([month, cost]) => ({ month, cost: Math.round(cost) }))
-      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  // Calculate real metrics from shipment data
+  const calculateMetrics = () => {
+    if (!shipmentData.length) return {
+      totalShipments: 0,
+      avgCost: 0,
+      totalWeight: 0,
+      totalValue: 0,
+      uniqueForwarders: 0,
+      uniqueDestinations: 0,
+      deliveredShipments: 0
+    };
 
-    // Convert route performance to chart data
-    const routeAnalysis = Object.entries(routePerformance)
-      .map(([route, data]) => ({
-        route,
-        shipments: data.count,
-        avgCost: Math.round(data.totalCost / data.count)
-      }))
-      .sort((a, b) => b.shipments - a.shipments)
-      .slice(0, 5); // Top 5 routes
-
-    // Time analysis (shipments per month)
-    const timeAnalysis = costAnalysis.map(item => ({
-      month: item.month,
-      shipments: shipmentData.filter(s => {
-        const dateStr = s.pickup_date || s.delivery_date || s.date_of_collection || '2024-01-01';
-        return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) === item.month;
-      }).length
-    }));
-
-    // Carrier analysis for pie chart
-    const carrierAnalysis = Object.entries(carrierPerformance)
-      .map(([carrier, data]) => ({
-        carrier,
-        shipments: data.count,
-        avgCost: Math.round(data.totalCost / data.count)
-      }))
-      .sort((a, b) => b.shipments - a.shipments)
-      .slice(0, 5); // Top 5 carriers
+    const totalShipments = shipmentData.length;
+    const totalCost = shipmentData.reduce((sum, s) => sum + (parseFloat(s['carrier+cost'] || '0')), 0);
+    const avgCost = totalCost / totalShipments;
+    const totalWeight = shipmentData.reduce((sum, s) => sum + parseFloat(s.weight_kg || '0'), 0);
+    const totalValue = shipmentData.reduce((sum, s) => sum + parseFloat(s.item_value || '0'), 0);
+    const uniqueForwarders = new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_Carrier).filter(Boolean)).size;
+    const uniqueDestinations = new Set(shipmentData.map(s => s.destination_country).filter(Boolean)).size;
+    const deliveredShipments = shipmentData.filter(s => s.delivery_status === 'Delivered').length;
 
     return {
-      costAnalysis,
-      routeAnalysis,
-      timeAnalysis,
-      carrierAnalysis
+      totalShipments,
+      avgCost,
+      totalWeight,
+      totalValue,
+      uniqueForwarders,
+      uniqueDestinations,
+      deliveredShipments
     };
   };
 
-  const { costAnalysis, routeAnalysis, timeAnalysis, carrierAnalysis } = calculateAnalytics();
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  const metrics = calculateMetrics();
+  const deliveryRate = metrics.totalShipments > 0 ? (metrics.deliveredShipments / metrics.totalShipments) * 100 : 0;
 
   return (
-    <Card className="glass-card shadow-glass border border-glassBorder">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
-          📊 Shipment Analytics
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="cost" className="w-full">
-          <TabsList>
-            <TabsTrigger value="cost" className="text-indigo-300">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Cost Analysis
-            </TabsTrigger>
-            <TabsTrigger value="route" className="text-indigo-300">
-              <MapPin className="w-4 h-4 mr-2" />
-              Route Performance
-            </TabsTrigger>
-            <TabsTrigger value="time" className="text-indigo-300">
-              <Clock className="w-4 h-4 mr-2" />
-              Time Analysis
-            </TabsTrigger>
-            <TabsTrigger value="carrier" className="text-indigo-300">
-              <Package className="w-4 h-4 mr-2" />
-              Carrier Analysis
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="cost">
-            {costAnalysis.length > 0 ? (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={costAnalysis}>
-                    <XAxis dataKey="month" stroke="#8884d8" />
-                    <YAxis stroke="#8884d8" />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(30, 41, 59, 0.9)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '8px', color: 'white' }} />
-                    <Line type="monotone" dataKey="cost" stroke="#82ca9d" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-indigo-300">
-                No cost data available
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value="route">
-            {routeAnalysis.length > 0 ? (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={routeAnalysis}>
-                    <XAxis dataKey="route" stroke="#8884d8" />
-                    <YAxis stroke="#8884d8" />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(30, 41, 59, 0.9)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '8px', color: 'white' }} />
-                    <Bar dataKey="avgCost" fill="#a855f7" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-indigo-300">
-                No route data available
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value="time">
-            {timeAnalysis.length > 0 ? (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={timeAnalysis}>
-                    <XAxis dataKey="month" stroke="#8884d8" />
-                    <YAxis stroke="#8884d8" />
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(30, 41, 59, 0.9)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '8px', color: 'white' }} />
-                    <Line type="monotone" dataKey="shipments" stroke="#f472b6" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-indigo-300">
-                No time data available
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value="carrier">
-            {carrierAnalysis.length > 0 ? (
-              <div className="h-64 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      dataKey="shipments"
-                      data={carrierAnalysis}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      label
-                    >
-                      {
-                        carrierAnalysis.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))
-                      }
-                    </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: 'rgba(30, 41, 59, 0.9)', border: '1px solid rgba(148, 163, 184, 0.2)', borderRadius: '8px', color: 'white' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-indigo-300">
-                No carrier data available
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 bg-slate-800/50">
+          <TabsTrigger value="shipments" className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            <span className="hidden sm:inline">Shipments</span>
+          </TabsTrigger>
+          <TabsTrigger value="destinations" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            <span className="hidden sm:inline">Destinations</span>
+          </TabsTrigger>
+          <TabsTrigger value="forwarders" className="flex items-center gap-2">
+            <Truck className="w-4 h-4" />
+            <span className="hidden sm:inline">Forwarders</span>
+          </TabsTrigger>
+          <TabsTrigger value="routes" className="flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            <span className="hidden sm:inline">Routes</span>
+          </TabsTrigger>
+          <TabsTrigger value="maps" className="flex items-center gap-2">
+            <Map className="w-4 h-4" />
+            <span className="hidden sm:inline">Live Maps</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="shipments" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <KpiCard
+              title="Total Shipments"
+              value={metrics.totalShipments}
+              unit=""
+              icon={<span className="text-blue-400 text-xl">📦</span>}
+              color="blue-400"
+              previousValue={Math.max(0, metrics.totalShipments - 5)}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Average Cost"
+              value={metrics.avgCost}
+              unit="$"
+              icon={<span className="text-green-400 text-xl">💰</span>}
+              color="green-400"
+              previousValue={metrics.avgCost * 0.95}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Total Weight"
+              value={metrics.totalWeight / 1000}
+              unit="T"
+              icon={<span className="text-purple-400 text-xl">⚖️</span>}
+              color="purple-400"
+              previousValue={metrics.totalWeight / 1000 * 0.9}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Delivery Rate"
+              value={deliveryRate}
+              unit="%"
+              icon={<span className="text-orange-400 text-xl">✅</span>}
+              color="orange-400"
+              previousValue={deliveryRate - 2}
+              isLoading={isLoading}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <RouteBarChart shipmentData={shipmentData} />
+              <SavingsTrendLine shipmentData={shipmentData} />
+            </div>
+            <div className="space-y-6">
+              <AlertTicker shipmentData={shipmentData} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="destinations" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <KpiCard
+              title="Active Destinations"
+              value={metrics.uniqueDestinations}
+              unit=""
+              icon={<span className="text-cyan-400 text-xl">🌍</span>}
+              color="cyan-400"
+              previousValue={Math.max(0, metrics.uniqueDestinations - 1)}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Total Value"
+              value={metrics.totalValue / 1000}
+              unit="K$"
+              icon={<span className="text-yellow-400 text-xl">💎</span>}
+              color="yellow-400"
+              previousValue={metrics.totalValue / 1000 * 0.85}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Avg Per Destination"
+              value={metrics.uniqueDestinations > 0 ? metrics.totalShipments / metrics.uniqueDestinations : 0}
+              unit=""
+              icon={<span className="text-emerald-400 text-xl">📊</span>}
+              color="emerald-400"
+              previousValue={metrics.uniqueDestinations > 0 ? (metrics.totalShipments / metrics.uniqueDestinations) * 0.9 : 0}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          <div className="text-center py-12 bg-slate-800/30 rounded-lg border border-slate-700">
+            <Globe className="w-16 h-16 mx-auto mb-4 text-cyan-400" />
+            <h3 className="text-xl font-semibold text-white mb-2">Regional Analysis</h3>
+            <p className="text-indigo-300">
+              {isLoading ? 'Loading destination data...' : `${metrics.uniqueDestinations} destinations analyzed`}
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="forwarders" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <KpiCard
+              title="Active Forwarders"
+              value={metrics.uniqueForwarders}
+              unit=""
+              icon={<span className="text-blue-400 text-xl">🚛</span>}
+              color="blue-400"
+              previousValue={Math.max(0, metrics.uniqueForwarders - 1)}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Avg Shipments/Forwarder"
+              value={metrics.uniqueForwarders > 0 ? metrics.totalShipments / metrics.uniqueForwarders : 0}
+              unit=""
+              icon={<span className="text-yellow-400 text-xl">📈</span>}
+              color="yellow-400"
+              previousValue={metrics.uniqueForwarders > 0 ? (metrics.totalShipments / metrics.uniqueForwarders) * 0.9 : 0}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Total Volume"
+              value={metrics.totalWeight / 1000}
+              unit="T"
+              icon={<span className="text-green-400 text-xl">📦</span>}
+              color="green-400"
+              previousValue={metrics.totalWeight / 1000 * 0.92}
+              isLoading={isLoading}
+            />
+            <KpiCard
+              title="Avg Cost/Shipment"
+              value={metrics.avgCost}
+              unit="$"
+              icon={<span className="text-purple-400 text-xl">💰</span>}
+              color="purple-400"
+              previousValue={metrics.avgCost * 1.05}
+              isLoading={isLoading}
+            />
+          </div>
+
+          <div className="text-center py-12 bg-slate-800/30 rounded-lg border border-slate-700">
+            <Truck className="w-16 h-16 mx-auto mb-4 text-blue-400" />
+            <h3 className="text-xl font-semibold text-white mb-2">Forwarder Performance</h3>
+            <p className="text-indigo-300">
+              {isLoading ? 'Loading forwarder data...' : `${metrics.uniqueForwarders} forwarders analyzed`}
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="routes" className="space-y-6">
+          <RouteBarChart shipmentData={shipmentData} />
+          <SavingsTrendLine shipmentData={shipmentData} />
+        </TabsContent>
+
+        <TabsContent value="maps" className="space-y-6">
+          <div className="text-center py-12 bg-slate-800/30 rounded-lg border border-slate-700">
+            <Map className="w-16 h-16 mx-auto mb-4 text-lime-400" />
+            <h3 className="text-xl font-semibold text-white mb-2">Live Route Intelligence</h3>
+            <p className="text-indigo-300">
+              {isLoading ? 'Loading route data...' : `${metrics.totalShipments} shipments tracked`}
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

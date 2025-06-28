@@ -1,135 +1,87 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Clock, CheckCircle, TrendingUp } from 'lucide-react';
-import type { ShipmentData } from '@/types/shipment';
+import { AlertCircle, CheckCircle, Info, Clock } from 'lucide-react';
 
-interface AlertTickerProps {
-  shipmentData: ShipmentData[];
+interface Alert {
+  id: string;
+  type: 'warning' | 'success' | 'info' | 'error';
+  message: string;
+  timestamp: string;
+  route?: string;
 }
 
-export const AlertTicker: React.FC<AlertTickerProps> = ({ shipmentData }) => {
-  // Generate real alerts from shipment data
-  const generateAlerts = () => {
-    if (!shipmentData || shipmentData.length === 0) return [];
+const initialAlerts: Alert[] = [
+  { id: '1', type: 'success', message: 'Route SIN → LAX optimization completed - 12% cost reduction', timestamp: '2m ago', route: 'SIN → LAX' },
+  { id: '2', type: 'warning', message: 'High demand detected on DXB → JFK route - consider alternate forwarders', timestamp: '5m ago', route: 'DXB → JFK' },
+  { id: '3', type: 'info', message: 'New synthetic training data generated - 847 samples added', timestamp: '12m ago' },
+  { id: '4', type: 'error', message: 'Delay alert: NRT → LAX shipment SR_24-089 experiencing customs hold', timestamp: '18m ago', route: 'NRT → LAX' },
+  { id: '5', type: 'success', message: 'Freight In Time reliability score updated: 94.7%', timestamp: '25m ago' },
+];
 
-    const alerts: Array<{
-      id: string;
-      type: 'warning' | 'success' | 'info';
-      icon: React.ReactNode;
-      message: string;
-      timestamp: string;
-    }> = [];
+const getAlertIcon = (type: string) => {
+  switch (type) {
+    case 'success': return <CheckCircle className="w-4 h-4 text-green-400" />;
+    case 'warning': return <AlertCircle className="w-4 h-4 text-yellow-400" />;
+    case 'error': return <AlertCircle className="w-4 h-4 text-red-400" />;
+    case 'info': return <Info className="w-4 h-4 text-blue-400" />;
+    default: return <Clock className="w-4 h-4 text-gray-400" />;
+  }
+};
 
-    // Calculate various metrics for alerts
-    const pendingShipments = shipmentData.filter(s => s.delivery_status !== 'Delivered').length;
-    const deliveredShipments = shipmentData.filter(s => s.delivery_status === 'Delivered').length;
-    const totalCost = shipmentData.reduce((sum, s) => {
-      const costField = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
-      return sum + costNum;
-    }, 0);
-    const avgCost = totalCost / shipmentData.length;
-    const highValueShipments = shipmentData.filter(s => {
-      const costField = s['carrier+cost'] || s.carrier_cost || 0;
-      const costNum = typeof costField === 'string' ? parseFloat(costField.toString().replace(/[^0-9.-]/g, '')) : Number(costField) || 0;
-      return costNum > avgCost * 2;
-    }).length;
+export const AlertTicker: React.FC = () => {
+  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
+  const [newAlertIndex, setNewAlertIndex] = useState(-1);
 
-    // Generate alerts based on data
-    if (pendingShipments > 0) {
-      alerts.push({
-        id: 'pending',
-        type: 'warning',
-        icon: <Clock className="w-4 h-4" />,
-        message: `${pendingShipments} shipments pending delivery`,
-        timestamp: '2 min ago'
-      });
-    }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newAlert: Alert = {
+        id: Date.now().toString(),
+        type: ['success', 'warning', 'info'][Math.floor(Math.random() * 3)] as Alert['type'],
+        message: `Live update: Route analysis completed for ${['FRA → NYC', 'LHR → SIN', 'DXB → LAX'][Math.floor(Math.random() * 3)]}`,
+        timestamp: 'now',
+      };
+      
+      setAlerts(prev => [newAlert, ...prev.slice(0, 9)]);
+      setNewAlertIndex(0);
+      
+      setTimeout(() => setNewAlertIndex(-1), 1000);
+    }, 15000);
 
-    if (deliveredShipments > 0) {
-      alerts.push({
-        id: 'delivered',
-        type: 'success',
-        icon: <CheckCircle className="w-4 h-4" />,
-        message: `${deliveredShipments} shipments successfully delivered`,
-        timestamp: '5 min ago'
-      });
-    }
-
-    if (highValueShipments > 0) {
-      alerts.push({
-        id: 'high-value',
-        type: 'info',
-        icon: <TrendingUp className="w-4 h-4" />,
-        message: `${highValueShipments} high-value shipments detected`,
-        timestamp: '8 min ago'
-      });
-    }
-
-    // Add emergency grade alerts
-    const emergencyShipments = shipmentData.filter(s => 
-      s['emergency grade'] && s['emergency grade'].includes('Grade')
-    );
-    
-    if (emergencyShipments.length > 0) {
-      alerts.push({
-        id: 'emergency',
-        type: 'warning',
-        icon: <AlertTriangle className="w-4 h-4" />,
-        message: `${emergencyShipments.length} emergency grade shipments in system`,
-        timestamp: '12 min ago'
-      });
-    }
-
-    return alerts.slice(0, 6); // Limit to 6 alerts
-  };
-
-  const alerts = generateAlerts();
-
-  const getAlertStyles = (type: string) => {
-    switch (type) {
-      case 'warning':
-        return 'border-l-yellow-400 bg-yellow-900/20 text-yellow-300';
-      case 'success':
-        return 'border-l-green-400 bg-green-900/20 text-green-300';
-      case 'info':
-        return 'border-l-blue-400 bg-blue-900/20 text-blue-300';
-      default:
-        return 'border-l-gray-400 bg-gray-900/20 text-gray-300';
-    }
-  };
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Card className="glass-card shadow-glass border border-glassBorder">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-lime-400 flex items-center gap-2">
-          🔔 Live System Alerts
+          🚨 Live System Alerts
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {alerts.length > 0 ? (
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`p-3 rounded-lg border-l-4 ${getAlertStyles(alert.type)} animate-slide-in`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">{alert.icon}</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{alert.message}</p>
-                    <p className="text-xs opacity-75 mt-1">{alert.timestamp}</p>
-                  </div>
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {alerts.map((alert, index) => (
+            <div 
+              key={alert.id} 
+              className={`flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg transition-all duration-500 ${
+                index === newAlertIndex ? 'animate-pulse border border-lime-400/50' : ''
+              }`}
+            >
+              {getAlertIcon(alert.type)}
+              <div className="flex-1">
+                <p className="text-white text-sm leading-relaxed">{alert.message}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-indigo-300 text-xs">{alert.timestamp}</p>
+                  {alert.route && (
+                    <span className="text-xs bg-indigo-600/30 text-indigo-300 px-2 py-1 rounded">
+                      {alert.route}
+                    </span>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-indigo-300">
-            No alerts at this time
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
