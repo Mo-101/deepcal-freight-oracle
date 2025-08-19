@@ -170,7 +170,7 @@ class TrainingService {
   /**
    * Optimize weights using Groq AI
    */
-  async optimizeWeightsWithGroq(historicalData: any[], optimizationGoal: string = 'balanced'): Promise<WeightMatrix> {
+  async optimizeWeightsWithGroq(historicalData: unknown[], optimizationGoal: string = 'balanced'): Promise<WeightMatrix> {
     try {
       const currentWeights = await this.getLatestWeights();
       
@@ -245,6 +245,22 @@ class TrainingService {
   updateWeights(weights: WeightMatrix): void {
     this.currentWeights = weights;
     set('latest-weight-matrix', weights);
+  }
+
+  /**
+   * Stream real-time training updates via MCP server
+   */
+  streamTrainingUpdates(jobId: string, onUpdate: (job: TrainingJob) => void): EventSource {
+    const source = new EventSource(`${this.baseURL}/training/stream/${jobId}`);
+    source.onmessage = (ev) => {
+      try {
+        const data = JSON.parse(ev.data) as TrainingJob;
+        onUpdate(data);
+      } catch (err) {
+        console.error('Failed to parse training update', err);
+      }
+    };
+    return source;
   }
 }
 
