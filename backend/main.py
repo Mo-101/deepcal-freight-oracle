@@ -14,6 +14,7 @@ from models.schemas import (
 from services.mostly_service import mostly_service
 from services.groq_service import groq_service
 from services.training_service import training_service
+from mcp_server import router as mcp_router
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +33,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include MCP server routes for real-time training feedback
+app.include_router(mcp_router, prefix="/api")
 
 # Health check
 @app.get("/health")
