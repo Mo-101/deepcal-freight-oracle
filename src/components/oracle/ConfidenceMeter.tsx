@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 
 interface ConfidenceMeterProps {
-  confidence: number; // 0-100
+  confidence?: number; // 0-100
+  value?: number; // Alternative prop name
   label?: string;
   showDetails?: boolean;
   animated?: boolean;
@@ -70,43 +71,45 @@ const confidenceLevels: ConfidenceLevel[] = [
 
 export default function ConfidenceMeter({ 
   confidence, 
+  value,
   label = "Confidence",
   showDetails = false,
   animated = true,
   size = 'md',
   className = ""
 }: ConfidenceMeterProps) {
-  const [displayedConfidence, setDisplayedConfidence] = useState(animated ? 0 : confidence);
+  const actualValue = confidence ?? value ?? 0;
+  const [displayedConfidence, setDisplayedConfidence] = useState(animated ? 0 : actualValue);
   const [isAnimating, setIsAnimating] = useState(animated);
 
   // Animate confidence value
   useEffect(() => {
     if (!animated) {
-      setDisplayedConfidence(confidence);
+      setDisplayedConfidence(actualValue);
       return;
     }
 
     setIsAnimating(true);
     const duration = 1500;
     const steps = 60;
-    const increment = confidence / steps;
+    const increment = actualValue / steps;
     let current = 0;
     let step = 0;
 
     const interval = setInterval(() => {
       step++;
-      current = Math.min(confidence, increment * step);
+      current = Math.min(actualValue, increment * step);
       setDisplayedConfidence(current);
 
-      if (step >= steps || current >= confidence) {
+      if (step >= steps || current >= actualValue) {
         clearInterval(interval);
-        setDisplayedConfidence(confidence);
+        setDisplayedConfidence(actualValue);
         setIsAnimating(false);
       }
     }, duration / steps);
 
     return () => clearInterval(interval);
-  }, [confidence, animated]);
+  }, [actualValue, animated]);
 
   const currentLevel = confidenceLevels.find(
     level => displayedConfidence >= level.min && displayedConfidence <= level.max

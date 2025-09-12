@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 
 interface OracleTypingDisplayProps {
-  text: string;
+  text?: string;
+  isCalculating?: boolean;
   isTyping?: boolean;
   speed?: number;
   onComplete?: () => void;
@@ -16,7 +17,8 @@ interface OracleTypingDisplayProps {
 }
 
 export default function OracleTypingDisplay({ 
-  text, 
+  text = '', 
+  isCalculating = false,
   isTyping = false, 
   speed = 50,
   onComplete,
@@ -37,7 +39,7 @@ export default function OracleTypingDisplay({
 
   // Typing effect
   useEffect(() => {
-    if (!isTyping) {
+    if (!isTyping || !text) {
       setDisplayedText(text);
       setCurrentIndex(text.length);
       return;
@@ -57,11 +59,38 @@ export default function OracleTypingDisplay({
 
   // Reset when text changes
   useEffect(() => {
-    if (isTyping) {
+    if (isTyping && text) {
       setDisplayedText('');
       setCurrentIndex(0);
     }
   }, [text, isTyping]);
+
+  if (isCalculating) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1">
+              <div className="w-3 h-3 bg-lime-400 rounded-full animate-pulse" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-white">DeepCAL Oracle</span>
+            <div className="flex items-center gap-1">
+              <Activity className="w-3 h-3 text-lime-400 animate-pulse" />
+              <span className="text-xs text-lime-400">Calculating...</span>
+            </div>
+          </div>
+        </div>
+        <div className="relative p-4 bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-lg backdrop-blur-sm">
+          <div className="animate-pulse text-white">Processing optimal route calculations...</div>
+        </div>
+      </div>
+    );
+  }
 
   const isComplete = currentIndex >= text.length;
 

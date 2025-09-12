@@ -122,38 +122,26 @@ export const TabsAnalytics: React.FC = () => {
             <KpiCard
               title="Total Shipments"
               value={metrics.totalShipments}
-              unit=""
-              icon={<span className="text-blue-400 text-xl">📦</span>}
-              color="blue-400"
-              previousValue={Math.max(0, metrics.totalShipments - 5)}
-              isLoading={isLoading}
+              icon={Package}
+              iconColor="text-blue-400"
             />
             <KpiCard
               title="Average Cost"
-              value={metrics.avgCost}
-              unit="$"
-              icon={<span className="text-green-400 text-xl">💰</span>}
-              color="green-400"
-              previousValue={metrics.avgCost * 0.95}
-              isLoading={isLoading}
+              value={`$${metrics.avgCost.toFixed(0)}`}
+              icon={Package}
+              iconColor="text-green-400"
             />
             <KpiCard
               title="Total Weight"
-              value={metrics.totalWeight / 1000}
-              unit="T"
-              icon={<span className="text-purple-400 text-xl">⚖️</span>}
-              color="purple-400"
-              previousValue={metrics.totalWeight / 1000 * 0.9}
-              isLoading={isLoading}
+              value={`${(metrics.totalWeight / 1000).toFixed(1)}T`}
+              icon={Package}
+              iconColor="text-purple-400"
             />
             <KpiCard
               title="Delivery Rate"
-              value={deliveryRate}
-              unit="%"
-              icon={<span className="text-orange-400 text-xl">✅</span>}
-              color="orange-400"
-              previousValue={deliveryRate - 2}
-              isLoading={isLoading}
+              value={`${deliveryRate.toFixed(1)}%`}
+              icon={Package}
+              iconColor="text-orange-400"
             />
           </div>
 
@@ -173,29 +161,20 @@ export const TabsAnalytics: React.FC = () => {
             <KpiCard
               title="Active Destinations"
               value={metrics.uniqueDestinations}
-              unit=""
-              icon={<span className="text-cyan-400 text-xl">🌍</span>}
-              color="cyan-400"
-              previousValue={Math.max(0, metrics.uniqueDestinations - 1)}
-              isLoading={isLoading}
+              icon={Globe}
+              iconColor="text-cyan-400"
             />
             <KpiCard
               title="Total Value"
-              value={metrics.totalValue / 1000}
-              unit="K$"
-              icon={<span className="text-yellow-400 text-xl">💎</span>}
-              color="yellow-400"
-              previousValue={metrics.totalValue / 1000 * 0.85}
-              isLoading={isLoading}
+              value={`$${(metrics.totalValue / 1000).toFixed(0)}K`}
+              icon={Globe}
+              iconColor="text-yellow-400"
             />
             <KpiCard
               title="Avg Per Destination"
-              value={metrics.uniqueDestinations > 0 ? metrics.totalShipments / metrics.uniqueDestinations : 0}
-              unit=""
-              icon={<span className="text-emerald-400 text-xl">📊</span>}
-              color="emerald-400"
-              previousValue={metrics.uniqueDestinations > 0 ? (metrics.totalShipments / metrics.uniqueDestinations) * 0.9 : 0}
-              isLoading={isLoading}
+              value={(metrics.uniqueDestinations > 0 ? metrics.totalShipments / metrics.uniqueDestinations : 0).toFixed(1)}
+              icon={Globe}
+              iconColor="text-emerald-400"
             />
           </div>
           
@@ -213,38 +192,26 @@ export const TabsAnalytics: React.FC = () => {
             <KpiCard
               title="Active Forwarders"
               value={metrics.uniqueForwarders}
-              unit=""
-              icon={<span className="text-blue-400 text-xl">🚛</span>}
-              color="blue-400"
-              previousValue={Math.max(0, metrics.uniqueForwarders - 1)}
-              isLoading={isLoading}
+              icon={Truck}
+              iconColor="text-blue-400"
             />
             <KpiCard
               title="Avg Shipments/Forwarder"
-              value={metrics.uniqueForwarders > 0 ? metrics.totalShipments / metrics.uniqueForwarders : 0}
-              unit=""
-              icon={<span className="text-yellow-400 text-xl">📈</span>}
-              color="yellow-400"
-              previousValue={metrics.uniqueForwarders > 0 ? (metrics.totalShipments / metrics.uniqueForwarders) * 0.9 : 0}
-              isLoading={isLoading}
+              value={(metrics.uniqueForwarders > 0 ? metrics.totalShipments / metrics.uniqueForwarders : 0).toFixed(1)}
+              icon={Truck}
+              iconColor="text-yellow-400"
             />
             <KpiCard
               title="Total Volume"
-              value={metrics.totalWeight / 1000}
-              unit="T"
-              icon={<span className="text-green-400 text-xl">📦</span>}
-              color="green-400"
-              previousValue={metrics.totalWeight / 1000 * 0.92}
-              isLoading={isLoading}
+              value={`${(metrics.totalWeight / 1000).toFixed(1)}T`}
+              icon={Truck}
+              iconColor="text-green-400"
             />
             <KpiCard
               title="Avg Cost/Shipment"
-              value={metrics.avgCost}
-              unit="$"
-              icon={<span className="text-purple-400 text-xl">💰</span>}
-              color="purple-400"
-              previousValue={metrics.avgCost * 1.05}
-              isLoading={isLoading}
+              value={`$${metrics.avgCost.toFixed(0)}`}
+              icon={Truck}
+              iconColor="text-purple-400"
             />
           </div>
 

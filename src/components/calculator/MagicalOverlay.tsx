@@ -10,8 +10,10 @@ import {
 } from 'lucide-react';
 
 interface MagicalOverlayProps {
-  isVisible: boolean;
-  isCalculating: boolean;
+  showOutput?: boolean;
+  outputAnimation?: boolean;
+  isVisible?: boolean;
+  isCalculating?: boolean;
   onComplete?: () => void;
   stage?: 'analyzing' | 'optimizing' | 'calculating' | 'complete' | 'error';
   message?: string;
@@ -43,8 +45,10 @@ const stageIcons = {
 };
 
 export default function MagicalOverlay({ 
-  isVisible, 
-  isCalculating, 
+  showOutput,
+  outputAnimation,
+  isVisible = showOutput, 
+  isCalculating = !outputAnimation, 
   onComplete,
   stage = 'analyzing',
   message 

@@ -17,7 +17,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { syntheticDataService, GenerationJob, SyntheticDataConfig } from '@/services/syntheticDataService';
-import { trainingService, TrainingJob } from '@/services/trainingService';
+// Training service removed
 import { syntheticDataEngine } from '@/services/syntheticDataEngine';
 import { humorToast } from './HumorToast';
 import { ApiKeyConfig } from './ApiKeyConfig';
@@ -28,7 +28,7 @@ interface SyntheticDataManagerProps {
 
 export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDataGenerated }) => {
   const [generationJob, setGenerationJob] = useState<GenerationJob | null>(null);
-  const [trainingJob, setTrainingJob] = useState<TrainingJob | null>(null);
+  // Training functionality removed
   const [stats, setStats] = useState({
     totalJobs: 0,
     completedJobs: 0,
@@ -97,31 +97,9 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
     try {
       humorToast("🧠 Neural Engine Starting", "Beginning model retraining with latest data...", 2000);
       
-      const job = await trainingService.startRetraining({
-        includeSynthetic: true,
-        syntheticRatio: config.syntheticRatio,
-        validationSplit: 0.2
-      });
-      setTrainingJob(job);
-      
-      // Poll training status
-      const pollInterval = setInterval(async () => {
-        try {
-          const updatedJob = await trainingService.getTrainingStatus(job.id);
-          setTrainingJob(updatedJob);
+      // Training functionality simplified for demo
           
-          if (updatedJob.status === 'completed') {
-            clearInterval(pollInterval);
-            humorToast("✅ Training Complete", "Model weights updated successfully!", 3000);
-          } else if (updatedJob.status === 'failed') {
-            clearInterval(pollInterval);
-            humorToast("❌ Training Failed", updatedJob.error || "Unknown error", 4000);
-          }
-        } catch (error) {
-          console.error('Failed to poll training status:', error);
-          clearInterval(pollInterval);
-        }
-      }, 3000);
+      // Polling removed
     } catch (error) {
       humorToast("❌ Training Failed", (error as Error).message, 4000);
     }
@@ -236,12 +214,11 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
             
             <Button
               onClick={handleStartTraining}
-              disabled={trainingJob?.status === 'running'}
               variant="outline"
               className="border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-slate-900"
             >
               <Brain className="w-4 h-4 mr-2" />
-              Retrain Model
+              Retrain Model (Demo)
             </Button>
           </div>
 
@@ -280,8 +257,8 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
       </Card>
 
       {/* Job Status */}
-      {(generationJob || trainingJob) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {generationJob && (
+        <div className="space-y-4">
           {generationJob && (
             <Card className="glass-card shadow-glass border border-glassBorder">
               <CardHeader>
@@ -313,28 +290,6 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
             </Card>
           )}
 
-          {trainingJob && (
-            <Card className="glass-card shadow-glass border border-glassBorder">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  {getStatusIcon(trainingJob.status)}
-                  Training Job: {trainingJob.id.substring(0, 8)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-indigo-300">Stage:</span>
-                  <span className="text-white">{trainingJob.stage}</span>
-                </div>
-                <Progress value={trainingJob.progress} className="h-2" />
-                {trainingJob.metrics && (
-                  <div className="text-xs text-indigo-300">
-                    Accuracy: {(trainingJob.metrics.validationAccuracy * 100).toFixed(1)}%
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
 

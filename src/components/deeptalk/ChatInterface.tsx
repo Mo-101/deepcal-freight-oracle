@@ -120,7 +120,7 @@ export default function ChatInterface({
         <ChatInput
           input={input}
           setInput={setInput}
-          onSubmit={onSubmit}
+          onSubmit={() => onSubmit({} as React.FormEvent)}
           onStartListening={onStartListening}
           isProcessing={isProcessing}
           isListening={isListening}

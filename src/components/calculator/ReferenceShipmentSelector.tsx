@@ -41,8 +41,14 @@ interface ReferenceShipment {
 }
 
 interface ReferenceShipmentSelectorProps {
+  selectedReference?: string;
   selectedShipment?: ReferenceShipment;
-  onShipmentSelect: (shipment: ReferenceShipment) => void;
+  oldShipments?: any[];
+  refreshingData?: boolean;
+  dataStale?: boolean;
+  onReferenceChange?: (reference: string) => void;
+  onShipmentSelect?: (shipment: ReferenceShipment) => void;
+  onRefresh?: () => Promise<void>;
 }
 
 const mockShipments: ReferenceShipment[] = [
@@ -96,7 +102,16 @@ const mockShipments: ReferenceShipment[] = [
   }
 ];
 
-export default function ReferenceShipmentSelector({ selectedShipment, onShipmentSelect }: ReferenceShipmentSelectorProps) {
+export default function ReferenceShipmentSelector({ 
+  selectedReference,
+  selectedShipment, 
+  oldShipments = [],
+  refreshingData = false,
+  dataStale = false,
+  onReferenceChange,
+  onShipmentSelect,
+  onRefresh
+}: ReferenceShipmentSelectorProps) {
   const [filterType, setFilterType] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -228,7 +243,7 @@ export default function ReferenceShipmentSelector({ selectedShipment, onShipment
                   ? 'border-lime-500/50 bg-lime-500/10'
                   : 'border-white/10 bg-white/5'
               }`}
-              onClick={() => onShipmentSelect(shipment)}
+              onClick={() => onShipmentSelect?.(shipment)}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">

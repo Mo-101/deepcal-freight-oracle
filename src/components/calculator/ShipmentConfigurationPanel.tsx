@@ -42,9 +42,19 @@ interface ShipmentConfiguration {
 }
 
 interface ShipmentConfigurationPanelProps {
-  configuration: ShipmentConfiguration;
-  onConfigurationChange: (config: ShipmentConfiguration) => void;
-  onCalculate: () => void;
+  inputs?: any;
+  validation?: any;
+  forwarderRFQ?: any;
+  isAwakening?: boolean;
+  shipments?: any[];
+  configuration?: ShipmentConfiguration;
+  onInputsChange?: (inputs: any) => void;
+  onPrioritiesChange?: (priorities: any) => void;
+  onForwarderToggle?: (forwarder: string) => void;
+  onRFQChange?: (forwarder: string, data: any) => void;
+  onAwakenOracle?: () => Promise<void>;
+  onConfigurationChange?: (config: ShipmentConfiguration) => void;
+  onCalculate?: () => void;
   isCalculating?: boolean;
 }
 

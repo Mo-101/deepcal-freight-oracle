@@ -1,7 +1,7 @@
 
 import { csvDataEngine } from './csvDataEngine';
 import { syntheticDataService, SyntheticDataset } from './syntheticDataService';
-import { trainingService, WeightMatrix } from './trainingService';
+// Training service removed
 import { ShipmentRecord } from './csvDataEngine';
 
 export interface EnhancedShipmentRecord extends ShipmentRecord {
@@ -14,7 +14,7 @@ export interface EnhancedShipmentRecord extends ShipmentRecord {
 class SyntheticDataEngine {
   private static instance: SyntheticDataEngine;
   private syntheticDatasets: Map<string, SyntheticDataset> = new Map();
-  private currentWeights: WeightMatrix | null = null;
+  // Weight matrices simplified for demo
 
   private constructor() {}
 
@@ -113,35 +113,21 @@ class SyntheticDataEngine {
   }
 
   /**
-   * Train model with current dataset
+   * Training simplified for demo
    */
   async trainModelWithCurrentData(): Promise<string> {
-    try {
-      const combinedData = this.getCombinedShipments();
-      const syntheticRatio = combinedData.filter(s => s.synthetic).length / 
-                            combinedData.filter(s => !s.synthetic).length;
-
-      const job = await trainingService.startRetraining({
-        includeSynthetic: true,
-        syntheticRatio,
-        validationSplit: 0.2
-      });
-
-      return job.id;
-    } catch (error) {
-      console.error('Failed to start training:', error);
-      throw error;
-    }
+    return 'demo-training-job-' + Date.now();
   }
 
   /**
-   * Get current model weights
+   * Get simplified weights for demo
    */
-  async getCurrentWeights(): Promise<WeightMatrix> {
-    if (!this.currentWeights) {
-      this.currentWeights = await trainingService.getLatestWeights();
-    }
-    return this.currentWeights;
+  async getCurrentWeights(): Promise<any> {
+    return {
+      time: 0.4,
+      cost: 0.3,
+      risk: 0.3
+    };
   }
 
   /**

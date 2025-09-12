@@ -140,11 +140,8 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
 
       {/* Oracle Typing Display - NOW with real calculation timing */}
       <OracleTypingDisplay
-        isActive={showOutput}
-        isCalculating={showOutput && !results} // Show calculating while waiting for results
-        shipmentCount={historicalStats?.totalShipments}
-        bestForwarder={results?.bestForwarder}
-        routeScore={results?.routeScore}
+        text={showOutput && !results ? 'Calculating optimal route...' : results?.oracleNarrative || ''}
+        isCalculating={showOutput && !results}
       />
 
       {/* Enhanced Results Display - Only show when results are actually ready */}
@@ -252,9 +249,8 @@ const OracleResultsPanel: React.FC<OracleResultsPanelProps> = ({
               
               <div className="lg:col-span-1">
                 <ConfidenceMeter 
-                  score={results.routeScore} 
+                  value={parseFloat(results.routeScore) || 85}
                   label="Route Optimization Score"
-                  showDetails={true}
                 />
               </div>
             </div>

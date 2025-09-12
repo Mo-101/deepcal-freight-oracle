@@ -9,7 +9,7 @@ const navLinks = [
   // { label: "Ranking", to: "/ranking" }, // removed
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Training", to: "/training", icon: Dumbbell },
+  
 ];
 
 const DeepCALSymbolicHeader: React.FC = () => {
@@ -39,7 +39,7 @@ const DeepCALSymbolicHeader: React.FC = () => {
                     : ""
                 ].join(" ")}
               >
-                {link.icon && <link.icon className="w-4 h-4" />}
+                
                 {link.label}
               </Link>
             ))}

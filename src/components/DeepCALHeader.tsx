@@ -11,7 +11,7 @@ const navLinks = [
   { label: "Dashboard", to: "/" },
   { label: "Analytics", to: "/analytics" },
   { label: "DeepTalk", to: "/deeptalk" },
-  { label: "Training", to: "/training", icon: Dumbbell },
+  
 ];
 
 const DeepCALHeader: React.FC = () => {
@@ -37,7 +37,7 @@ const DeepCALHeader: React.FC = () => {
                 location.pathname === link.to && "bg-indigo-800 shadow-inner"
               )}
             >
-              {link.icon && <link.icon className="w-4 h-4" />}
+              
               {link.label}
             </Link>
           ))}
