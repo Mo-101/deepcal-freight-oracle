@@ -36,18 +36,3 @@ function estimateTimeDays(mode?: string, o?: string, d?: string): number {
 
 function estimateReliability(_rec: CanonicalRecord): number { return 0.85; }
 function estimateRisk(_rec: CanonicalRecord): number { return 0.10; }
-
-// Stub AHP/TOPSIS; wire to your existing engine service if already present
-export function topsisRank(X: number[][], w: number[], types: ("benefit"|"cost")[]) {
-  const m = X.length, n = X[0].length;
-  const denom = Array.from({length: n}, (_, j) => Math.sqrt(X.reduce((s,r)=>s+r[j]*r[j],0)) || 1);
-  const R = X.map(r => r.map((x,j)=> x/denom[j]));
-  const V = R.map(r => r.map((x,j)=> x*w[j]));
-  const star = types.map((t,j)=> t==="benefit" ? Math.max(...V.map(r=>r[j])) : Math.min(...V.map(r=>r[j])));
-  const worst = types.map((t,j)=> t==="benefit" ? Math.min(...V.map(r=>r[j])) : Math.max(...V.map(r=>r[j])));
-  const dPlus = V.map(r => Math.sqrt(r.reduce((s,x,j)=> s + (x-star[j])**2, 0)));
-  const dMinus= V.map(r => Math.sqrt(r.reduce((s,x,j)=> s + (x-worst[j])**2, 0)));
-  const C = dMinus.map((dm,i)=> dm/((dm+dPlus[i])||1));
-  const order = [...C.keys()].sort((a,b)=> C[b]-C[a]);
-  return { C, order };
-}
