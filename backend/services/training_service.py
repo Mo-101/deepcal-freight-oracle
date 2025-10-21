@@ -7,6 +7,7 @@ from datetime import datetime
 import uuid
 import json
 from models.schemas import TrainingJob, TrainingJobRequest, JobStatus, WeightVector
+from mcp_server import mcp_server
 
 class TrainingService:
     def __init__(self):
@@ -48,22 +49,28 @@ class TrainingService:
             job = self.training_jobs[job_id]
             job.status = JobStatus.RUNNING
             job.progress = 10
+            await mcp_server.push_update(job_id, job.dict())
             
             # Simulate training process
             await asyncio.sleep(2)  # Load data
             job.progress = 30
+            await mcp_server.push_update(job_id, job.dict())
             
             await asyncio.sleep(3)  # Feature engineering
             job.progress = 50
+            await mcp_server.push_update(job_id, job.dict())
             
             await asyncio.sleep(4)  # Train Neutrosophic engine
             job.progress = 70
+            await mcp_server.push_update(job_id, job.dict())
             
             await asyncio.sleep(2)  # Validate TOPSIS weights
             job.progress = 85
+            await mcp_server.push_update(job_id, job.dict())
             
             await asyncio.sleep(1)  # Generate weight matrices
             job.progress = 95
+            await mcp_server.push_update(job_id, job.dict())
             
             # Store trained weights
             self.weight_matrices[f"trained_{job_id}"] = job.weights
@@ -74,12 +81,14 @@ class TrainingService:
             job.progress = 100
             job.completedAt = datetime.utcnow()
             job.accuracy = 0.94 + (hash(job_id) % 100) / 1000  # Simulated accuracy
+            await mcp_server.push_update(job_id, job.dict())
             
         except Exception as e:
             job = self.training_jobs[job_id]
             job.status = JobStatus.FAILED
             job.error = str(e)
             job.completedAt = datetime.utcnow()
+            await mcp_server.push_update(job_id, job.dict())
 
     async def get_training_job(self, job_id: str) -> Optional[TrainingJob]:
         """Get training job status"""

@@ -96,32 +96,23 @@ export const SyntheticDataManager: React.FC<SyntheticDataManagerProps> = ({ onDa
   const handleStartTraining = async () => {
     try {
       humorToast("🧠 Neural Engine Starting", "Beginning model retraining with latest data...", 2000);
-      
+
       const job = await trainingService.startRetraining({
         includeSynthetic: true,
         syntheticRatio: config.syntheticRatio,
         validationSplit: 0.2
       });
       setTrainingJob(job);
-      
-      // Poll training status
-      const pollInterval = setInterval(async () => {
-        try {
-          const updatedJob = await trainingService.getTrainingStatus(job.id);
-          setTrainingJob(updatedJob);
-          
-          if (updatedJob.status === 'completed') {
-            clearInterval(pollInterval);
-            humorToast("✅ Training Complete", "Model weights updated successfully!", 3000);
-          } else if (updatedJob.status === 'failed') {
-            clearInterval(pollInterval);
-            humorToast("❌ Training Failed", updatedJob.error || "Unknown error", 4000);
-          }
-        } catch (error) {
-          console.error('Failed to poll training status:', error);
-          clearInterval(pollInterval);
+      const source = trainingService.streamTrainingUpdates(job.id, (updatedJob) => {
+        setTrainingJob(updatedJob);
+        if (updatedJob.status === 'completed') {
+          humorToast("✅ Training Complete", "Model weights updated successfully!", 3000);
+          source.close();
+        } else if (updatedJob.status === 'failed') {
+          humorToast("❌ Training Failed", updatedJob.error || "Unknown error", 4000);
+          source.close();
         }
-      }, 3000);
+      });
     } catch (error) {
       humorToast("❌ Training Failed", (error as Error).message, 4000);
     }
